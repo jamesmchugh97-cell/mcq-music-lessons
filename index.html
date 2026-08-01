@@ -474,6 +474,39 @@
           <option>7:00 pm</option><option>8:00 pm</option><option>9:00 pm</option>
         </select>
       </div>
+      <div class="form-group" style="border-top:1px solid var(--navy-border);padding-top:1rem;margin-top:0.5rem;">
+        <label class="form-label" style="color:var(--cream);">Tell James what you'd like to work on (optional)</label>
+        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.8rem;line-height:1.5;">None of this is required, but the more James knows ahead of time, the better he can plan your first lesson.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Songs or artists you'd like to learn</label>
+        <input class="form-input" type="text" id="bookSongRequests" name="song_requests" placeholder="e.g. Wonderwall, Fleetwood Mac, John Mayer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genre you're most interested in</label>
+        <select class="form-input" id="bookGenreFocus" name="genre_focus">
+          <option value="">No preference</option>
+          <option value="Rock">Rock</option>
+          <option value="Country">Country</option>
+          <option value="Blues">Blues</option>
+          <option value="Pop">Pop</option>
+          <option value="Classical">Classical</option>
+          <option value="Fingerpicking">Fingerpicking</option>
+          <option value="Folk/Americana">Folk/Americana</option>
+          <option value="Jazz">Jazz</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);cursor:pointer;">
+          <input type="checkbox" id="bookTheoryInterest" name="theory_interest" value="Yes" style="width:16px;height:16px;">
+          I'd like to include music theory in my lessons
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anything else James should know</label>
+        <textarea class="form-input" id="bookGoalsNotes" name="lesson_goals_notes" rows="3" placeholder="e.g. I'm a complete beginner, I want to prep for a wedding song, I have a specific technique I'm stuck on..." style="resize:vertical;font-family:var(--font-body);"></textarea>
+      </div>
       <div class="subtotal-box">
         <div class="subtotal-row"><span>Price per lesson</span><span id="subtotalAmt">$70</span></div>
         <div class="subtotal-row" id="lessonsRow" style="display:none;"><span id="lessonsLabel"></span><span id="lessonsAmt"></span></div>
@@ -1077,6 +1110,10 @@
       formDataG.append('instrument', 'Group Class');
       formDataG.append('date', date);
       formDataG.append('time', time);
+      formDataG.append('song_requests', document.getElementById('bookSongRequests').value.trim());
+      formDataG.append('genre_focus', document.getElementById('bookGenreFocus').value);
+      formDataG.append('theory_interest', document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No');
+      formDataG.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
       formDataG.append('total', '$40 (pending confirmation)');
       fetch('/', { method: 'POST', body: formDataG }).catch(() => {});
       setTimeout(() => {
@@ -1140,6 +1177,10 @@
     formData.append('time', time);
     formData.append('duration', duration);
     formData.append('lessons_count', lessons);
+    formData.append('song_requests', document.getElementById('bookSongRequests').value.trim());
+    formData.append('genre_focus', document.getElementById('bookGenreFocus').value);
+    formData.append('theory_interest', document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No');
+    formData.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
     formData.append('total', document.getElementById('totalAmt').textContent);
     fetch('/', { method: 'POST', body: formData }).catch(() => {});
 
