@@ -7,8 +7,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://js.stripe.com/v3/"></script>
-<style>
+<script src="https://js.stripe.com/v3/"></script><!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '551157863990443');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code --><style>
   :root {
         --navy: #0d1321;
     --navy-mid: #152033;
@@ -1187,8 +1202,7 @@
     btn.textContent = 'Proceed to Payment'; btn.disabled = false;
     document.getElementById('modalTitle').textContent = 'Booking Confirmed!';
     document.getElementById('modalBody').textContent = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.';
-    document.getElementById('successModal').classList.add('open');
-  }
+    document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
 
   document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
 </script>
