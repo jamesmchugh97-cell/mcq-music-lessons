@@ -1038,7 +1038,24 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   renderCal();
-
+  // Load real-time bookings from Netlify Blobs and merge them into BOOKED,
+  // so slots booked live through the site show up immediately.
+  async function loadLiveBookings() {
+    try {
+      const resp = await fetch('/.netlify/functions/get-bookings');
+      const result = await resp.json();
+      if (result.success && result.booked) {
+        for (const dateKey in result.booked) {
+          if (!BOOKED[dateKey]) BOOKED[dateKey] = [];
+          result.booked[dateKey].forEach(t => {
+            if (!BOOKED[dateKey].includes(t)) BOOKED[dateKey].push(t);
+          });
+        }
+        renderCal();
+      }
+    } catch (e) {}
+  }
+  loadLiveBookings();
   // STRIPE
   const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
   let stripe, cardElement;
@@ -1139,7 +1156,27 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }, 1200);
       return;
     }
-    if (!stripe || !cardElement) { alert('Payment not configured. Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
+    Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
+
+    // Reserve the slot before charging, so two people can never both pay for the same time.
+    let reserveResult;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-slot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: date, time: time, name: name, email: email })
+      });
+      reserveResult = await reserveResp.json();
+    } catch (e) {
+      document.getElementById('stripe-error').textContent = 'Could not confirm slot availability. Please try again.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+    if (!reserveResult.success) {
+      document.getElementById('stripe-error').textContent = reserveResult.error || 'That time slot is no longer available.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
     const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
     if (error) { document.getElementById('stripe-error').textContent = error.message; btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
