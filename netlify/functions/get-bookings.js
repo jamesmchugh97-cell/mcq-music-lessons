@@ -8,8 +8,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }
-
-  const store = getStore('bookings');
+const store = getStore('bookings');  
 
   try {
     const { blobs } = await store.list();
