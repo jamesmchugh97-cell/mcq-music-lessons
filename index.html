@@ -1198,6 +1198,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     formData.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
     formData.append('total', document.getElementById('totalAmt').textContent);
     fetch('/', { method: 'POST', body: formData }).catch(() => {});
+    // Send the confirmation email — fire-and-forget so a failure here
+    // never blocks or alarms the student, since payment already succeeded.
+    fetch('/.netlify/functions/send-confirmation-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        instrument: selectedInstrument,
+        date: date,
+        time: time,
+        duration: duration,
+        lessons_count: lessons,
+        total: document.getElementById('totalAmt').textContent
+      })
+    }).catch(() => {});    
 
     btn.textContent = 'Proceed to Payment'; btn.disabled = false;
     document.getElementById('modalTitle').textContent = 'Booking Confirmed!';
