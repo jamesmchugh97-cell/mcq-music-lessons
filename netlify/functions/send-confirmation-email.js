@@ -28,8 +28,7 @@ exports.handler = async function (event) {
 
   const termLine = isTerm
     ? `<p>This is a <strong>${lessons}-lesson term</strong>, delivered <strong>${frequency || 'weekly'}</strong>.</p>`
-    : `<p>This is a one-off <strong>trial lesson</strong>.</p>`;
-
+    : `<p>This is your <strong>trial lesson</strong> — a chance to see if it's the right fit before you commit.</p>
   const cancellationNotice = isTerm
     ? `Term fees are non-refundable, but never lost. Give at least 24 hours' notice to reschedule a single lesson, or if you can't finish the term, your remaining lessons carry forward to your current or next enrolled term. See the full cancellation policy on the booking page for details.`
     : `If you need to reschedule, just give at least 24 hours' notice.`;
