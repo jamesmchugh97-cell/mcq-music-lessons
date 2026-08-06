@@ -1156,7 +1156,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }, 1200);
       return;
     }
-    Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
+   if (!stripe || !cardElement) { alert('Payment not configured. Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
     // Reserve the slot before charging, so two people can never both pay for the same time.
     let reserveResult;
