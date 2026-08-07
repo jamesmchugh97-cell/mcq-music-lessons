@@ -137,7 +137,7 @@ exports.handler = async function (event) {
       '<p>Hi ' + studentName + ',</p>' +
       '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       '<p>' + (eligible
-        ? "Since this was cancelled with 24 hours' notice or more, James will do his best to find a makeup lesson within that same week. If a suitable time can't be found for both of you, this lesson won't be refunded."
+        ? "Since this was cancelled with 24 hours' notice or more, you can rebook a new time this same week yourself using the button below, no need to contact James. Just pick any available slot before the week is out. If you don't rebook, this lesson won't be refunded."
         : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no makeup lesson is available.") + '</p>' +
       (saturdayGranted
         ? '<p>Since your usual weekday makeup slots aren\'t available this week, you can book a one-off <strong>Saturday makeup lesson on ' + saturdayGranted + '</strong> using this same email address on the booking page.</p>'
