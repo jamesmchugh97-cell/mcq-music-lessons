@@ -1117,7 +1117,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   const MIN_GAP_MINUTES = 30;
-  const MIN_LESSON_MINUTES = 30; // shortest lesson James offers — the floor used for "is anything bookable here" previews
+  const DURATION_TIERS = [
+    { minutes: 30, value: '30|50' },
+    { minutes: 45, value: '45|70' },
+    { minutes: 60, value: '60|85' },
+    { minutes: 75, value: '75|100' },
+    { minutes: 90, value: '90|130' }
+  ];
   const MIN_NOTICE_HOURS = 24;
   const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
   const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
@@ -1173,6 +1179,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     });
   }
 
+  // Returns, for a given date, a map of time -> smallest duration tier
+  // that actually fits there. A time only appears if AT LEAST ONE
+  // offered lesson length works — used for the "is anything bookable
+  // here" preview, since the shortest lesson isn't always the one that
+  // fits (a longer lesson can land exactly on the next booking with
+  // zero gap when a shorter one would leave an awkward gap instead).
+  function getAvailableTimesAnyDuration(dateStr, saturdayEligible) {
+    const bestFit = {};
+    DURATION_TIERS.forEach(tier => {
+      getAvailableTimes(dateStr, tier.minutes, saturdayEligible).forEach(t => {
+        if (!bestFit[t]) bestFit[t] = tier;
+      });
+    });
+    return bestFit;
+  }
+
   function renderCal() {
     document.getElementById('calMonthTitle').textContent = MONTHS[calMonth] + ' ' + calYear;
     const body = document.getElementById('calBody');
@@ -1205,15 +1227,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       cell.appendChild(dateDiv);
 
       // Lesson hours: Monday to Friday, 12pm to 9pm. Saturday & Sunday closed.
-      // Availability shown here uses the 30-minute minimum lesson length as
-      // the floor — a time shows Available if ANY bookable lesson could
-      // start there, not tied to any particular duration.
+      // Availability shown here checks every offered lesson length — a
+      // time shows Available if ANY duration could actually be booked
+      // there, since a longer lesson sometimes fits when a shorter one
+      // wouldn't (e.g. landing exactly on the next booking, zero gap).
       let dayTimes = ALL_TIMES;
 
       if (!isPast && !isClosed) {
         const bookedList = BOOKED[key] || [];
-        const freeTimes = getAvailableTimes(key, MIN_LESSON_MINUTES);
-        const freeCount = freeTimes.length;
+        const bestFit = getAvailableTimesAnyDuration(key);
+        const freeCount = Object.keys(bestFit).length;
         const pills = document.createElement('div');
         pills.className = 'cal-slot-pills';
 
@@ -1258,22 +1281,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
-    const freeTimes = getAvailableTimes(key, MIN_LESSON_MINUTES);
+    const bestFit = getAvailableTimesAnyDuration(key);
     dayTimes.forEach(t => {
       const btn = document.createElement('button');
-      const free = freeTimes.includes(t);
+      const tier = bestFit[t];
+      const free = !!tier;
       btn.className = 'time-slot-btn ' + (free ? 'free' : 'taken');
-      btn.textContent = t + (free ? '  ·  Available' : '  ·  Unavailable');
+      // Slots blocked purely by the notice-period cutoff read the same as
+      // a genuinely booked slot — deliberately ambiguous, so it doesn't
+      // reveal the exact timing rule to work around.
+      const label = free ? 'Available' : (hoursUntilSlot(key, t) < MIN_NOTICE_HOURS ? 'Already booked or too late' : 'Unavailable');
+      btn.textContent = t + '  ·  ' + label;
       btn.disabled = !free;
       if (free) {
         btn.onclick = () => {
           document.getElementById('bookDate').value = key;
-          document.getElementById('bookTime').value = t;
-          // The preview only shows a time as available if a 30-min lesson
-          // fits — default the duration to that so clicking never lands
-          // on a time that then looks invalid. They can lengthen it from
-          // here if there's more room, and it'll re-check live.
-          document.getElementById('bookDuration').value = '30|50';
+          document.getElementById('bookDuration').value = tier.value; // the actual duration proven to fit this exact time
           document.getElementById('book').scrollIntoView({behavior:'smooth'});
           updateTotal();
           document.getElementById('bookTime').value = t;
