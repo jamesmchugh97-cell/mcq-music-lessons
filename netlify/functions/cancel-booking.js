@@ -6,6 +6,7 @@
 // actually finding a workable makeup time first, so that call stays with
 // him via Stripe, not this function.
 const { getStore } = require('@netlify/blobs');
+const crypto = require('crypto');
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -47,6 +48,29 @@ function addOneDay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + 1);
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function formatDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// The reschedule credit's window is Monday-to-Friday of the week the
+// cancelled lesson fell in (or through Saturday if a Saturday makeup
+// credit was granted instead), so a student can only use it to rebook
+// within that same week, never further out.
+function mondayOfWeek(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return formatDateKey(d);
+}
+
+function fridayOfWeek(dateStr) {
+  const mon = mondayOfWeek(dateStr);
+  const d = new Date(mon + 'T00:00:00');
+  d.setDate(d.getDate() + 4);
+  return formatDateKey(d);
 }
 
 async function sendEmail(to, subject, html) {
@@ -118,14 +142,42 @@ exports.handler = async function (event) {
       } catch (e) {}
     }
 
-    // Rebook link: sends the student straight back to the calendar,
-    // jumped to the week their cancelled lesson was in, so they can pick
-    // a new time themselves without needing to email James. If a
-    // Saturday makeup credit was granted, the button points at that
-    // Saturday instead, since that's the actual bookable date.
-    const rebookDate = saturdayGranted || date;
-    const rebookButtonHtml =
-      '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?rebook=' + rebookDate + '#calendar" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook a lesson this week &rarr;</a></p>';
+    // Reschedule credit: when eligible, this cancelled lesson was already
+    // paid for, so rebooking within the same week should never charge the
+    // student again. A random single-use token is stored server-side with
+    // the week window it's valid for; the rebook link only ever carries
+    // this opaque token, never payment details or a way to book for free
+    // outside that specific window.
+    let rescheduleToken = null;
+    if (eligible) {
+      rescheduleToken = crypto.randomBytes(16).toString('hex');
+      const weekStart = mondayOfWeek(date);
+      const weekEnd = saturdayGranted || fridayOfWeek(date);
+      try {
+        const rescheduleStore = getStore({ name: 'reschedule-credits', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+        await rescheduleStore.setJSON(rescheduleToken, {
+          email: email.trim().toLowerCase(),
+          name: record.name || 'there',
+          duration: record.duration || 45,
+          weekStart: weekStart,
+          weekEnd: weekEnd,
+          originalDate: date,
+          originalTime: time,
+          used: false,
+          createdAt: new Date().toISOString()
+        });
+      } catch (e) {
+        rescheduleToken = null;
+      }
+    }
+
+    // Rebook link: sends the student to a dedicated, no-payment reschedule
+    // panel (not the normal paid booking form), pre-filled with their
+    // details from the credit above, so it's obvious this is moving their
+    // existing paid lesson rather than buying a new one.
+    const rebookButtonHtml = rescheduleToken
+      ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook this week &mdash; no charge &rarr;</a></p>'
+      : '';
 
     const studentName = record.name || 'there';
     const studentHtml =
@@ -136,13 +188,13 @@ exports.handler = async function (event) {
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Cancelled</h2>' +
       '<p>Hi ' + studentName + ',</p>' +
       '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
+      rebookButtonHtml +
       '<p>' + (eligible
-        ? "Since this was cancelled with 24 hours' notice or more, you can rebook a new time this same week yourself using the button below, no need to contact James. Just pick any available slot before the week is out. If you don't rebook, this lesson won't be refunded."
+        ? "You've got 24+ hours' notice, so you can move this lesson to a new time this same week yourself, with no extra charge, no need to contact James. If you don't rebook, this lesson won't be refunded."
         : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no makeup lesson is available.") + '</p>' +
       (saturdayGranted
         ? '<p>Since your usual weekday makeup slots aren\'t available this week, you can book a one-off <strong>Saturday makeup lesson on ' + saturdayGranted + '</strong> using this same email address on the booking page.</p>'
         : '') +
-      rebookButtonHtml +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '</div>';
     await sendEmail(email, 'Your lesson has been cancelled', studentHtml);
