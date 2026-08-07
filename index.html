@@ -1071,6 +1071,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // valid start times — excluding anything that overlaps an existing
   // lesson, or would leave an unusably small (<30 min) gap next to one.
   function getAvailableTimes(dateStr, durationMinutes) {
+    if (!dateStr || isWeekendDate(dateStr)) return [];
     const existing = (BOOKED[dateStr] || []).map(b => ({
       start: timeToMinutes(b.time),
       end: timeToMinutes(b.time) + (b.duration || 45)
@@ -1288,12 +1289,19 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const prevPrimary = primarySelect.value;
     const validPrimary = primaryDate ? getAvailableTimes(primaryDate, durationMinutes) : ALL_TIMES;
     primarySelect.innerHTML = '';
-    validPrimary.forEach(t => {
+    if (primaryDate && validPrimary.length === 0) {
       const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
+      opt.textContent = isWeekendDate(primaryDate) ? 'Closed on weekends' : 'No times available that day';
+      opt.disabled = true; opt.selected = true;
       primarySelect.appendChild(opt);
-    });
-    if (validPrimary.includes(prevPrimary)) primarySelect.value = prevPrimary;
+    } else {
+      validPrimary.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        primarySelect.appendChild(opt);
+      });
+      if (validPrimary.includes(prevPrimary)) primarySelect.value = prevPrimary;
+    }
 
     document.querySelectorAll('#extraDatesContainer .extra-date-row').forEach(row => {
       const dInput = row.querySelector('.extra-date-input');
@@ -1301,12 +1309,19 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const prevVal = tSelect.value;
       const validTimes = dInput.value ? getAvailableTimes(dInput.value, durationMinutes) : ALL_TIMES;
       tSelect.innerHTML = '';
-      validTimes.forEach(t => {
+      if (dInput.value && validTimes.length === 0) {
         const opt = document.createElement('option');
-        opt.value = t; opt.textContent = t;
+        opt.textContent = isWeekendDate(dInput.value) ? 'Closed on weekends' : 'No times available that day';
+        opt.disabled = true; opt.selected = true;
         tSelect.appendChild(opt);
-      });
-      if (validTimes.includes(prevVal)) tSelect.value = prevVal;
+      } else {
+        validTimes.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t; opt.textContent = t;
+          tSelect.appendChild(opt);
+        });
+        if (validTimes.includes(prevVal)) tSelect.value = prevVal;
+      }
     });
   }
 
