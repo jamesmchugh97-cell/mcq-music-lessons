@@ -452,7 +452,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
         <div class="form-group">
           <label class="form-label">Preferred Date</label>
-          <input class="form-input" type="date" id="bookDate" name="date" onchange="refreshTimeOptions()">
+          <input class="form-input" type="date" id="bookDate" name="date" onchange="handleDateFieldChange(this)">
+          <p id="bookDateWarning" style="display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;">James is closed on weekends — please choose a weekday.</p>
         </div>
       </div>
       <div class="form-group">
@@ -987,7 +988,18 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateInput.type = 'date';
       dateInput.min = new Date().toISOString().split('T')[0];
       dateInput.max = maxDateStr;
-      dateInput.addEventListener('change', refreshTimeOptions);
+      const rowWarning = document.createElement('p');
+      rowWarning.style.cssText = 'display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;grid-column:1 / -1;';
+      rowWarning.textContent = 'James is closed on weekends — please choose a weekday.';
+      dateInput.addEventListener('change', () => {
+        if (dateInput.value && isWeekendDate(dateInput.value)) {
+          dateInput.value = '';
+          rowWarning.style.display = 'block';
+        } else {
+          rowWarning.style.display = 'none';
+        }
+        refreshTimeOptions();
+      });
       const timeSelect = document.createElement('select');
       timeSelect.className = 'form-input extra-time-input';
       ALL_TIMES.forEach(t => {
@@ -1006,6 +1018,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       row.appendChild(timeSelect);
       wrap.appendChild(label);
       wrap.appendChild(row);
+      wrap.appendChild(rowWarning);
       container.appendChild(wrap);
     }
   }
@@ -1280,6 +1293,19 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // for the currently selected date and duration — so a bad time never
   // even shows as pickable. Also refreshes each additional lesson's time
   // picker against its own date.
+  // If the primary date picker is set to a weekend, clear it immediately
+  // and show a warning, rather than letting a weekend date sit there.
+  function handleDateFieldChange(input) {
+    const warning = document.getElementById('bookDateWarning');
+    if (input.value && isWeekendDate(input.value)) {
+      input.value = '';
+      warning.style.display = 'block';
+    } else {
+      warning.style.display = 'none';
+    }
+    refreshTimeOptions();
+  }
+
   function refreshTimeOptions() {
     const durationVal = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value.split('|')[0] : '45';
     const durationMinutes = parseInt(durationVal, 10) || 45;
