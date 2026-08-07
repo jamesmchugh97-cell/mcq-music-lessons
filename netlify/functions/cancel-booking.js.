@@ -2,7 +2,7 @@
 // Verifies the email matches the booking before cancelling (so nobody can
 // cancel someone else's lesson), always frees the slot, and emails both
 // the student and James so nothing slips through unnoticed. Refunds are
-// never issued automatically — a 24+ hour cancellation depends on James
+// never issued automatically, a 24+ hour cancellation depends on James
 // actually finding a workable makeup time first, so that call stays with
 // him via Stripe, not this function.
 const { getStore } = require('@netlify/blobs');
@@ -22,7 +22,7 @@ function timeToMinutes(t) {
 // LOCAL wall-clock time into a true UTC epoch timestamp (ms), correctly
 // accounting for daylight saving. Netlify's servers run in UTC, so naive
 // Date parsing here would otherwise be off by 10-11 hours from what
-// Melbourne actually experiences — this keeps the 24-hour cancellation
+// Melbourne actually experiences, this keeps the 24-hour cancellation
 // eligibility check accurate regardless of the server's own timezone.
 function melbourneEpochMs(dateStr, timeStr) {
   const minutes = timeToMinutes(timeStr) || 0;
@@ -88,7 +88,7 @@ exports.handler = async function (event) {
   try {
     const record = await store.get(key, { type: 'json' });
     if (!record) {
-      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That lesson could not be found — it may already be cancelled.' }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That lesson could not be found. It may already be cancelled.' }) };
     }
     if (!record.email || record.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That lesson is not associated with this email address.' }) };
@@ -100,7 +100,7 @@ exports.handler = async function (event) {
     const eligible = hoursUntil >= 24;
 
     // Friday cancellations with 24+ hours' notice are the one case where
-    // there's no weekday left that same week for a makeup — so grant a
+    // there's no weekday left that same week for a makeup, so grant a
     // one-time Saturday makeup credit for the Saturday right after.
     let saturdayGranted = null;
     const isFriday = new Date(date + 'T00:00:00').getDay() === 5;
