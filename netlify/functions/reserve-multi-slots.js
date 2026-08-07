@@ -1,7 +1,7 @@
 // Netlify serverless function: reserves one or more lesson slots at once,
 // enforcing that no lesson overlaps another and that no booking leaves an
 // unusably small gap (under 30 minutes) next to an existing lesson. This
-// is the authoritative check — the frontend also filters options for a
+// is the authoritative check, the frontend also filters options for a
 // better experience, but this is what actually protects the schedule.
 const { getStore } = require('@netlify/blobs');
 
@@ -23,7 +23,7 @@ function timeToMinutes(t) {
 // LOCAL wall-clock time into a true UTC epoch timestamp (ms), correctly
 // accounting for daylight saving. Netlify's servers run in UTC, so naive
 // Date parsing here would otherwise be off by 10-11 hours from what
-// Melbourne actually experiences — this keeps the 24-hour notice rules
+// Melbourne actually experiences, this keeps the 24-hour notice rules
 // accurate regardless of what timezone the server happens to run in.
 function melbourneEpochMs(dateStr, timeStr) {
   const minutes = timeToMinutes(timeStr) || 0;
@@ -52,16 +52,68 @@ function dayOfWeek(dateStr) {
   return new Date(dateStr + 'T00:00:00').getDay();
 }
 
-const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
-const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
+const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Fri/Sat
+const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm, lessons must FINISH by this on Mon-Thu
 
 // Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish by
-// 4:30pm — so the last bookable start time shifts earlier depending on
+// 4:30pm, so the last bookable start time shifts earlier depending on
 // how long the lesson runs.
 function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
   const dow = dayOfWeek(dateStr);
   if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
   return endMinutes <= MON_THU_CLOSING_MINUTES;
+}
+
+// Victorian government school holiday date ranges (inclusive), per the
+// official VIC DET term calendar as of Aug 2026. This list, and the
+// RECURRING_STUDENTS roster below, must be kept in sync with the same
+// lists in index.html, since this is the server side authoritative check
+// and index.html only controls what the booking page displays.
+const SCHOOL_HOLIDAY_RANGES = [
+  ['2026-09-19', '2026-10-04'],
+  ['2026-12-19', '2027-01-26']
+];
+
+function isSchoolHoliday(dateStr) {
+  return SCHOOL_HOLIDAY_RANGES.some(([start, end]) => dateStr >= start && dateStr <= end);
+}
+
+const RECURRING_STUDENTS = [
+  { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Jacq',    dow: 2, time: '2:30 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-18', pauseForHolidays: false },
+  { name: 'Cash',    dow: 2, time: '4:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-11', pauseForHolidays: false },
+  { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Cash',    dow: 4, time: '3:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  }
+];
+
+function isStudentBookedOnDate(student, dateStr) {
+  if (dayOfWeek(dateStr) !== student.dow) return false;
+  if (student.pauseForHolidays && isSchoolHoliday(dateStr)) return false;
+  if (student.frequency === 'weekly') return true;
+  if (student.frequency === 'fortnightly' && student.anchorDate) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const anchor = new Date(student.anchorDate + 'T00:00:00');
+    const diffDays = Math.round((d - anchor) / 86400000);
+    return ((diffDays % 14) + 14) % 14 === 0;
+  }
+  return false;
+}
+
+function getRecurringBookingsForDate(dateStr) {
+  return RECURRING_STUDENTS.filter(s => isStudentBookedOnDate(s, dateStr)).map(s => ({ time: s.time, duration: s.duration }));
 }
 
 exports.handler = async function (event) {
@@ -102,7 +154,7 @@ exports.handler = async function (event) {
     for (const date in byDate) {
       const dow = dayOfWeek(date);
       if (dow === 0) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Sunday — James is closed. Please choose a different date.' }) };
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Sunday, James is closed. Please choose a different date.' }) };
       }
       if (dow === 6) {
         const creditKey = date + '_' + emailLower;
@@ -121,6 +173,13 @@ exports.handler = async function (event) {
           existing.push({ time: record.time, duration: record.duration || 45, start: start, end: start + (record.duration || 45) });
         }
       }
+      // Recurring students aren't stored in Blobs, so they're never
+      // otherwise visible to this check. Merge them in here so an online
+      // booking can never land on top of one of James's regular students.
+      getRecurringBookingsForDate(date).forEach(rb => {
+        const start = timeToMinutes(rb.time);
+        existing.push({ time: rb.time, duration: rb.duration, start: start, end: start + rb.duration });
+      });
 
       for (const s of byDate[date]) {
         const start = timeToMinutes(s.time);
@@ -179,7 +238,7 @@ exports.handler = async function (event) {
 
     // Reserve every slot using an atomic "only if new" write, so if two
     // people request the exact same slot in the same instant, only one
-    // of them can actually claim it — the other gets a clean rejection
+    // of them can actually claim it, the other gets a clean rejection
     // instead of silently overwriting the first booking. If any slot in
     // this request loses that race, roll back everything already written
     // so the booking never ends up half-confirmed.
