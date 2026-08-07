@@ -1117,16 +1117,20 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   const MIN_GAP_MINUTES = 30;
   const MIN_NOTICE_HOURS = 24;
-
-  // Mon-Thu close at 9pm; Fri and Sat close earlier at 4:30pm.
-  function getClosingTimeMinutes(dateStr) {
-    const dow = new Date(dateStr + 'T00:00:00').getDay();
-    if (dow === 5 || dow === 6) return 16 * 60 + 30;
-    return 21 * 60;
-  }
+  const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
+  const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
 
   function dayOfWeek(dateStr) {
     return new Date(dateStr + 'T00:00:00').getDay();
+  }
+
+  // Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish
+  // by 4:30pm — so the last bookable start time shifts earlier depending
+  // on how long the lesson runs.
+  function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
+    const dow = dayOfWeek(dateStr);
+    if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+    return endMinutes <= MON_THU_CLOSING_MINUTES;
   }
 
   // How many hours from right now until this date+time starts.
@@ -1139,7 +1143,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // Given a date and a lesson duration, returns which of ALL_TIMES are
   // valid start times — excluding anything that overlaps an existing
   // lesson, would leave an unusably small (<30 min) gap next to one,
-  // would run past closing time, or is less than 24 hours away. Sundays
+  // falls outside business hours, or is less than 24 hours away. Sundays
   // are always closed. Saturdays are closed unless saturdayEligible is
   // true — reserved for a specific Friday-cancellation makeup credit.
   function getAvailableTimes(dateStr, durationMinutes, saturdayEligible) {
@@ -1147,7 +1151,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const dow = dayOfWeek(dateStr);
     if (dow === 0) return [];
     if (dow === 6 && !saturdayEligible) return [];
-    const closing = getClosingTimeMinutes(dateStr);
     const existing = (BOOKED[dateStr] || []).map(b => ({
       start: timeToMinutes(b.time),
       end: timeToMinutes(b.time) + (b.duration || 45)
@@ -1155,7 +1158,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return ALL_TIMES.filter(t => {
       const start = timeToMinutes(t);
       const end = start + durationMinutes;
-      if (end > closing) return false;
+      if (!isWithinBusinessHours(dateStr, start, end)) return false;
       if (hoursUntilSlot(dateStr, t) < MIN_NOTICE_HOURS) return false;
       for (const ex of existing) {
         if (start < ex.end && ex.start < end) return false; // overlaps
