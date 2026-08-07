@@ -1301,7 +1301,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           }
         }
         cell.appendChild(pills);
-        cell.onclick = () => showDayDetail(key, d, dayTimes);
+        cell.onclick = (ev) => showDayDetail(ev, key, d, dayTimes);
       }
       body.appendChild(cell);
     }
@@ -1309,15 +1309,21 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   let currentDetailDay = null; // { key, d, dayTimes }, tracks which day is open
 
-  function showDayDetail(key, d, dayTimes) {
+  function showDayDetail(ev, key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
     document.querySelectorAll('.cal-cell.selected').forEach(c => c.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
     currentDetailDay = { key: key, d: d, dayTimes: dayTimes };
     const panel = document.getElementById('calDetailPanel');
     panel.classList.add('show');
     renderDayDetailTimes();
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Computed directly in JS rather than relying on scroll-padding-top,
+    // since browser support for that combined with scrollIntoView is
+    // inconsistent, this works the same way everywhere.
+    const nav = document.querySelector('nav');
+    const navHeight = nav ? nav.offsetHeight : 0;
+    const targetY = window.scrollY + panel.getBoundingClientRect().top - navHeight - 24;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
   }
 
   function renderDayDetailTimes() {
