@@ -426,7 +426,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Book Now</p>
     <h2 class="section-title">Ready to <em>get started?</em></h2>
-    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. First time here? Your first lesson is a one-off trial. After that, you'll book a 5- or 10-week term to lock in your weekly slot.</p>
+    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like — choose a date and time for each one, whenever suits you.</p>
 
     <form class="booking-form" name="booking" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return handleBooking(event)">
       <input type="hidden" name="form-name" value="booking">
@@ -474,11 +474,18 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <div id="lessonsGroup" class="form-group">
         <label class="form-label">Number of Lessons</label>
-        <select class="form-input" id="bookLessons" name="lessons_count" onchange="updateTotal()">
-          <option value="1">1 lesson · Trial (first-time students only)</option>
-          <option value="5">5 lessons · Half Term (locks in your weekly slot)</option>
-          <option value="10">10 lessons · Full Term (locks in your weekly slot)</option>
+        <input class="form-input" type="number" id="bookLessons" name="lessons_count" min="1" value="1" oninput="updateTotal()">
+        <p style="font-size:0.76rem;color:var(--muted);margin-top:0.4rem;line-height:1.5;">Booking more than one? Choose how below — no limit on how many.</p>
+      </div>
+      <div id="extraDatesGroup" class="form-group" style="display:none;">
+        <label class="form-label">How would you like to book these lessons?</label>
+        <select class="form-input" id="bookingMode" onchange="updateTotal()">
+          <option value="weekly">Same time, every week</option>
+          <option value="fortnightly">Same time, every fortnight</option>
+          <option value="custom">Choose a different date & time for each lesson</option>
         </select>
+        <p style="font-size:0.76rem;color:var(--muted);margin:0.5rem 0;">Your first lesson uses the date & time set above. You can still adjust any individual date below if needed.</p>
+        <div id="extraDatesContainer"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Preferred Time</label>
@@ -711,23 +718,23 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     </div>
 
     <div style="margin-top:1.8rem;">
-      <p class="section-eyebrow">Term Packages</p>
-      <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:300;color:var(--white);margin-bottom:0.4rem;">Lock in your <em>weekly slot.</em></h3>
-      <p style="color:var(--muted);font-size:0.84rem;line-height:1.65;margin-bottom:1rem;">New students start with a one-off trial lesson. After that, ongoing lessons are booked as a 5- or 10-week term, which secures your weekly slot for the whole block.</p>
+      <p class="section-eyebrow">Multi-Lesson Booking</p>
+      <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:300;color:var(--white);margin-bottom:0.4rem;">Book as many lessons <em>as you like.</em></h3>
+      <p style="color:var(--muted);font-size:0.84rem;line-height:1.65;margin-bottom:1rem;">New students start with a one-off trial lesson. After that, book 5, 10, or any number of lessons, choosing a date and time for each one — weekly, fortnightly, twice a week, however suits you.</p>
       <div class="packages-grid">
         <div class="package-card">
           <div class="package-badge">5 Lessons</div>
-          <div class="package-name">Half Term</div>
-          <div class="package-sub">5 weeks of consistent, structured progress.</div>
-          <div class="package-lock">🔒 Your weekly slot is reserved for 5 weeks. No one else can take it.</div>
-          <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book Half Term →</a>
+          <div class="package-name">A popular starting point</div>
+          <div class="package-sub">5 lessons, on whatever dates suit you.</div>
+          <div class="package-lock">🔒 Every date you choose is reserved the moment you book. No one else can take it.</div>
+          <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book 5 lessons →</a>
         </div>
         <div class="package-card">
           <div class="package-badge">10 Lessons</div>
-          <div class="package-name">Full Term</div>
-          <div class="package-sub">A full 10-week block, the most effective way to make real progress.</div>
-          <div class="package-lock">🔒 Your weekly slot is locked in for 10 weeks. Maximum commitment, maximum results.</div>
-          <a href="#book" class="btn-primary" style="width:100%;text-align:center;display:block;">Book Full Term →</a>
+          <div class="package-name">Best for steady progress</div>
+          <div class="package-sub">10 lessons, on whatever dates suit you — ideal if you come more than once a week too.</div>
+          <div class="package-lock">🔒 Every date you choose is reserved the moment you book. Maximum commitment, maximum results.</div>
+          <a href="#book" class="btn-primary" style="width:100%;text-align:center;display:block;">Book 10 lessons →</a>
         </div>
       </div>
     </div>
@@ -771,11 +778,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">Do you offer casual, ongoing lessons? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">New students can book a one-off trial lesson to try it out. After the trial, ongoing lessons are booked as a 5- or 10-week term rather than casually week-to-week. This locks in your weekly slot for the full block so it can't be taken by another student, and keeps your progress consistent.</div>
+      <div class="faq-answer">New students can book a one-off trial lesson to try it out. After the trial, you can book as many lessons as you like — 5, 10, or any number — choosing a date and time for each one. Come weekly, fortnightly, twice a week, however suits you. Every date you choose is reserved the moment you book, so it can't be taken by another student.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">How do I book my first lesson? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">Use the booking form above: choose your instrument, select the trial lesson option, and pay via Stripe. James will confirm by email within 24 hours. If it's a good fit, you can then book a 5- or 10-week term to continue.</div>
+      <div class="faq-answer">Use the booking form above: choose your instrument, select the trial lesson option, and pay via Stripe. James will confirm by email within 24 hours. If it's a good fit, you can then book as many lessons as you like.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">What should I bring to my first lesson? <span class="faq-chevron">▾</span></button>
@@ -883,7 +890,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       return;
     }
     const price = parseInt(document.getElementById('bookDuration').value.split('|')[1]);
-    const lessons = parseInt(document.getElementById('bookLessons').value);
+    let lessons = parseInt(document.getElementById('bookLessons').value);
+    if (!lessons || lessons < 1) lessons = 1;
+    document.getElementById('extraDatesGroup').style.display = lessons > 1 ? 'block' : 'none';
+    renderExtraDateRows(lessons);
     document.getElementById('subtotalAmt').textContent = '$' + price;
     document.getElementById('totalAmt').textContent = '$' + (price * lessons);
     if (lessons > 1) {
@@ -892,6 +902,79 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('lessonsAmt').textContent = '$' + (price * lessons);
     } else {
       document.getElementById('lessonsRow').style.display = 'none';
+    }
+  }
+
+  // Returns the furthest date anyone can book — one year from today.
+  function getMaxBookingDate() {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() + 365);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  // Builds one date+time picker per additional lesson (lessons - 1 of them).
+  // In "weekly"/"fortnightly" mode, dates are pre-filled from the first
+  // lesson's date at the matching interval (still editable). In "custom"
+  // mode, they're left for the student to fill in, preserving any values
+  // already entered when the count changes.
+  function renderExtraDateRows(lessons) {
+    const container = document.getElementById('extraDatesContainer');
+    const needed = Math.max(0, lessons - 1);
+    const modeSelect = document.getElementById('bookingMode');
+    const mode = modeSelect ? modeSelect.value : 'custom';
+    const primaryDate = document.getElementById('bookDate').value;
+    const primaryTime = document.getElementById('bookTime').value;
+    const maxDateStr = getMaxBookingDate();
+
+    let autoDates = [];
+    if ((mode === 'weekly' || mode === 'fortnightly') && primaryDate) {
+      const intervalDays = mode === 'fortnightly' ? 14 : 7;
+      const start = new Date(primaryDate + 'T00:00:00');
+      for (let i = 1; i <= needed; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + intervalDays * i);
+        autoDates.push(dKey(d.getFullYear(), d.getMonth(), d.getDate()));
+      }
+    }
+
+    const existing = Array.from(container.querySelectorAll('.extra-date-row')).map(row => ({
+      date: row.querySelector('.extra-date-input').value,
+      time: row.querySelector('.extra-time-input').value
+    }));
+    container.innerHTML = '';
+    for (let i = 0; i < needed; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'extra-date-row';
+      wrap.style.cssText = 'margin-bottom:0.8rem;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;';
+      label.textContent = 'Lesson ' + (i + 2);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;';
+      const dateInput = document.createElement('input');
+      dateInput.className = 'form-input extra-date-input';
+      dateInput.type = 'date';
+      dateInput.min = new Date().toISOString().split('T')[0];
+      dateInput.max = maxDateStr;
+      const timeSelect = document.createElement('select');
+      timeSelect.className = 'form-input extra-time-input';
+      ALL_TIMES.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (mode === 'weekly' || mode === 'fortnightly') {
+        if (autoDates[i]) dateInput.value = autoDates[i];
+        timeSelect.value = primaryTime;
+      } else if (existing[i]) {
+        dateInput.value = existing[i].date;
+        timeSelect.value = existing[i].time;
+      }
+      row.appendChild(dateInput);
+      row.appendChild(timeSelect);
+      wrap.appendChild(label);
+      wrap.appendChild(row);
+      container.appendChild(wrap);
     }
   }
 
@@ -1128,6 +1211,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
+    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance.'; return; }
     if (isWeekendDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on weekends. Please choose a weekday (Monday to Friday).'; return; }
     if (!isGroup && isSlotTaken(date, time)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked. Please pick a different time from the calendar above.'; return; }
     const btn = document.getElementById('submitBtn');
@@ -1158,13 +1242,49 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
    if (!stripe || !cardElement) { alert('Payment not configured. Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
-    // Reserve the slot before charging, so two people can never both pay for the same time.
+    let lessonsForReserve = parseInt(document.getElementById('bookLessons').value);
+    if (!lessonsForReserve || lessonsForReserve < 1) lessonsForReserve = 1;
+    const isMultiLesson = lessonsForReserve > 1;
+
+    // Build the full list of lesson slots: the primary date/time above,
+    // plus one manually-chosen date/time for every additional lesson.
+    let allSlots = [{ date: date, time: time }];
+    if (isMultiLesson) {
+      const rows = document.querySelectorAll('#extraDatesContainer .extra-date-row');
+      for (const row of rows) {
+        const dInput = row.querySelector('.extra-date-input');
+        const tInput = row.querySelector('.extra-time-input');
+        if (!dInput.value) {
+          document.getElementById('stripe-error').textContent = 'Please choose a date for every lesson.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (isPastDate(dInput.value)) {
+          document.getElementById('stripe-error').textContent = 'One of your lesson dates has already passed. Please check each date.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (dInput.value > getMaxBookingDate()) {
+          document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance. Please check each date.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (isWeekendDate(dInput.value)) {
+          document.getElementById('stripe-error').textContent = 'James is closed on weekends — please choose a weekday for every lesson.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        allSlots.push({ date: dInput.value, time: tInput.value });
+      }
+    }
+
+    // Reserve every slot before charging, so two people can never both pay for the same time.
     let reserveResult;
     try {
-      const reserveResp = await fetch('/.netlify/functions/reserve-slot', {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: date, time: time, name: name, email: email })
+        body: JSON.stringify({ slots: allSlots, name: name, email: email })
       });
       reserveResult = await reserveResp.json();
     } catch (e) {
@@ -1177,6 +1297,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       btn.textContent = 'Proceed to Payment'; btn.disabled = false;
       return;
     }
+    const reservedSlots = reserveResult.slots || allSlots;
     const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
     if (error) { document.getElementById('stripe-error').textContent = error.message; btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
@@ -1215,7 +1336,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }
     }
     // Payment succeeded, submit booking details to Netlify Forms
-    const lessons = document.getElementById('bookLessons') ? document.getElementById('bookLessons').value : '1';
+    const lessons = lessonsForReserve;
     const duration = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value : '';
     const phone = document.getElementById('bookPhone').value;
     document.getElementById('hiddenTotal').value = document.getElementById('totalAmt').textContent;
@@ -1229,6 +1350,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     formData.append('time', time);
     formData.append('duration', duration);
     formData.append('lessons_count', lessons);
+    formData.append('all_lesson_dates', reservedSlots.map(s => s.date + ' ' + s.time).join(' | '));
     formData.append('song_requests', document.getElementById('bookSongRequests').value.trim());
     formData.append('genre_focus', document.getElementById('bookGenreFocus').value);
     formData.append('theory_interest', document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No');
@@ -1246,6 +1368,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         instrument: selectedInstrument,
         date: date,
         time: time,
+        slots: reservedSlots,
         duration: duration,
         lessons_count: lessons,
         total: document.getElementById('totalAmt').textContent
@@ -1254,10 +1377,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     btn.textContent = 'Proceed to Payment'; btn.disabled = false;
     document.getElementById('modalTitle').textContent = 'Booking Confirmed!';
-    document.getElementById('modalBody').textContent = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.';
+    document.getElementById('modalBody').textContent = isMultiLesson
+      ? 'Your payment went through and all ' + reservedSlots.length + ' lessons are booked. James will be in touch within 24 hours to confirm. Keep an eye on ' + email + ' for his message.'
+      : 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.';
     document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
 
   document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('bookDate').max = getMaxBookingDate();
 </script>
 </body>
 </html>
