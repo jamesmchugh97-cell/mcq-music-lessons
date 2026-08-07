@@ -1282,26 +1282,26 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
     const bestFit = getAvailableTimesAnyDuration(key);
-    dayTimes.forEach(t => {
-      const btn = document.createElement('button');
+    const availableTimes = dayTimes.filter(t => bestFit[t]);
+    if (availableTimes.length === 0) {
+      const msg = document.createElement('p');
+      msg.style.cssText = 'color:var(--muted);font-size:0.85rem;';
+      msg.textContent = 'No times available that day.';
+      grid.appendChild(msg);
+      return;
+    }
+    availableTimes.forEach(t => {
       const tier = bestFit[t];
-      const free = !!tier;
-      btn.className = 'time-slot-btn ' + (free ? 'free' : 'taken');
-      // Slots blocked purely by the notice-period cutoff read the same as
-      // a genuinely booked slot — deliberately ambiguous, so it doesn't
-      // reveal the exact timing rule to work around.
-      const label = free ? 'Available' : (hoursUntilSlot(key, t) < MIN_NOTICE_HOURS ? 'Already booked or too late' : 'Unavailable');
-      btn.textContent = t + '  ·  ' + label;
-      btn.disabled = !free;
-      if (free) {
-        btn.onclick = () => {
-          document.getElementById('bookDate').value = key;
-          document.getElementById('bookDuration').value = tier.value; // the actual duration proven to fit this exact time
-          document.getElementById('book').scrollIntoView({behavior:'smooth'});
-          updateTotal();
-          document.getElementById('bookTime').value = t;
-        };
-      }
+      const btn = document.createElement('button');
+      btn.className = 'time-slot-btn free';
+      btn.textContent = t + '  ·  Available';
+      btn.onclick = () => {
+        document.getElementById('bookDate').value = key;
+        document.getElementById('bookDuration').value = tier.value; // the actual duration proven to fit this exact time
+        document.getElementById('book').scrollIntoView({behavior:'smooth'});
+        updateTotal();
+        document.getElementById('bookTime').value = t;
+      };
       grid.appendChild(btn);
     });
   }
