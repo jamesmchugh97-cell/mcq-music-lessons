@@ -28,7 +28,12 @@ exports.handler = async function (event) {
     : `If you need to reschedule, just give at least 24 hours' notice.`;
   const emailHtml = `
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
-      <h2 style="color: #c9942a;">Booking Confirmed</h2>
+      <div style="text-align: center; margin-bottom: 24px;">
+        <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; color: #c9942a; margin: 0; letter-spacing: 0.5px;">
+          ♪ MCQ Music
+        </p>
+      </div>
+      <h2 style="color: #1a1a1a; text-align: center; font-family: Georgia, serif; font-weight: normal;">Booking Confirmed</h2>
       <p>Hi ${name},</p>
       <p>Thanks for booking with MCQ Music Lessons! Here are your details:</p>
       <ul>
