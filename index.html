@@ -416,6 +416,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
+      <div class="form-group" style="max-width:220px;margin-bottom:0.9rem;">
+        <label class="form-label">Lesson Duration</label>
+        <select class="form-input" id="calDetailDuration" onchange="renderDayDetailTimes()">
+          <option value="30">30 minutes</option>
+          <option value="45" selected>45 minutes</option>
+          <option value="60">60 minutes</option>
+          <option value="75">75 minutes</option>
+          <option value="90">90 minutes</option>
+        </select>
+      </div>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -1238,15 +1248,25 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
+  let currentDetailDay = null; // { key, d, dayTimes } — tracks which day is open so we can re-render on duration change
+
   function showDayDetail(key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
     document.querySelectorAll('.cal-cell.selected').forEach(c => c.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
-    const panel = document.getElementById('calDetailPanel');
-    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times (45 min lesson)';
+    currentDetailDay = { key: key, d: d, dayTimes: dayTimes };
+    document.getElementById('calDetailPanel').classList.add('show');
+    renderDayDetailTimes();
+  }
+
+  function renderDayDetailTimes() {
+    if (!currentDetailDay) return;
+    const { key, d, dayTimes } = currentDetailDay;
+    const durationMinutes = parseInt(document.getElementById('calDetailDuration').value, 10) || 45;
+    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times (' + durationMinutes + ' min lesson)';
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
-    const freeTimes = getAvailableTimes(key, 45);
+    const freeTimes = getAvailableTimes(key, durationMinutes);
     dayTimes.forEach(t => {
       const btn = document.createElement('button');
       const free = freeTimes.includes(t);
@@ -1257,13 +1277,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         btn.onclick = () => {
           document.getElementById('bookDate').value = key;
           document.getElementById('bookTime').value = t;
+          const durSelect = document.getElementById('bookDuration');
+          const matchingOption = Array.from(durSelect.options).find(o => o.value.split('|')[0] === String(durationMinutes));
+          if (matchingOption) durSelect.value = matchingOption.value;
           document.getElementById('book').scrollIntoView({behavior:'smooth'});
-          refreshTimeOptions();
+          updateTotal();
         };
       }
       grid.appendChild(btn);
     });
-    panel.classList.add('show');
   }
 
   function changeMonth(dir) {
@@ -1271,6 +1293,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (calMonth < 0) { calMonth = 11; calYear--; }
     if (calMonth > 11) { calMonth = 0; calYear++; }
     renderCal();
+    currentDetailDay = null;
     document.getElementById('calDetailPanel').classList.remove('show');
   }
 
