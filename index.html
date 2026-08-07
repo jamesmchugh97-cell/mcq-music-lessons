@@ -1587,7 +1587,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const hoursUntil = (start.getTime() - Date.now()) / (1000 * 60 * 60);
     const eligible = hoursUntil >= 24;
     const msg = eligible
-      ? 'Cancel ' + date + ' at ' + time + '?\n\nThis is 24+ hours away, so James will do his best to find a makeup lesson within that same week. If we can\'t find a time that works for both of you, it won\'t be refunded.'
+      ? 'Cancel ' + date + ' at ' + time + '?\n\nThis is 24+ hours away, so you\'ll be able to rebook a new time this same week yourself, no need to contact James. If you don\'t rebook, it won\'t be refunded.'
       : 'Cancel ' + date + ' at ' + time + '?\n\nThis is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
     if (!confirm(msg)) return;
     try {
@@ -1599,7 +1599,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const result = await resp.json();
       if (result.success) {
         alert('Your lesson has been cancelled. ' + (result.eligible
-          ? 'James will be in touch about finding a makeup lesson.'
+          ? 'Check your email for a link to rebook a new time this week yourself.'
           : 'As this was within 24 hours, no makeup or refund applies.'));
         findMyBookings();
         loadLiveBookings();
