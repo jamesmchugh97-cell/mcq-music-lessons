@@ -1066,41 +1066,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const ALL_TIMES = ['12:00 pm','12:15 pm','12:30 pm','12:45 pm','1:00 pm','1:15 pm','1:30 pm','1:45 pm','2:00 pm','2:15 pm','2:30 pm','2:45 pm','3:00 pm','3:15 pm','3:30 pm','3:45 pm','4:00 pm','4:15 pm','4:30 pm','4:45 pm','5:00 pm','5:15 pm','5:30 pm','5:45 pm','6:00 pm','6:15 pm','6:30 pm','6:45 pm','7:00 pm','7:15 pm','7:30 pm','7:45 pm','8:00 pm','8:15 pm','8:30 pm','8:45 pm','9:00 pm'];
 
-  // BOOKED SLOTS: existing recurring students, with correct real durations.
-  // Weekly students repeat every Mon/Tue/Wed/Thu; Ebony, Jacq (Tue 2:30pm),
-  // and Tilly are fortnightly on their specific dates only.
-  // To update: send James the file and tell him which dates/times to add or remove
-  const BOOKED = {
-    '2026-08-03': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
-    '2026-08-04': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-05': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-06': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-08-10': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
-    '2026-08-11': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
-    '2026-08-12': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-13': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-08-17': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
-    '2026-08-18': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-19': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-20': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-08-24': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
-    '2026-08-25': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
-    '2026-08-26': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-08-27': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-08-31': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
-    '2026-09-01': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-09-02': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-09-03': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-09-07': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
-    '2026-09-08': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
-    '2026-09-09': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-09-10': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-    '2026-09-14': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
-    '2026-09-15': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-09-16': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
-    '2026-09-17': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
-  };
-
   function padZ(n) { return String(n).padStart(2,'0'); }
   function dKey(y,m,d) { return y+'-'+padZ(m+1)+'-'+padZ(d); }
 
@@ -1115,6 +1080,84 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (ap === 'am' && h === 12) h = 0;
     return h * 60 + min;
   }
+
+  // Victorian government school holiday date ranges (inclusive), per the
+  // official VIC DET term calendar as of Aug 2026 — vic.gov.au/school-term-dates-and-holidays-victoria.
+  // Add next year's ranges here once VIC DET publishes them.
+  const SCHOOL_HOLIDAY_RANGES = [
+    ['2026-09-19', '2026-10-04'], // Spring holidays (between Term 3 and Term 4, 2026)
+    ['2026-12-19', '2027-01-26']  // Summer holidays (between Term 4 2026 and Term 1 2027)
+  ];
+
+  function isSchoolHoliday(dateStr) {
+    return SCHOOL_HOLIDAY_RANGES.some(([start, end]) => dateStr >= start && dateStr <= end);
+  }
+
+  // RECURRING_STUDENTS: the ongoing student roster. dow: 0=Sun..6=Sat.
+  // frequency 'fortnightly' uses anchorDate as a real confirmed lesson date
+  // to lock in the correct 14-day cycle. pauseForHolidays: true means the
+  // lesson is skipped during VIC school holidays; false means it continues
+  // year-round. Flaky/uncertain students (Ebony, Frida, Will, Lisa) are
+  // deliberately left out — their times stay open on the booking site.
+  const RECURRING_STUDENTS = [
+    { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Jacq',    dow: 2, time: '2:30 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-18', pauseForHolidays: false },
+    { name: 'Cash',    dow: 2, time: '4:45 pm', duration: 45, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-11', pauseForHolidays: false },
+    { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false }, // time unconfirmed — see note
+    { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Cash',    dow: 4, time: '3:45 pm', duration: 45, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  }
+  ];
+
+  // Generates BOOKED entries from RECURRING_STUDENTS for a rolling window
+  // starting today, projecting monthsAhead into the future, skipping any
+  // occurrence that falls in a school holiday range if the student pauses.
+  function generateRecurringBookings(fromDateStr, monthsAhead) {
+    const result = {};
+    const start = new Date(fromDateStr + 'T00:00:00');
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + monthsAhead);
+
+    RECURRING_STUDENTS.forEach(student => {
+      let cursor = new Date(start);
+      while (cursor.getDay() !== student.dow) cursor.setDate(cursor.getDate() + 1);
+
+      if (student.frequency === 'fortnightly' && student.anchorDate) {
+        const anchor = new Date(student.anchorDate + 'T00:00:00');
+        const diffDays = Math.round((cursor - anchor) / 86400000);
+        const offset = ((diffDays % 14) + 14) % 14;
+        if (offset !== 0) cursor.setDate(cursor.getDate() + (14 - offset));
+      }
+
+      const stepDays = student.frequency === 'fortnightly' ? 14 : 7;
+      while (cursor <= end) {
+        const dateStr = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+        if (!(student.pauseForHolidays && isSchoolHoliday(dateStr))) {
+          if (!result[dateStr]) result[dateStr] = [];
+          result[dateStr].push({ time: student.time, duration: student.duration });
+        }
+        cursor.setDate(cursor.getDate() + stepDays);
+      }
+    });
+
+    Object.keys(result).forEach(k => {
+      result[k].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    });
+    return result;
+  }
+
+  const BOOKED = generateRecurringBookings(dKey(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), 12);
 
   const MIN_GAP_MINUTES = 30;
   const DURATION_TIERS = [
