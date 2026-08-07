@@ -39,7 +39,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     --font-body: 'Inter', system-ui, sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   body { background: var(--navy); color: var(--cream); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
   /* NAV */
@@ -461,13 +461,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <div class="form-group">
         <label class="form-label">Instrument</label>
-        <div class="instrument-grid">
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
           <button class="instrument-btn active" onclick="selectInstrument(this,'Guitar')" type="button"><span class="inst-icon">🎸</span>Guitar</button>
           <button class="instrument-btn" onclick="selectInstrument(this,'Piano')" type="button"><span class="inst-icon">🎹</span>Piano</button>
-          <button class="instrument-btn" onclick="selectInstrument(this,'Group Class')" type="button"><span class="inst-icon">👥</span>Group Class</button>
         </div>
       </div>
-      <div class="group-pending-info" id="groupPendingInfo"><strong>Group class:</strong> Your time will be held pending. You're only charged ($40) when a second person books the same slot.</div>
       <div id="durationGroup" class="form-group">
         <label class="form-label">Lesson Duration</label>
         <select class="form-input" id="bookDuration" name="duration" onchange="updateTotal()">
@@ -546,7 +544,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="subtotal-row"><span>Price per lesson</span><span id="subtotalAmt">$70</span></div>
         <div class="subtotal-row" id="lessonsRow" style="display:none;"><span id="lessonsLabel"></span><span id="lessonsAmt"></span></div>
         <div class="subtotal-total"><span>Total</span><span id="totalAmt">$70</span></div>
-        <div class="group-note" id="groupChargeNote" style="display:none;margin-top:0.5rem;">Only charged when group class is confirmed.</div>
       </div>
       <div class="form-group" id="stripeSection">
         <label class="form-label">Card Details</label>
@@ -788,14 +785,59 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="group-header"><div class="group-name">Group Classes</div><div class="program-icon">👥</div></div>
       <div class="group-tagline">Learn together, grow together</div>
       <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
-      <div class="group-desc">Register your interest below to learn alongside another student. Once two people select the same time slot, the class is confirmed. A great, low-cost way to learn.</div>
+      <div class="group-desc">Register your interest below to learn alongside another student. Once two people select the same instrument and time slot, the class is confirmed. A great, low-cost way to learn.</div>
       <div class="group-details">
         <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 Minutes</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$40 per person</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Instruments</div><div class="group-detail-value">Guitar & Piano</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Minimum</div><div class="group-detail-value">2 people, same slot</div></div>
       </div>
-      <a href="#book" class="btn-primary" style="width:100%;text-align:center;display:block;">Register Interest →</a>
+      <form id="groupClassForm" onsubmit="return handleGroupClassRegistration(event)" style="margin-top:1.2rem;border-top:1px solid var(--navy-border);padding-top:1.2rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" id="groupName" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="groupEmail" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone (optional)</label>
+            <input class="form-input" type="tel" id="groupPhone" placeholder="04xx xxx xxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preferred Date</label>
+            <input class="form-input" type="date" id="groupDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instrument</label>
+          <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+            <button class="instrument-btn active" onclick="selectGroupInstrument(this,'Guitar')" type="button"><span class="inst-icon">🎸</span>Guitar</button>
+            <button class="instrument-btn" onclick="selectGroupInstrument(this,'Piano')" type="button"><span class="inst-icon">🎹</span>Piano</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time</label>
+          <select class="form-input" id="groupTime">
+            <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
+            <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
+            <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
+            <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
+            <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
+            <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
+            <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
+            <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
+            <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
+            <option>9:00 pm</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="groupSubmitBtn" type="submit" style="width:100%;text-align:center;">Register Interest →</button>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Your time is held pending. You're only charged $40 once a second person books the same instrument and slot.</p>
+      </form>
     </div>
   </div>
 </section>
@@ -829,7 +871,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">How do group classes work? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">Register your interest by selecting "Group Class" in the booking form. Your time is held as pending. Once a second person books the same slot, it confirms and both are charged $40. If no one else books your slot, James will reach out with alternatives or offer a private lesson at the standard rate.</div>
+      <div class="faq-answer">Register your interest using the Group Class form in the Group Classes section, choosing your instrument, preferred date, and time. Your spot is held as pending. Once a second person registers for the same instrument and slot, it confirms and both are charged $40. If no one else books your slot, James will reach out with alternatives or offer a private lesson at the standard rate.</div>
     </div>
   </div>
 </section>
@@ -928,11 +970,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     btn.classList.add('active');
     selectedInstrument = name;
     document.getElementById('hiddenInstrument').value = name;
-    const isGroup = name === 'Group Class';
-    document.getElementById('groupPendingInfo').classList.toggle('visible', isGroup);
-    document.getElementById('durationGroup').style.display = isGroup ? 'none' : 'block';
-    document.getElementById('lessonsGroup').style.display = isGroup ? 'none' : 'block';
-    document.getElementById('groupChargeNote').style.display = isGroup ? 'block' : 'none';
     updateTotal();
   }
 
@@ -944,13 +981,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   function updateTotal() {
-    const isGroup = selectedInstrument === 'Group Class';
-    if (isGroup) {
-      document.getElementById('subtotalAmt').textContent = '$40';
-      document.getElementById('totalAmt').textContent = '$40';
-      document.getElementById('lessonsRow').style.display = 'none';
-      return;
-    }
     const price = parseInt(document.getElementById('bookDuration').value.split('|')[1]);
     let lessons = parseInt(document.getElementById('bookLessons').value);
     if (!lessons || lessons < 1) lessons = 1;
@@ -1301,7 +1331,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           }
         }
         cell.appendChild(pills);
-        cell.onclick = () => showDayDetail(key, d, dayTimes);
+        cell.onclick = (ev) => showDayDetail(ev, key, d, dayTimes);
       }
       body.appendChild(cell);
     }
@@ -1309,13 +1339,26 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   let currentDetailDay = null; // { key, d, dayTimes }, tracks which day is open
 
-  function showDayDetail(key, d, dayTimes) {
+  function showDayDetail(ev, key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
     document.querySelectorAll('.cal-cell.selected').forEach(c => c.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
     currentDetailDay = { key: key, d: d, dayTimes: dayTimes };
-    document.getElementById('calDetailPanel').classList.add('show');
+    const panel = document.getElementById('calDetailPanel');
+    panel.classList.add('show');
     renderDayDetailTimes();
+    // Wait for the browser to actually finish laying out the newly shown
+    // panel before measuring its position, otherwise getBoundingClientRect
+    // can be read before the layout has updated and the scroll silently
+    // goes nowhere. Two rAF calls reliably waits for a full paint cycle.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const nav = document.querySelector('nav');
+        const navHeight = nav ? nav.offsetHeight : 0;
+        const targetY = window.scrollY + panel.getBoundingClientRect().top - navHeight - 24;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      });
+    });
   }
 
   function renderDayDetailTimes() {
@@ -1392,6 +1435,44 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     cardElement.on('blur', () => document.getElementById('stripe-card-element').classList.remove('focused'));
   } catch(e) {
     document.getElementById('stripeSection').innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
+  }
+
+  // GROUP CLASSES, a fully separate registration flow from private lessons
+  let selectedGroupInstrument = 'Guitar';
+  function selectGroupInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGroupInstrument = name;
+  }
+
+  async function handleGroupClassRegistration(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('groupName').value.trim();
+    const email = document.getElementById('groupEmail').value.trim();
+    const phone = document.getElementById('groupPhone').value.trim();
+    const date = document.getElementById('groupDate').value;
+    const time = document.getElementById('groupTime').value;
+    if (!name || !email || !date) { alert('Please fill in your name, email, and preferred date.'); return false; }
+    const btn = document.getElementById('groupSubmitBtn');
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    const formData = new FormData();
+    formData.append('form-name', 'booking');
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('instrument', 'Group Class, ' + selectedGroupInstrument);
+    formData.append('date', date);
+    formData.append('time', time);
+    formData.append('total', '$40 (pending confirmation)');
+    fetch('/', { method: 'POST', body: formData }).catch(() => {});
+    setTimeout(() => {
+      btn.textContent = 'Register Interest →'; btn.disabled = false;
+      document.getElementById('groupClassForm').reset();
+      document.getElementById('modalTitle').textContent = 'Interest Registered!';
+      document.getElementById('modalBody').textContent = 'Your interest in a ' + selectedGroupInstrument + ' group class on ' + date + ' at ' + time + ' has been recorded. James will be in touch once a second person books the same instrument and slot.';
+      document.getElementById('successModal').classList.add('open');
+    }, 1000);
+    return false;
   }
 
   async function handleInterest(event) {
@@ -1616,7 +1697,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const email = document.getElementById('bookEmail').value.trim();
     const date = document.getElementById('bookDate').value;
     const time = document.getElementById('bookTime').value;
-    const isGroup = selectedInstrument === 'Group Class';
     if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
@@ -1630,35 +1710,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         return;
       }
     }
-    if (!isGroup && hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
+    if (hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
     const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
-    if (!isGroup && isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
+    if (isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
     const btn = document.getElementById('submitBtn');
     btn.textContent = 'Processing…'; btn.disabled = true;
-    if (isGroup) {
-      const phoneG = document.getElementById('bookPhone').value;
-      const formDataG = new FormData();
-      formDataG.append('form-name', 'booking');
-      formDataG.append('name', name);
-      formDataG.append('email', email);
-      formDataG.append('phone', phoneG);
-      formDataG.append('instrument', 'Group Class');
-      formDataG.append('date', date);
-      formDataG.append('time', time);
-      formDataG.append('song_requests', document.getElementById('bookSongRequests').value.trim());
-      formDataG.append('genre_focus', document.getElementById('bookGenreFocus').value);
-      formDataG.append('theory_interest', document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No');
-      formDataG.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
-      formDataG.append('total', '$40 (pending confirmation)');
-      fetch('/', { method: 'POST', body: formDataG }).catch(() => {});
-      setTimeout(() => {
-        btn.textContent = 'Proceed to Payment'; btn.disabled = false;
-        document.getElementById('modalTitle').textContent = 'Interest Registered!';
-        document.getElementById('modalBody').textContent = 'Your interest in a group class on ' + date + ' at ' + time + ' has been recorded. James will be in touch once a second person books the same slot.';
-        document.getElementById('successModal').classList.add('open');
-      }, 1200);
-      return;
-    }
    if (!stripe || !cardElement) { alert('Payment not configured. Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
     let lessonsForReserve = parseInt(document.getElementById('bookLessons').value);
@@ -1808,6 +1864,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('bookDate').max = getMaxBookingDate();
+  document.getElementById('groupDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('groupDate').max = getMaxBookingDate();
 </script>
 </body>
 </html>
