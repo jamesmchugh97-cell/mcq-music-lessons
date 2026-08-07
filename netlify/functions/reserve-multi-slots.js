@@ -6,6 +6,7 @@
 const { getStore } = require('@netlify/blobs');
 
 const MIN_GAP_MINUTES = 30;
+const MIN_NOTICE_HOURS = 24;
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -16,6 +17,46 @@ function timeToMinutes(t) {
   if (ap === 'pm' && h !== 12) h += 12;
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
+}
+
+// Converts a date ('YYYY-MM-DD') and time ('3:00 pm') given as Melbourne
+// LOCAL wall-clock time into a true UTC epoch timestamp (ms), correctly
+// accounting for daylight saving. Netlify's servers run in UTC, so naive
+// Date parsing here would otherwise be off by 10-11 hours from what
+// Melbourne actually experiences — this keeps the 24-hour notice rules
+// accurate regardless of what timezone the server happens to run in.
+function melbourneEpochMs(dateStr, timeStr) {
+  const minutes = timeToMinutes(timeStr) || 0;
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const hour = Math.floor(minutes / 60);
+  const min = minutes % 60;
+  const naiveUtcMs = Date.UTC(y, mo - 1, d, hour, min);
+  let offsetMinutes = 600; // fallback: AEST, UTC+10:00
+  try {
+    const dtf = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Melbourne', timeZoneName: 'shortOffset' });
+    const part = dtf.formatToParts(new Date(naiveUtcMs)).find(p => p.type === 'timeZoneName');
+    const match = part && part.value.match(/GMT([+-]\d+)(?::(\d+))?/);
+    if (match) {
+      const sign = match[1][0] === '-' ? -1 : 1;
+      offsetMinutes = parseInt(match[1], 10) * 60 + sign * parseInt(match[2] || '0', 10);
+    }
+  } catch (e) {}
+  return naiveUtcMs - offsetMinutes * 60000;
+}
+
+function hoursUntilSlot(dateStr, timeStr) {
+  return (melbourneEpochMs(dateStr, timeStr) - Date.now()) / (1000 * 60 * 60);
+}
+
+function dayOfWeek(dateStr) {
+  return new Date(dateStr + 'T00:00:00').getDay();
+}
+
+// Mon-Thu close at 9pm; Fri and Sat close earlier at 4:30pm.
+function getClosingTimeMinutes(dateStr) {
+  const dow = dayOfWeek(dateStr);
+  if (dow === 5 || dow === 6) return 16 * 60 + 30;
+  return 21 * 60;
 }
 
 exports.handler = async function (event) {
@@ -40,6 +81,8 @@ exports.handler = async function (event) {
   const durationMinutes = parseInt(duration, 10) || 45;
 
   const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+  const creditsStore = getStore({ name: 'saturday-credits', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+  const emailLower = (email || '').trim().toLowerCase();
 
   try {
     // Group requested slots by date so we only fetch each date's existing bookings once.
@@ -49,7 +92,22 @@ exports.handler = async function (event) {
       byDate[s.date].push(s);
     }
 
+    const saturdaySlotsUsed = [];
+
     for (const date in byDate) {
+      const dow = dayOfWeek(date);
+      if (dow === 0) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Sunday — James is closed. Please choose a different date.' }) };
+      }
+      if (dow === 6) {
+        const creditKey = date + '_' + emailLower;
+        const credit = await creditsStore.get(creditKey, { type: 'json' });
+        if (!credit) {
+          return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Saturday, reserved for Friday makeup lessons only. Please choose a weekday.' }) };
+        }
+        saturdaySlotsUsed.push(creditKey);
+      }
+      const closingTime = getClosingTimeMinutes(date);
       const { blobs } = await store.list({ prefix: date + '_' });
       const existing = [];
       for (const blob of blobs) {
@@ -63,6 +121,18 @@ exports.handler = async function (event) {
       for (const s of byDate[date]) {
         const start = timeToMinutes(s.time);
         const end = start + durationMinutes;
+        if (end > closingTime) {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' would run past closing time. Please choose an earlier time.' })
+          };
+        }
+        if (hoursUntilSlot(s.date, s.time) < MIN_NOTICE_HOURS) {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' is less than 24 hours away. Bookings need at least 24 hours\' notice.' })
+          };
+        }
         for (const ex of existing) {
           const overlap = start < ex.end && ex.start < end;
           if (overlap) {
@@ -103,19 +173,48 @@ exports.handler = async function (event) {
       }
     }
 
-    // All clear — reserve every slot, storing its duration so future
-    // bookings can be checked against it correctly.
+    // Reserve every slot using an atomic "only if new" write, so if two
+    // people request the exact same slot in the same instant, only one
+    // of them can actually claim it — the other gets a clean rejection
+    // instead of silently overwriting the first booking. If any slot in
+    // this request loses that race, roll back everything already written
+    // so the booking never ends up half-confirmed.
+    const written = [];
     for (const s of slots) {
       const key = s.date + '_' + s.time;
-      await store.setJSON(key, {
+      const record = {
         date: s.date,
         time: s.time,
         duration: durationMinutes,
         name: name || '',
         email: email || '',
         bookedAt: new Date().toISOString()
-      });
+      };
+      let claimed = true;
+      try {
+        const result = await store.set(key, JSON.stringify(record), { onlyIfNew: true });
+        if (result && result.modified === false) claimed = false;
+      } catch (writeErr) {
+        claimed = false;
+      }
+      if (!claimed) {
+        for (const k of written) {
+          try { await store.delete(k); } catch (e) {}
+        }
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' was just booked by someone else a moment ago. Please pick a different time and try again.' })
+        };
+      }
+      written.push(key);
     }
+
+    // Consume any Saturday makeup credits used in this booking, so they
+    // can't be reused for a second booking.
+    for (const creditKey of saturdaySlotsUsed) {
+      try { await creditsStore.delete(creditKey); } catch (e) {}
+    }
+
     return { statusCode: 200, body: JSON.stringify({ success: true, slots: slots }) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
