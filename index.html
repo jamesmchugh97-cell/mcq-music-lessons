@@ -397,12 +397,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 <section id="reschedulePanel" class="reschedule-section" style="display:none;">
   <div class="section-inner">
     <div class="reschedule-card">
-      <div class="reschedule-badge"><span>&#10003;</span> No charge &mdash; rescheduling your existing lesson</div>
-      <h2 class="section-title">Hi <span id="rescheduleName">there</span>, pick a new time</h2>
-      <p class="section-sub" id="rescheduleSub">Choose any available time between <strong id="rescheduleWeekRange"></strong>. This moves the lesson you already paid for &mdash; no card, no payment, nothing to fill in.</p>
-      <p id="rescheduleError" style="color:#f87171;font-size:0.85rem;margin-bottom:1rem;"></p>
-      <div id="rescheduleDaysWrap"></div>
-      <div id="rescheduleTimesWrap" style="margin-top:1rem;"></div>
+      <p id="rescheduleError" style="display:none;color:#f87171;font-size:0.9rem;line-height:1.6;"></p>
+      <div id="rescheduleContent">
+        <div class="reschedule-badge"><span>&#10003;</span> No charge &mdash; rescheduling your existing lesson</div>
+        <h2 class="section-title">Hi <span id="rescheduleName">there</span>, pick a new time</h2>
+        <p class="section-sub" id="rescheduleSub">Choose any available time between <strong id="rescheduleWeekRange"></strong>. This moves the lesson you already paid for &mdash; no card, no payment, nothing to fill in.</p>
+        <div id="rescheduleDaysWrap"></div>
+        <div id="rescheduleTimesWrap" style="margin-top:1rem;"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -704,7 +706,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
       </div>
     </div>
-  </div>
 </section>
 
 <div class="divider"></div>
@@ -1447,13 +1448,19 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!token) return;
     const panel = document.getElementById('reschedulePanel');
     const errorEl = document.getElementById('rescheduleError');
+    const contentEl = document.getElementById('rescheduleContent');
     panel.style.display = 'block';
     document.getElementById('rescheduleDivider').style.display = 'block';
     try {
       const resp = await fetch('/.netlify/functions/get-reschedule-credit?token=' + encodeURIComponent(token));
       const result = await resp.json();
       if (!result.valid) {
+        contentEl.style.display = 'none';
+        errorEl.style.display = 'block';
         errorEl.textContent = result.error || 'This reschedule link is invalid or has expired. Please contact James directly.';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          panel.scrollIntoView({ behavior: 'smooth' });
+        }));
         return;
       }
       rescheduleCredit = {
@@ -1470,6 +1477,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         panel.scrollIntoView({ behavior: 'smooth' });
       }));
     } catch (e) {
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'block';
       errorEl.textContent = 'Could not verify your reschedule link. Please contact James directly.';
     }
   }
@@ -1532,6 +1541,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   async function confirmReschedule(date, time) {
     const errorEl = document.getElementById('rescheduleError');
+    errorEl.style.display = 'none';
     errorEl.textContent = '';
     try {
       const resp = await fetch('/.netlify/functions/redeem-reschedule-credit', {
@@ -1541,7 +1551,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       });
       const result = await resp.json();
       if (!result.success) {
+        errorEl.style.display = 'block';
         errorEl.textContent = result.error || 'Could not reschedule that slot. Please try a different time.';
+        renderRescheduleDays(); // refresh availability in case the slot really was just taken
         return;
       }
       document.getElementById('modalTitle').textContent = 'Lesson Rescheduled!';
@@ -1551,6 +1563,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('rescheduleDivider').style.display = 'none';
       loadLiveBookings();
     } catch (e) {
+      errorEl.style.display = 'block';
       errorEl.textContent = 'Could not reach the server. Please contact James directly.';
     }
   }
