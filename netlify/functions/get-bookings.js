@@ -1,6 +1,7 @@
 // Netlify serverless function: returns all currently booked lesson slots
 // from Netlify Blobs, so the calendar shows real-time availability
-// instead of a hardcoded list.
+// instead of a hardcoded list. Each entry includes its duration so the
+// frontend can work out overlaps and minimum gaps correctly.
 const { getStore } = require('@netlify/blobs');
 
 exports.handler = async function (event) {
@@ -17,7 +18,7 @@ exports.handler = async function (event) {
       const record = await store.get(blob.key, { type: 'json' });
       if (record && record.date && record.time) {
         if (!booked[record.date]) booked[record.date] = [];
-        booked[record.date].push(record.time);
+        booked[record.date].push({ time: record.time, duration: record.duration || 45 });
       }
     }
     return {
