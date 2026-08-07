@@ -52,11 +52,16 @@ function dayOfWeek(dateStr) {
   return new Date(dateStr + 'T00:00:00').getDay();
 }
 
-// Mon-Thu close at 9pm; Fri and Sat close earlier at 4:30pm.
-function getClosingTimeMinutes(dateStr) {
+const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
+const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
+
+// Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish by
+// 4:30pm — so the last bookable start time shifts earlier depending on
+// how long the lesson runs.
+function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
   const dow = dayOfWeek(dateStr);
-  if (dow === 5 || dow === 6) return 16 * 60 + 30;
-  return 21 * 60;
+  if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+  return endMinutes <= MON_THU_CLOSING_MINUTES;
 }
 
 exports.handler = async function (event) {
@@ -107,7 +112,6 @@ exports.handler = async function (event) {
         }
         saturdaySlotsUsed.push(creditKey);
       }
-      const closingTime = getClosingTimeMinutes(date);
       const { blobs } = await store.list({ prefix: date + '_' });
       const existing = [];
       for (const blob of blobs) {
@@ -121,10 +125,10 @@ exports.handler = async function (event) {
       for (const s of byDate[date]) {
         const start = timeToMinutes(s.time);
         const end = start + durationMinutes;
-        if (end > closingTime) {
+        if (!isWithinBusinessHours(s.date, start, end)) {
           return {
             statusCode: 200,
-            body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' would run past closing time. Please choose an earlier time.' })
+            body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' is outside business hours for that day. Please choose a different time.' })
           };
         }
         if (hoursUntilSlot(s.date, s.time) < MIN_NOTICE_HOURS) {
