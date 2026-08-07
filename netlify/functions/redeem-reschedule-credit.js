@@ -8,6 +8,42 @@
 // confirmation that makes clear no charge was made.
 const { getStore } = require('@netlify/blobs');
 
+function timeToMinutes(t) {
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const ap = m[3].toLowerCase();
+  if (ap === 'pm' && h !== 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+// Same Melbourne-local-time-to-epoch conversion used in cancel-booking.js,
+// so the 24-hour notice check here is correct regardless of the server's
+// own timezone or daylight saving.
+function melbourneEpochMs(dateStr, timeStr) {
+  const minutes = timeToMinutes(timeStr) || 0;
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const hour = Math.floor(minutes / 60);
+  const min = minutes % 60;
+  const naiveUtcMs = Date.UTC(y, mo - 1, d, hour, min);
+  let offsetMinutes = 600; // fallback: AEST, UTC+10:00
+  try {
+    const dtf = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Melbourne', timeZoneName: 'shortOffset' });
+    const part = dtf.formatToParts(new Date(naiveUtcMs)).find(p => p.type === 'timeZoneName');
+    const match = part && part.value.match(/GMT([+-]\d+)(?::(\d+))?/);
+    if (match) {
+      const sign = match[1][0] === '-' ? -1 : 1;
+      offsetMinutes = parseInt(match[1], 10) * 60 + sign * parseInt(match[2] || '0', 10);
+    }
+  } catch (e) {}
+  return naiveUtcMs - offsetMinutes * 60000;
+}
+
+const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm
+const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm
+
 async function sendEmail(to, subject, html) {
   try {
     await fetch('https://api.resend.com/emails', {
@@ -59,6 +95,25 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a date within your original lesson\u2019s week.' }) };
     }
 
+    const startMinutes = timeToMinutes(time);
+    if (startMinutes === null) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Invalid time format.' }) };
+    }
+    const duration = credit.duration || 45;
+    const endMinutes = startMinutes + duration;
+    const dow = new Date(date + 'T00:00:00').getDay();
+    if (dow === 0) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'James is closed on Sundays.' }) };
+    }
+    const closingMinutes = (dow === 5 || dow === 6) ? FRI_SAT_CLOSING_MINUTES : MON_THU_CLOSING_MINUTES;
+    if (endMinutes > closingMinutes) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time runs past closing hours for that day.' }) };
+    }
+    const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
+    if (hoursUntil < 24) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time is less than 24 hours away. Please choose a later slot.' }) };
+    }
+
     const bookingsStore = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
     const key = date + '_' + time;
     const existing = await bookingsStore.get(key, { type: 'json' });
@@ -69,7 +124,7 @@ exports.handler = async function (event) {
     await bookingsStore.setJSON(key, {
       name: credit.name,
       email: credit.email,
-      duration: credit.duration,
+      duration: duration,
       rescheduledFrom: credit.originalDate + ' ' + credit.originalTime
     });
 
