@@ -13,19 +13,25 @@ exports.handler = async function (event) {
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
-  const { name, email, instrument, date, time, duration, lessons_count, frequency, total } = body;
+  const { name, email, instrument, date, time, duration, lessons_count, total, slots } = body;
   if (!email || !name) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing name or email.' }) };
   }
-  const lessons = parseInt(lessons_count, 10) || 1;
-  const isTerm = lessons > 1;
+  const slotList = Array.isArray(slots) && slots.length > 0 ? slots : [{ date: date, time: time }];
+  const lessonsCountNum = parseInt(lessons_count, 10) || slotList.length;
+  const isMulti = lessonsCountNum > 1;
   const durationMinutes = duration ? String(duration).split('|')[0] : '';
-  const termLine = isTerm
-    ? `<p>This is a <strong>${lessons}-lesson term</strong>, delivered <strong>${frequency || 'weekly'}</strong>.</p>`
-    : `<p>This is your <strong>trial lesson</strong> — a chance to see if it's the right fit before you commit.</p>`;
-  const cancellationNotice = isTerm
-    ? `Term fees are non-refundable, but never lost. Give at least 24 hours' notice to reschedule a single lesson, or if you can't finish the term, your remaining lessons carry forward to your current or next enrolled term. See the full cancellation policy on the booking page for details.`
-    : `If you need to reschedule, just give at least 24 hours' notice.`;
+
+  const introLine = isMulti
+    ? `<p>You've booked <strong>${lessonsCountNum} lessons</strong>. See the dates below.</p>`
+    : `<p>This is your <strong>trial lesson</strong>, a chance to see if it's the right fit before you commit.</p>`;
+  const cancellationNotice = `Cancel with 24+ hours' notice and I'll do my best to find a makeup lesson within that same week. If we can't, it's not refunded. Cancel with less than 24 hours' notice and the full lesson fee applies with no makeup available.`;
+
+  const dateFieldsHtml = slotList.length > 1
+    ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${s.date} at ${s.time}</li>`).join('')}</ul></li>`
+    : `<li><strong>Date:</strong> ${slotList[0].date || 'N/A'}</li>
+        <li><strong>Time:</strong> ${slotList[0].time || 'N/A'}</li>`;
+
   const emailHtml = `
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
       <div style="text-align: center; margin-bottom: 24px;">
@@ -38,13 +44,12 @@ exports.handler = async function (event) {
       <p>Thanks for booking with MCQ Music Lessons! Here are your details:</p>
       <ul>
         <li><strong>Instrument:</strong> ${instrument || 'N/A'}</li>
-        <li><strong>Date:</strong> ${date || 'N/A'}</li>
-        <li><strong>Time:</strong> ${time || 'N/A'}</li>
+        ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
       </ul>
-      ${termLine}
-      <p>James will be in touch within 24 hours to confirm your time.</p>
+      ${introLine}
+      <p>James will be in touch within 24 hours to confirm.</p>
       <p style="font-size: 0.85em; color: #666; border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
         <strong>Cancellation policy:</strong> ${cancellationNotice}
       </p>
