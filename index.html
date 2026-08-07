@@ -316,6 +316,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="#calendar">Availability</a></li>
       <li><a href="#faq">FAQ</a></li>
+      <li><a href="#manage">Manage Booking</a></li>
       <li><a href="#book" class="nav-cta">Book Now</a></li>
     </ul>
     <div class="nav-social">
@@ -340,6 +341,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="#pricing" onclick="toggleMenu()">Pricing</a>
   <a href="#calendar" onclick="toggleMenu()">Availability</a>
   <a href="#faq" onclick="toggleMenu()">FAQ</a>
+  <a href="#manage" onclick="toggleMenu()">Manage Booking</a>
   <a href="#book" onclick="toggleMenu()">Book Now</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -426,7 +428,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Book Now</p>
     <h2 class="section-title">Ready to <em>get started?</em></h2>
-    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like — choose a date and time for each one, whenever suits you.</p>
+    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like — choose a date and time for each one, whenever suits you.</p>
 
     <form class="booking-form" name="booking" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return handleBooking(event)">
       <input type="hidden" name="form-name" value="booking">
@@ -442,7 +444,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input class="form-input" type="email" id="bookEmail" name="email" placeholder="your@email.com">
+          <input class="form-input" type="email" id="bookEmail" name="email" placeholder="your@email.com" onchange="refreshTimeOptions()">
         </div>
       </div>
       <div class="form-row">
@@ -479,6 +481,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <label class="form-label">Number of Lessons</label>
         <input class="form-input" type="number" id="bookLessons" name="lessons_count" min="1" value="1" oninput="updateTotal()">
         <p style="font-size:0.76rem;color:var(--muted);margin-top:0.4rem;line-height:1.5;">Booking more than one? Choose how below — no limit on how many.</p>
+        <p id="largeBookingNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin-top:0.4rem;line-height:1.5;">That's a big booking! For 20+ lessons, it might be quicker to reach out to James directly at <a href="mailto:jamesmcqmusic@gmail.com" style="color:var(--gold);">jamesmcqmusic@gmail.com</a> or <a href="tel:0499232898" style="color:var(--gold);">0499 232 898</a> to arrange it — but you're welcome to book here too.</p>
       </div>
       <div id="extraDatesGroup" class="form-group" style="display:none;">
         <label class="form-label">How would you like to book these lessons?</label>
@@ -564,7 +567,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <h2 class="section-title">Real teaching. <em>Real results.</em></h2>
     <div class="features-grid">
       <div class="feature-item"><div class="feature-icon">♩</div><div><div class="feature-title">Personalised Curriculum</div><div class="feature-desc">No generic lesson plans. Every session is built around your goals.</div></div></div>
-      <div class="feature-item"><div class="feature-icon">⏱</div><div><div class="feature-title">Flexible Scheduling</div><div class="feature-desc">Mon to Fri, 12pm to 9pm. Book online in minutes.</div></div></div>
+      <div class="feature-item"><div class="feature-icon">⏱</div><div><div class="feature-title">Flexible Scheduling</div><div class="feature-desc">Mon to Thu 12pm to 9pm, Fri 12pm to 4:30pm. Book online in minutes.</div></div></div>
       <div class="feature-item"><div class="feature-icon">🎸</div><div><div class="feature-title">All Styles Welcome</div><div class="feature-desc">Rock, country, fingerpicking, blues, classical, pop and more.</div></div></div>
       <div class="feature-item"><div class="feature-icon">★</div><div><div class="feature-title">Working Musician</div><div class="feature-desc">James is an active performer and songwriter, bringing real-world experience into every lesson.</div></div></div>
     </div>
@@ -758,14 +761,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <div class="package-name">A popular starting point</div>
           <div class="package-sub">5 lessons, on whatever dates suit you.</div>
           <div class="package-lock">🔒 Every date you choose is reserved the moment you book. No one else can take it.</div>
-          <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book 5 lessons →</a>
+          <a href="#book" onclick="presetLessonCount(5)" class="btn-outline" style="width:100%;text-align:center;display:block;">Book 5 lessons →</a>
         </div>
         <div class="package-card">
           <div class="package-badge">10 Lessons</div>
           <div class="package-name">Best for steady progress</div>
           <div class="package-sub">10 lessons, on whatever dates suit you — ideal if you come more than once a week too.</div>
           <div class="package-lock">🔒 Every date you choose is reserved the moment you book. Maximum commitment, maximum results.</div>
-          <a href="#book" class="btn-primary" style="width:100%;text-align:center;display:block;">Book 10 lessons →</a>
+          <a href="#book" onclick="presetLessonCount(10)" class="btn-primary" style="width:100%;text-align:center;display:block;">Book 10 lessons →</a>
         </div>
       </div>
     </div>
@@ -805,7 +808,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <h2 class="section-title">Common <em>questions.</em></h2>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">What is your cancellation policy? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">Cancel more than 48 hours before your lesson and you'll receive a full refund or free reschedule. Cancel within 48 hours and the full lesson fee applies, since the time slot can't be filled at short notice. If James ever needs to cancel, you'll receive a full refund or a free reschedule.</div>
+      <div class="faq-answer">Cancel with 24 hours' notice or more and I'll do my best to find a makeup lesson within that same week — if we can't find a time that works for both of us, the lesson isn't refunded. Cancel with less than 24 hours' notice and the full lesson fee applies with no makeup available, since the time slot can't be filled at such short notice. If James ever needs to cancel, you'll receive a full refund or a free reschedule.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">Do you offer casual, ongoing lessons? <span class="faq-chevron">▾</span></button>
@@ -832,6 +835,26 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="divider"></div>
 
+<!-- MANAGE BOOKING -->
+<section id="manage">
+  <div class="section-inner">
+    <p class="section-eyebrow">Manage Booking</p>
+    <h2 class="section-title">Need to <em>cancel a lesson?</em></h2>
+    <p class="section-sub">Enter the email you booked with to find your upcoming lessons.</p>
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Your Email</label>
+        <input class="form-input" type="email" id="manageEmail" placeholder="your@email.com">
+      </div>
+      <button class="btn-outline" id="findBookingsBtn" onclick="findMyBookings()" type="button" style="width:100%;text-align:center;">Find My Lessons</button>
+      <p id="manageError" style="color:#f87171;font-size:0.8rem;margin-top:0.6rem;min-height:1.2em;"></p>
+      <div id="manageResults" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <!-- CONTACT -->
 <section id="contact">
   <div class="section-inner">
@@ -841,7 +864,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="contact-item"><span class="contact-icon">📞</span><div><div class="contact-label">Phone</div><div class="contact-value"><a href="tel:0499232898">0499 232 898</a></div></div></div>
       <div class="contact-item"><span class="contact-icon">✉</span><div><div class="contact-label">Email</div><div class="contact-value"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a></div></div></div>
       <div class="contact-item"><span class="contact-icon">📍</span><div><div class="contact-label">Location</div><div class="contact-value">South Melbourne, VIC</div></div></div>
-      <div class="contact-item"><span class="contact-icon">⏰</span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Fri, 12pm to 9pm</div></div></div>
+      <div class="contact-item"><span class="contact-icon">⏰</span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Thu 12pm–9pm, Fri 12pm–4:30pm</div></div></div>
       <div class="contact-item"><span class="contact-icon">📸</span><div><div class="contact-label">Instagram</div><div class="contact-value"><a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a></div></div></div>
       <div class="contact-item"><span class="contact-icon">👍</span><div><div class="contact-label">Facebook</div><div class="contact-value"><a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">MCQ Music</a></div></div></div>
       <div class="contact-item"><span class="contact-icon">🎵</span><div><div class="contact-label">Music Links</div><div class="contact-value"><a href="https://linktr.ee/jamesmcq" target="_blank">linktr.ee/jamesmcq</a></div></div></div>
@@ -871,8 +894,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="policy-box">
       <div class="policy-title">Cancellation Policy</div>
-      <div class="policy-row"><strong>48+ hours notice</strong>Full refund or free reschedule</div>
-      <div class="policy-row"><strong>Under 48 hours</strong>Full lesson fee applies</div>
+      <div class="policy-row"><strong>24+ hours notice</strong>I'll try to find a makeup lesson that same week — if we can't, it's not refunded</div>
+      <div class="policy-row"><strong>Under 24 hours</strong>Full lesson fee applies, no makeup available</div>
     </div>
   </div>
 </section>
@@ -912,6 +935,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     updateTotal();
   }
 
+  // Used by the "Book 5 lessons" / "Book 10 lessons" shortcut buttons so
+  // they actually set the count, not just scroll to the form.
+  function presetLessonCount(n) {
+    document.getElementById('bookLessons').value = n;
+    updateTotal();
+  }
+
   function updateTotal() {
     const isGroup = selectedInstrument === 'Group Class';
     if (isGroup) {
@@ -923,7 +953,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const price = parseInt(document.getElementById('bookDuration').value.split('|')[1]);
     let lessons = parseInt(document.getElementById('bookLessons').value);
     if (!lessons || lessons < 1) lessons = 1;
+    const primaryDateVal = document.getElementById('bookDate').value;
+    if (primaryDateVal && dayOfWeek(primaryDateVal) === 6 && lessons > 1) {
+      lessons = 1;
+      document.getElementById('bookLessons').value = 1;
+    }
     document.getElementById('extraDatesGroup').style.display = lessons > 1 ? 'block' : 'none';
+    document.getElementById('largeBookingNote').style.display = lessons >= 20 ? 'block' : 'none';
     renderExtraDateRows(lessons);
     refreshTimeOptions();
     document.getElementById('subtotalAmt').textContent = '$' + price;
@@ -1029,38 +1065,39 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const ALL_TIMES = ['12:00 pm','12:15 pm','12:30 pm','12:45 pm','1:00 pm','1:15 pm','1:30 pm','1:45 pm','2:00 pm','2:15 pm','2:30 pm','2:45 pm','3:00 pm','3:15 pm','3:30 pm','3:45 pm','4:00 pm','4:15 pm','4:30 pm','4:45 pm','5:00 pm','5:15 pm','5:30 pm','5:45 pm','6:00 pm','6:15 pm','6:30 pm','6:45 pm','7:00 pm','7:15 pm','7:30 pm','7:45 pm','8:00 pm','8:15 pm','8:30 pm','8:45 pm','9:00 pm'];
 
-  // BOOKED SLOTS: existing students
+  // BOOKED SLOTS: existing recurring students, with correct real durations.
+  // Weekly students repeat every Mon/Tue/Wed/Thu; Ebony, Jacq (Tue 2:30pm),
+  // and Tilly are fortnightly on their specific dates only.
   // To update: send James the file and tell him which dates/times to add or remove
   const BOOKED = {
-    // Recurring students, locked in through 2026-09-18. Fully open after that (no bookings extended past this date yet).
-    '2026-08-03': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-04': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-05': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-06': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-08-10': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-11': [{ time: '7:00 pm', duration: 45 }],
-    '2026-08-12': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-13': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-08-17': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-18': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-19': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-20': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-08-24': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-25': [{ time: '7:00 pm', duration: 45 }],
-    '2026-08-26': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-08-27': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-08-31': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-01': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-02': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-03': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-09-07': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-08': [{ time: '7:00 pm', duration: 45 }],
-    '2026-09-09': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-10': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
-    '2026-09-14': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-15': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-16': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
-    '2026-09-17': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-08-03': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
+    '2026-08-04': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-05': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-06': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-08-10': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
+    '2026-08-11': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
+    '2026-08-12': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-13': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-08-17': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
+    '2026-08-18': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-19': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-20': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-08-24': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
+    '2026-08-25': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
+    '2026-08-26': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-08-27': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-08-31': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
+    '2026-09-01': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-09-02': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-09-03': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-09-07': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }],
+    '2026-09-08': [{ time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }, { time: '8:15 pm', duration: 60 }],
+    '2026-09-09': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-09-10': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
+    '2026-09-14': [{ time: '4:00 pm', duration: 75 }, { time: '6:00 pm', duration: 90 }, { time: '7:30 pm', duration: 60 }],
+    '2026-09-15': [{ time: '2:30 pm', duration: 60 }, { time: '4:00 pm', duration: 30 }, { time: '4:45 pm', duration: 45 }, { time: '5:30 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-09-16': [{ time: '1:00 pm', duration: 60 }, { time: '2:00 pm', duration: 90 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 45 }, { time: '5:15 pm', duration: 30 }, { time: '6:00 pm', duration: 60 }, { time: '7:15 pm', duration: 60 }],
+    '2026-09-17': [{ time: '2:30 pm', duration: 60 }, { time: '3:45 pm', duration: 45 }, { time: '4:30 pm', duration: 75 }, { time: '5:45 pm', duration: 30 }, { time: '6:15 pm', duration: 30 }, { time: '6:45 pm', duration: 60 }],
   };
 
   function padZ(n) { return String(n).padStart(2,'0'); }
@@ -1079,12 +1116,38 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   const MIN_GAP_MINUTES = 30;
+  const MIN_NOTICE_HOURS = 24;
+
+  // Mon-Thu close at 9pm; Fri and Sat close earlier at 4:30pm.
+  function getClosingTimeMinutes(dateStr) {
+    const dow = new Date(dateStr + 'T00:00:00').getDay();
+    if (dow === 5 || dow === 6) return 16 * 60 + 30;
+    return 21 * 60;
+  }
+
+  function dayOfWeek(dateStr) {
+    return new Date(dateStr + 'T00:00:00').getDay();
+  }
+
+  // How many hours from right now until this date+time starts.
+  function hoursUntilSlot(dateStr, timeStr) {
+    const start = new Date(dateStr + 'T00:00:00');
+    start.setMinutes(start.getMinutes() + (timeToMinutes(timeStr) || 0));
+    return (start.getTime() - Date.now()) / (1000 * 60 * 60);
+  }
 
   // Given a date and a lesson duration, returns which of ALL_TIMES are
   // valid start times — excluding anything that overlaps an existing
-  // lesson, or would leave an unusably small (<30 min) gap next to one.
-  function getAvailableTimes(dateStr, durationMinutes) {
-    if (!dateStr || isWeekendDate(dateStr)) return [];
+  // lesson, would leave an unusably small (<30 min) gap next to one,
+  // would run past closing time, or is less than 24 hours away. Sundays
+  // are always closed. Saturdays are closed unless saturdayEligible is
+  // true — reserved for a specific Friday-cancellation makeup credit.
+  function getAvailableTimes(dateStr, durationMinutes, saturdayEligible) {
+    if (!dateStr) return [];
+    const dow = dayOfWeek(dateStr);
+    if (dow === 0) return [];
+    if (dow === 6 && !saturdayEligible) return [];
+    const closing = getClosingTimeMinutes(dateStr);
     const existing = (BOOKED[dateStr] || []).map(b => ({
       start: timeToMinutes(b.time),
       end: timeToMinutes(b.time) + (b.duration || 45)
@@ -1092,6 +1155,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return ALL_TIMES.filter(t => {
       const start = timeToMinutes(t);
       const end = start + durationMinutes;
+      if (end > closing) return false;
+      if (hoursUntilSlot(dateStr, t) < MIN_NOTICE_HOURS) return false;
       for (const ex of existing) {
         if (start < ex.end && ex.start < end) return false; // overlaps
         const gapBefore = start - ex.end;
@@ -1289,6 +1354,77 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return !getAvailableTimes(dateStr, durationMinutes || 45).includes(timeStr);
   }
 
+  // MANAGE BOOKING — self-service lookup and cancellation
+  async function findMyBookings() {
+    const email = document.getElementById('manageEmail').value.trim();
+    const errEl = document.getElementById('manageError');
+    const resultsEl = document.getElementById('manageResults');
+    errEl.textContent = '';
+    resultsEl.innerHTML = '';
+    if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+    const btn = document.getElementById('findBookingsBtn');
+    btn.textContent = 'Searching…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/find-bookings?email=' + encodeURIComponent(email));
+      const result = await resp.json();
+      btn.textContent = 'Find My Lessons'; btn.disabled = false;
+      if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
+      if (!result.bookings || result.bookings.length === 0) {
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No upcoming lessons found for that email.</p>';
+        return;
+      }
+      result.bookings.forEach(b => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.6rem;gap:0.75rem;flex-wrap:wrap;';
+        const info = document.createElement('div');
+        info.style.cssText = 'font-size:0.85rem;color:var(--cream);';
+        info.textContent = b.date + ' at ' + b.time + ' (' + b.duration + ' min)';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn-outline';
+        cancelBtn.type = 'button';
+        cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+        cancelBtn.textContent = 'Cancel this lesson';
+        cancelBtn.onclick = () => confirmCancelBooking(email, b.date, b.time);
+        row.appendChild(info);
+        row.appendChild(cancelBtn);
+        resultsEl.appendChild(row);
+      });
+    } catch (e) {
+      btn.textContent = 'Find My Lessons'; btn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  async function confirmCancelBooking(email, date, time) {
+    const start = new Date(date + 'T00:00:00');
+    start.setMinutes(start.getMinutes() + (timeToMinutes(time) || 0));
+    const hoursUntil = (start.getTime() - Date.now()) / (1000 * 60 * 60);
+    const eligible = hoursUntil >= 24;
+    const msg = eligible
+      ? 'Cancel ' + date + ' at ' + time + '?\n\nThis is 24+ hours away, so James will do his best to find a makeup lesson within that same week. If we can\'t find a time that works for both of you, it won\'t be refunded.'
+      : 'Cancel ' + date + ' at ' + time + '?\n\nThis is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+    if (!confirm(msg)) return;
+    try {
+      const resp = await fetch('/.netlify/functions/cancel-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, date: date, time: time })
+      });
+      const result = await resp.json();
+      if (result.success) {
+        alert('Your lesson has been cancelled. ' + (result.eligible
+          ? 'James will be in touch about finding a makeup lesson.'
+          : 'As this was within 24 hours, no makeup or refund applies.'));
+        findMyBookings();
+        loadLiveBookings();
+      } else {
+        alert(result.error || 'Could not cancel that lesson. Please contact James directly.');
+      }
+    } catch (e) {
+      alert('Could not reach the server. Please contact James directly.');
+    }
+  }
+
   // Rebuilds the "Preferred Time" dropdown to only show times that work
   // for the currently selected date and duration — so a bad time never
   // even shows as pickable. Also refreshes each additional lesson's time
@@ -1297,11 +1433,32 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // and show a warning, rather than letting a weekend date sit there.
   function handleDateFieldChange(input) {
     const warning = document.getElementById('bookDateWarning');
-    if (input.value && isWeekendDate(input.value)) {
+    if (input.value && dayOfWeek(input.value) === 0) {
       input.value = '';
+      warning.textContent = 'James is closed on Sundays — please choose a different day.';
       warning.style.display = 'block';
     } else {
       warning.style.display = 'none';
+    }
+    refreshTimeOptions();
+  }
+
+  // Tracks the result of the last Saturday-eligibility check, so we don't
+  // re-fetch on every keystroke — only when the date or email actually
+  // changes to something we haven't already checked.
+  let saturdayEligibility = { date: null, email: null, eligible: false };
+
+  async function checkSaturdayEligibility(dateStr, email) {
+    if (!dateStr || !email) {
+      saturdayEligibility = { date: dateStr, email: email, eligible: false };
+      return;
+    }
+    try {
+      const resp = await fetch('/.netlify/functions/check-saturday-credit?date=' + encodeURIComponent(dateStr) + '&email=' + encodeURIComponent(email));
+      const result = await resp.json();
+      saturdayEligibility = { date: dateStr, email: email, eligible: !!(result && result.eligible) };
+    } catch (e) {
+      saturdayEligibility = { date: dateStr, email: email, eligible: false };
     }
     refreshTimeOptions();
   }
@@ -1311,13 +1468,27 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const durationMinutes = parseInt(durationVal, 10) || 45;
 
     const primaryDate = document.getElementById('bookDate').value;
+    const primaryEmail = document.getElementById('bookEmail').value.trim().toLowerCase();
     const primarySelect = document.getElementById('bookTime');
     const prevPrimary = primarySelect.value;
-    const validPrimary = primaryDate ? getAvailableTimes(primaryDate, durationMinutes) : ALL_TIMES;
+
+    let primarySaturdayEligible = false;
+    if (primaryDate && dayOfWeek(primaryDate) === 6) {
+      if (saturdayEligibility.date === primaryDate && saturdayEligibility.email === primaryEmail) {
+        primarySaturdayEligible = saturdayEligibility.eligible;
+      } else if (primaryEmail) {
+        checkSaturdayEligibility(primaryDate, primaryEmail); // async — will re-call refreshTimeOptions when done
+      }
+    }
+
+    const validPrimary = primaryDate ? getAvailableTimes(primaryDate, durationMinutes, primarySaturdayEligible) : ALL_TIMES;
     primarySelect.innerHTML = '';
     if (primaryDate && validPrimary.length === 0) {
       const opt = document.createElement('option');
-      opt.textContent = isWeekendDate(primaryDate) ? 'Closed on weekends' : 'No times available that day';
+      const dow = dayOfWeek(primaryDate);
+      if (dow === 0) opt.textContent = 'Closed on Sundays';
+      else if (dow === 6) opt.textContent = primaryEmail ? 'Saturdays are for Friday makeup lessons only' : 'Enter your email to check Saturday eligibility';
+      else opt.textContent = 'No times available that day';
       opt.disabled = true; opt.selected = true;
       primarySelect.appendChild(opt);
     } else {
@@ -1333,11 +1504,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const dInput = row.querySelector('.extra-date-input');
       const tSelect = row.querySelector('.extra-time-input');
       const prevVal = tSelect.value;
-      const validTimes = dInput.value ? getAvailableTimes(dInput.value, durationMinutes) : ALL_TIMES;
+      const validTimes = dInput.value ? getAvailableTimes(dInput.value, durationMinutes, false) : ALL_TIMES;
       tSelect.innerHTML = '';
       if (dInput.value && validTimes.length === 0) {
         const opt = document.createElement('option');
-        opt.textContent = isWeekendDate(dInput.value) ? 'Closed on weekends' : 'No times available that day';
+        const dow = dayOfWeek(dInput.value);
+        opt.textContent = dow === 6 ? 'Saturdays are for Friday makeups only — book those separately' : (dow === 0 ? 'Closed on Sundays' : 'No times available that day');
         opt.disabled = true; opt.selected = true;
         tSelect.appendChild(opt);
       } else {
@@ -1362,7 +1534,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
     if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance.'; return; }
-    if (isWeekendDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on weekends. Please choose a weekday (Monday to Friday).'; return; }
+    const primaryDow = dayOfWeek(date);
+    if (primaryDow === 0) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on Sundays.'; return; }
+    if (primaryDow === 6) {
+      const emailLower = email.trim().toLowerCase();
+      if (!(saturdayEligibility.date === date && saturdayEligibility.email === emailLower && saturdayEligibility.eligible)) {
+        document.getElementById('stripe-error').textContent = 'Saturdays are reserved for Friday makeup lessons. Please choose a weekday.';
+        return;
+      }
+    }
+    if (!isGroup && hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
     const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
     if (!isGroup && isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
     const btn = document.getElementById('submitBtn');
@@ -1422,6 +1603,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         }
         if (isWeekendDate(dInput.value)) {
           document.getElementById('stripe-error').textContent = 'James is closed on weekends — please choose a weekday for every lesson.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (hoursUntilSlot(dInput.value, tInput.value) < MIN_NOTICE_HOURS) {
+          document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please check each lesson time.';
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
