@@ -1269,8 +1269,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         btn.onclick = () => {
           document.getElementById('bookDate').value = key;
           document.getElementById('bookTime').value = t;
+          // The preview only shows a time as available if a 30-min lesson
+          // fits — default the duration to that so clicking never lands
+          // on a time that then looks invalid. They can lengthen it from
+          // here if there's more room, and it'll re-check live.
+          document.getElementById('bookDuration').value = '30|50';
           document.getElementById('book').scrollIntoView({behavior:'smooth'});
           updateTotal();
+          document.getElementById('bookTime').value = t;
         };
       }
       grid.appendChild(btn);
