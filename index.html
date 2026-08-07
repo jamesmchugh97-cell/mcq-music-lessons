@@ -416,16 +416,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <div class="form-group" style="max-width:220px;margin-bottom:0.9rem;">
-        <label class="form-label">Lesson Duration</label>
-        <select class="form-input" id="calDetailDuration" onchange="renderDayDetailTimes()">
-          <option value="30">30 minutes</option>
-          <option value="45" selected>45 minutes</option>
-          <option value="60">60 minutes</option>
-          <option value="75">75 minutes</option>
-          <option value="90">90 minutes</option>
-        </select>
-      </div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free — your actual lesson length is chosen in the booking form below.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -1126,6 +1117,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   const MIN_GAP_MINUTES = 30;
+  const MIN_LESSON_MINUTES = 30; // shortest lesson James offers — the floor used for "is anything bookable here" previews
   const MIN_NOTICE_HOURS = 24;
   const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
   const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
@@ -1213,13 +1205,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       cell.appendChild(dateDiv);
 
       // Lesson hours: Monday to Friday, 12pm to 9pm. Saturday & Sunday closed.
-      // Availability shown here assumes a 45-minute lesson (the default) —
-      // the actual bookable times adjust once a duration is chosen below.
+      // Availability shown here uses the 30-minute minimum lesson length as
+      // the floor — a time shows Available if ANY bookable lesson could
+      // start there, not tied to any particular duration.
       let dayTimes = ALL_TIMES;
 
       if (!isPast && !isClosed) {
         const bookedList = BOOKED[key] || [];
-        const freeTimes = getAvailableTimes(key, 45);
+        const freeTimes = getAvailableTimes(key, MIN_LESSON_MINUTES);
         const freeCount = freeTimes.length;
         const pills = document.createElement('div');
         pills.className = 'cal-slot-pills';
@@ -1248,7 +1241,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  let currentDetailDay = null; // { key, d, dayTimes } — tracks which day is open so we can re-render on duration change
+  let currentDetailDay = null; // { key, d, dayTimes } — tracks which day is open
 
   function showDayDetail(key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
@@ -1262,11 +1255,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function renderDayDetailTimes() {
     if (!currentDetailDay) return;
     const { key, d, dayTimes } = currentDetailDay;
-    const durationMinutes = parseInt(document.getElementById('calDetailDuration').value, 10) || 45;
-    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times (' + durationMinutes + ' min lesson)';
+    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
-    const freeTimes = getAvailableTimes(key, durationMinutes);
+    const freeTimes = getAvailableTimes(key, MIN_LESSON_MINUTES);
     dayTimes.forEach(t => {
       const btn = document.createElement('button');
       const free = freeTimes.includes(t);
@@ -1277,9 +1269,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         btn.onclick = () => {
           document.getElementById('bookDate').value = key;
           document.getElementById('bookTime').value = t;
-          const durSelect = document.getElementById('bookDuration');
-          const matchingOption = Array.from(durSelect.options).find(o => o.value.split('|')[0] === String(durationMinutes));
-          if (matchingOption) durSelect.value = matchingOption.value;
           document.getElementById('book').scrollIntoView({behavior:'smooth'});
           updateTotal();
         };
