@@ -452,7 +452,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
         <div class="form-group">
           <label class="form-label">Preferred Date</label>
-          <input class="form-input" type="date" id="bookDate" name="date">
+          <input class="form-input" type="date" id="bookDate" name="date" onchange="refreshTimeOptions()">
         </div>
       </div>
       <div class="form-group">
@@ -469,7 +469,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <select class="form-input" id="bookDuration" name="duration" onchange="updateTotal()">
           <option value="30|50">30 minutes · $50</option>
           <option value="45|70" selected>45 minutes · $70</option>
-          <option value="60|80">60 minutes · $80</option>
+          <option value="60|85">60 minutes · $85</option>
+          <option value="75|100">75 minutes · $100</option>
+          <option value="90|130">90 minutes · $130</option>
         </select>
       </div>
       <div id="lessonsGroup" class="form-group">
@@ -490,10 +492,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group">
         <label class="form-label">Preferred Time</label>
         <select class="form-input" id="bookTime" name="time">
-          <option>12:00 pm</option>
-          <option>1:00 pm</option><option>2:00 pm</option><option>3:00 pm</option>
-          <option>4:00 pm</option><option>5:00 pm</option><option>6:00 pm</option>
-          <option>7:00 pm</option><option>8:00 pm</option><option>9:00 pm</option>
+          <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
+          <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
+          <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
+          <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
+          <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
+          <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
+          <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
+          <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
+          <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
+          <option>9:00 pm</option>
         </select>
       </div>
       <div class="form-group" style="border-top:1px solid var(--navy-border);padding-top:1rem;margin-top:0.5rem;">
@@ -707,10 +715,32 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="pricing-card">
         <div class="pricing-label">Full Session</div>
         <div class="pricing-duration">60 Minutes</div>
-        <div class="pricing-price">$80 <span>/ lesson</span></div>
+        <div class="pricing-price">$85 <span>/ lesson</span></div>
         <ul class="pricing-features">
           <li>Deep dive into your goals</li>
           <li>Best for adult learners</li>
+          <li>Full theory & practice</li>
+        </ul>
+        <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book →</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-label">Extended Session</div>
+        <div class="pricing-duration">75 Minutes</div>
+        <div class="pricing-price">$100 <span>/ lesson</span></div>
+        <ul class="pricing-features">
+          <li>Room for deeper technique work</li>
+          <li>Great for exam or performance prep</li>
+          <li>Full theory & practice</li>
+        </ul>
+        <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book →</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-label">Extended Session</div>
+        <div class="pricing-duration">90 Minutes</div>
+        <div class="pricing-price">$130 <span>/ lesson</span></div>
+        <ul class="pricing-features">
+          <li>Maximum depth and progress</li>
+          <li>Ideal for serious or advanced students</li>
           <li>Full theory & practice</li>
         </ul>
         <a href="#book" class="btn-outline" style="width:100%;text-align:center;display:block;">Book →</a>
@@ -894,6 +924,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!lessons || lessons < 1) lessons = 1;
     document.getElementById('extraDatesGroup').style.display = lessons > 1 ? 'block' : 'none';
     renderExtraDateRows(lessons);
+    refreshTimeOptions();
     document.getElementById('subtotalAmt').textContent = '$' + price;
     document.getElementById('totalAmt').textContent = '$' + (price * lessons);
     if (lessons > 1) {
@@ -956,6 +987,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateInput.type = 'date';
       dateInput.min = new Date().toISOString().split('T')[0];
       dateInput.max = maxDateStr;
+      dateInput.addEventListener('change', refreshTimeOptions);
       const timeSelect = document.createElement('select');
       timeSelect.className = 'form-input extra-time-input';
       ALL_TIMES.forEach(t => {
@@ -982,44 +1014,80 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   const TODAY = new Date();
   let calYear = TODAY.getFullYear(), calMonth = TODAY.getMonth();
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const ALL_TIMES = ['12:00 pm','1:00 pm','2:00 pm','3:00 pm','4:00 pm','5:00 pm','6:00 pm','7:00 pm','8:00 pm','9:00 pm'];
+  const ALL_TIMES = ['12:00 pm','12:15 pm','12:30 pm','12:45 pm','1:00 pm','1:15 pm','1:30 pm','1:45 pm','2:00 pm','2:15 pm','2:30 pm','2:45 pm','3:00 pm','3:15 pm','3:30 pm','3:45 pm','4:00 pm','4:15 pm','4:30 pm','4:45 pm','5:00 pm','5:15 pm','5:30 pm','5:45 pm','6:00 pm','6:15 pm','6:30 pm','6:45 pm','7:00 pm','7:15 pm','7:30 pm','7:45 pm','8:00 pm','8:15 pm','8:30 pm','8:45 pm','9:00 pm'];
 
   // BOOKED SLOTS: existing students
   // To update: send James the file and tell him which dates/times to add or remove
   const BOOKED = {
     // Recurring students, locked in through 2026-09-18. Fully open after that (no bookings extended past this date yet).
-    '2026-08-03': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-08-04': ['2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-05': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-06': ['4:00 pm', '5:00 pm'],
-    '2026-08-10': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-08-11': ['7:00 pm'],
-    '2026-08-12': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-13': ['4:00 pm', '5:00 pm'],
-    '2026-08-17': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-08-18': ['2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-19': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-20': ['4:00 pm', '5:00 pm'],
-    '2026-08-24': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-08-25': ['7:00 pm'],
-    '2026-08-26': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-08-27': ['4:00 pm', '5:00 pm'],
-    '2026-08-31': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-09-01': ['2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-09-02': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-09-03': ['4:00 pm', '5:00 pm'],
-    '2026-09-07': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-09-08': ['7:00 pm'],
-    '2026-09-09': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-09-10': ['4:00 pm', '5:00 pm'],
-    '2026-09-14': ['4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm'],
-    '2026-09-15': ['2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-09-16': ['1:00 pm', '2:00 pm', '3:00 pm', '7:00 pm'],
-    '2026-09-17': ['4:00 pm', '5:00 pm'],
+    '2026-08-03': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-04': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-05': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-06': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-08-10': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-11': [{ time: '7:00 pm', duration: 45 }],
+    '2026-08-12': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-13': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-08-17': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-18': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-19': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-20': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-08-24': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-25': [{ time: '7:00 pm', duration: 45 }],
+    '2026-08-26': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-08-27': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-08-31': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-01': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-02': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-03': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-09-07': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-08': [{ time: '7:00 pm', duration: 45 }],
+    '2026-09-09': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-10': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
+    '2026-09-14': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }, { time: '6:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-15': [{ time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-16': [{ time: '1:00 pm', duration: 45 }, { time: '2:00 pm', duration: 45 }, { time: '3:00 pm', duration: 45 }, { time: '7:00 pm', duration: 45 }],
+    '2026-09-17': [{ time: '4:00 pm', duration: 45 }, { time: '5:00 pm', duration: 45 }],
   };
 
   function padZ(n) { return String(n).padStart(2,'0'); }
   function dKey(y,m,d) { return y+'-'+padZ(m+1)+'-'+padZ(d); }
+
+  // Converts "3:15 pm" to minutes since midnight, and back, for gap math.
+  function timeToMinutes(t) {
+    const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ap = m[3].toLowerCase();
+    if (ap === 'pm' && h !== 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+
+  const MIN_GAP_MINUTES = 30;
+
+  // Given a date and a lesson duration, returns which of ALL_TIMES are
+  // valid start times — excluding anything that overlaps an existing
+  // lesson, or would leave an unusably small (<30 min) gap next to one.
+  function getAvailableTimes(dateStr, durationMinutes) {
+    const existing = (BOOKED[dateStr] || []).map(b => ({
+      start: timeToMinutes(b.time),
+      end: timeToMinutes(b.time) + (b.duration || 45)
+    }));
+    return ALL_TIMES.filter(t => {
+      const start = timeToMinutes(t);
+      const end = start + durationMinutes;
+      for (const ex of existing) {
+        if (start < ex.end && ex.start < end) return false; // overlaps
+        const gapBefore = start - ex.end;
+        const gapAfter = ex.start - end;
+        if (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) return false;
+        if (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES) return false;
+      }
+      return true;
+    });
+  }
 
   function renderCal() {
     document.getElementById('calMonthTitle').textContent = MONTHS[calMonth] + ' ' + calYear;
@@ -1053,15 +1121,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       cell.appendChild(dateDiv);
 
       // Lesson hours: Monday to Friday, 12pm to 9pm. Saturday & Sunday closed.
+      // Availability shown here assumes a 45-minute lesson (the default) —
+      // the actual bookable times adjust once a duration is chosen below.
       let dayTimes = ALL_TIMES;
 
       if (!isPast && !isClosed) {
-        const booked = BOOKED[key] || [];
-        const freeCount = dayTimes.length - booked.filter(b => dayTimes.includes(b)).length;
+        const bookedList = BOOKED[key] || [];
+        const freeTimes = getAvailableTimes(key, 45);
+        const freeCount = freeTimes.length;
         const pills = document.createElement('div');
         pills.className = 'cal-slot-pills';
 
-        const bookedInDay = booked.filter(b => dayTimes.includes(b));
         if (freeCount === 0) {
           const p = document.createElement('div');
           p.className = 'cal-pill full';
@@ -1072,39 +1142,41 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           p1.className = 'cal-pill avail';
           p1.textContent = freeCount + ' free';
           pills.appendChild(p1);
-          if (bookedInDay.length > 0) {
+          if (bookedList.length > 0) {
             const p2 = document.createElement('div');
             p2.className = 'cal-pill booked';
-            p2.textContent = bookedInDay.length + ' booked';
+            p2.textContent = bookedList.length + ' booked';
             pills.appendChild(p2);
           }
         }
         cell.appendChild(pills);
-        cell.onclick = () => showDayDetail(key, d, BOOKED[key] || [], dayTimes);
+        cell.onclick = () => showDayDetail(key, d, dayTimes);
       }
       body.appendChild(cell);
     }
   }
 
-  function showDayDetail(key, d, booked, dayTimes) {
+  function showDayDetail(key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
     document.querySelectorAll('.cal-cell.selected').forEach(c => c.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
     const panel = document.getElementById('calDetailPanel');
-    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
+    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times (45 min lesson)';
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
+    const freeTimes = getAvailableTimes(key, 45);
     dayTimes.forEach(t => {
       const btn = document.createElement('button');
-      const taken = booked.includes(t);
-      btn.className = 'time-slot-btn ' + (taken ? 'taken' : 'free');
-      btn.textContent = t + (taken ? '  ·  Booked' : '  ·  Available');
-      btn.disabled = taken;
-      if (!taken) {
+      const free = freeTimes.includes(t);
+      btn.className = 'time-slot-btn ' + (free ? 'free' : 'taken');
+      btn.textContent = t + (free ? '  ·  Available' : '  ·  Unavailable');
+      btn.disabled = !free;
+      if (free) {
         btn.onclick = () => {
           document.getElementById('bookDate').value = key;
           document.getElementById('bookTime').value = t;
           document.getElementById('book').scrollIntoView({behavior:'smooth'});
+          refreshTimeOptions();
         };
       }
       grid.appendChild(btn);
@@ -1130,11 +1202,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       if (result.success && result.booked) {
         for (const dateKey in result.booked) {
           if (!BOOKED[dateKey]) BOOKED[dateKey] = [];
-          result.booked[dateKey].forEach(t => {
-            if (!BOOKED[dateKey].includes(t)) BOOKED[dateKey].push(t);
+          result.booked[dateKey].forEach(entry => {
+            if (!BOOKED[dateKey].some(b => b.time === entry.time)) {
+              BOOKED[dateKey].push({ time: entry.time, duration: entry.duration || 45 });
+            }
           });
         }
         renderCal();
+        refreshTimeOptions();
       }
     } catch (e) {}
   }
@@ -1196,9 +1271,43 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return d < today;
   }
 
-  function isSlotTaken(dateStr, timeStr) {
-    const booked = BOOKED[dateStr] || [];
-    return booked.includes(timeStr);
+  function isSlotTaken(dateStr, timeStr, durationMinutes) {
+    return !getAvailableTimes(dateStr, durationMinutes || 45).includes(timeStr);
+  }
+
+  // Rebuilds the "Preferred Time" dropdown to only show times that work
+  // for the currently selected date and duration — so a bad time never
+  // even shows as pickable. Also refreshes each additional lesson's time
+  // picker against its own date.
+  function refreshTimeOptions() {
+    const durationVal = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value.split('|')[0] : '45';
+    const durationMinutes = parseInt(durationVal, 10) || 45;
+
+    const primaryDate = document.getElementById('bookDate').value;
+    const primarySelect = document.getElementById('bookTime');
+    const prevPrimary = primarySelect.value;
+    const validPrimary = primaryDate ? getAvailableTimes(primaryDate, durationMinutes) : ALL_TIMES;
+    primarySelect.innerHTML = '';
+    validPrimary.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      primarySelect.appendChild(opt);
+    });
+    if (validPrimary.includes(prevPrimary)) primarySelect.value = prevPrimary;
+
+    document.querySelectorAll('#extraDatesContainer .extra-date-row').forEach(row => {
+      const dInput = row.querySelector('.extra-date-input');
+      const tSelect = row.querySelector('.extra-time-input');
+      const prevVal = tSelect.value;
+      const validTimes = dInput.value ? getAvailableTimes(dInput.value, durationMinutes) : ALL_TIMES;
+      tSelect.innerHTML = '';
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        tSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) tSelect.value = prevVal;
+    });
   }
 
   async function handleBooking(event) {
@@ -1213,7 +1322,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
     if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance.'; return; }
     if (isWeekendDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on weekends. Please choose a weekday (Monday to Friday).'; return; }
-    if (!isGroup && isSlotTaken(date, time)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked. Please pick a different time from the calendar above.'; return; }
+    const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
+    if (!isGroup && isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
     const btn = document.getElementById('submitBtn');
     btn.textContent = 'Processing…'; btn.disabled = true;
     if (isGroup) {
@@ -1284,7 +1394,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots: allSlots, name: name, email: email })
+        body: JSON.stringify({ slots: allSlots, name: name, email: email, duration: primaryDurationMinutes })
       });
       reserveResult = await reserveResp.json();
     } catch (e) {
