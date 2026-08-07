@@ -118,6 +118,15 @@ exports.handler = async function (event) {
       } catch (e) {}
     }
 
+    // Rebook link: sends the student straight back to the calendar,
+    // jumped to the week their cancelled lesson was in, so they can pick
+    // a new time themselves without needing to email James. If a
+    // Saturday makeup credit was granted, the button points at that
+    // Saturday instead, since that's the actual bookable date.
+    const rebookDate = saturdayGranted || date;
+    const rebookButtonHtml =
+      '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?rebook=' + rebookDate + '#calendar" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook a lesson this week &rarr;</a></p>';
+
     const studentName = record.name || 'there';
     const studentHtml =
       '<div style="font-family:-apple-system,sans-serif;max-width:480px;margin:0 auto;color:#1a1a1a;">' +
@@ -133,6 +142,7 @@ exports.handler = async function (event) {
       (saturdayGranted
         ? '<p>Since your usual weekday makeup slots aren\'t available this week, you can book a one-off <strong>Saturday makeup lesson on ' + saturdayGranted + '</strong> using this same email address on the booking page.</p>'
         : '') +
+      rebookButtonHtml +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '</div>';
     await sendEmail(email, 'Your lesson has been cancelled', studentHtml);
