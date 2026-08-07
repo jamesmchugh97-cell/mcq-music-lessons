@@ -173,6 +173,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   .package-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.5; }
   .package-lock { background: rgba(201,148,42,0.08); border: 1px solid rgba(201,148,42,0.2); border-radius: 4px; padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--gold-pale); line-height: 1.5; margin-bottom: 0.75rem; }
 
+  /* RESCHEDULE PANEL (free flow, deliberately distinct from paid booking) */
+  .reschedule-section { background: var(--navy-mid); }
+  .reschedule-card { background: var(--navy-card); border: 2px solid var(--gold); border-radius: 12px; padding: 1.8rem; }
+  .reschedule-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.35); color: #4ade80; border-radius: 100px; padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+  .reschedule-day-btn { padding: 0.55rem 0.9rem; border-radius: 6px; font-size: 0.8rem; border: 1px solid; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: #4ade80; margin: 0 0.5rem 0.5rem 0; }
+  .reschedule-day-btn:hover { background: rgba(74,222,128,0.2); }
+  .reschedule-day-btn.active { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .reschedule-day-btn:disabled { background: rgba(255,255,255,0.04); border-color: var(--navy-border); color: var(--muted); cursor: not-allowed; opacity: 0.6; }
+
   /* CALENDAR */
   .calendar-section { background: var(--navy-mid); }
   .cal-wrap { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 8px; overflow: hidden; }
@@ -383,6 +392,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 </section>
 
 <div class="divider"></div>
+
+<!-- RESCHEDULE PANEL (free — only appears via a valid rebook-credit link) -->
+<section id="reschedulePanel" class="reschedule-section" style="display:none;">
+  <div class="section-inner">
+    <div class="reschedule-card">
+      <div class="reschedule-badge"><span>&#10003;</span> No charge &mdash; rescheduling your existing lesson</div>
+      <h2 class="section-title">Hi <span id="rescheduleName">there</span>, pick a new time</h2>
+      <p class="section-sub" id="rescheduleSub">Choose any available time between <strong id="rescheduleWeekRange"></strong>. This moves the lesson you already paid for &mdash; no card, no payment, nothing to fill in.</p>
+      <p id="rescheduleError" style="color:#f87171;font-size:0.85rem;margin-bottom:1rem;"></p>
+      <div id="rescheduleDaysWrap"></div>
+      <div id="rescheduleTimesWrap" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" id="rescheduleDivider" style="display:none;"></div>
 
 <!-- AVAILABILITY CALENDAR -->
 <section id="calendar" class="calendar-section">
@@ -1403,21 +1428,131 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   renderCal();
 
-  // If arriving from a "rebook this lesson" cancellation email, jump the
-  // calendar to that date's month and open its available-times panel
-  // automatically, so the student lands straight on the week they had
-  // without needing to navigate the calendar themselves.
-  function handleRebookParam() {
+  // RESCHEDULE FLOW (free, credit-based, deliberately separate from the
+  // normal paid booking form). Only activates when a valid ?reschedule=
+  // token is present in the URL, which only exists in a cancellation
+  // email's "Rebook this week" button.
+  let rescheduleCredit = null; // { token, name, duration, weekStart, weekEnd }
+
+  function formatDateRange(startStr, endStr) {
+    const s = new Date(startStr + 'T00:00:00');
+    const e = new Date(endStr + 'T00:00:00');
+    const opts = { month: 'short', day: 'numeric' };
+    return s.toLocaleDateString('en-AU', opts) + ' \u2013 ' + e.toLocaleDateString('en-AU', opts);
+  }
+
+  async function initRescheduleFlow() {
     const params = new URLSearchParams(window.location.search);
-    const rebookDate = params.get('rebook');
-    if (!rebookDate) return;
-    const parts = rebookDate.split('-').map(Number);
-    if (parts.length !== 3) return;
-    const [y, m, d] = parts;
-    calYear = y;
-    calMonth = m - 1;
-    renderCal();
-    showDayDetail(null, dKey(y, m - 1, d), d, ALL_TIMES);
+    const token = params.get('reschedule');
+    if (!token) return;
+    const panel = document.getElementById('reschedulePanel');
+    const errorEl = document.getElementById('rescheduleError');
+    panel.style.display = 'block';
+    document.getElementById('rescheduleDivider').style.display = 'block';
+    try {
+      const resp = await fetch('/.netlify/functions/get-reschedule-credit?token=' + encodeURIComponent(token));
+      const result = await resp.json();
+      if (!result.valid) {
+        errorEl.textContent = result.error || 'This reschedule link is invalid or has expired. Please contact James directly.';
+        return;
+      }
+      rescheduleCredit = {
+        token: token,
+        name: result.name,
+        duration: result.duration,
+        weekStart: result.weekStart,
+        weekEnd: result.weekEnd
+      };
+      document.getElementById('rescheduleName').textContent = result.name || 'there';
+      document.getElementById('rescheduleWeekRange').textContent = formatDateRange(result.weekStart, result.weekEnd);
+      renderRescheduleDays();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }));
+    } catch (e) {
+      errorEl.textContent = 'Could not verify your reschedule link. Please contact James directly.';
+    }
+  }
+
+  function renderRescheduleDays() {
+    const wrap = document.getElementById('rescheduleDaysWrap');
+    wrap.innerHTML = '';
+    document.getElementById('rescheduleTimesWrap').innerHTML = '';
+    const start = new Date(rescheduleCredit.weekStart + 'T00:00:00');
+    const end = new Date(rescheduleCredit.weekEnd + 'T00:00:00');
+    const todayMidnight = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    const isSatWeekEnd = end.getDay() === 6;
+    let cursor = new Date(start);
+    while (cursor <= end) {
+      const dow = cursor.getDay();
+      const key = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+      const isTheGrantedSaturday = dow === 6 && isSatWeekEnd && key === rescheduleCredit.weekEnd;
+      const dayIsUsable = dow !== 0 && (dow !== 6 || isTheGrantedSaturday) && cursor >= todayMidnight;
+      if (dow !== 0 && (dow !== 6 || isTheGrantedSaturday)) {
+        const hasTimes = dayIsUsable && getAvailableTimes(key, rescheduleCredit.duration, isTheGrantedSaturday).length > 0;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'reschedule-day-btn';
+        btn.textContent = cursor.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+        if (hasTimes) {
+          btn.onclick = () => {
+            wrap.querySelectorAll('.reschedule-day-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderRescheduleTimes(key, isTheGrantedSaturday);
+          };
+        } else {
+          btn.disabled = true;
+        }
+        wrap.appendChild(btn);
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  function renderRescheduleTimes(dateKey, saturdayEligible) {
+    const timesWrap = document.getElementById('rescheduleTimesWrap');
+    timesWrap.innerHTML = '';
+    const times = getAvailableTimes(dateKey, rescheduleCredit.duration, saturdayEligible);
+    if (times.length === 0) {
+      timesWrap.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No times available that day.</p>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'time-slots-grid';
+    times.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'time-slot-btn free';
+      btn.textContent = t;
+      btn.onclick = () => confirmReschedule(dateKey, t);
+      grid.appendChild(btn);
+    });
+    timesWrap.appendChild(grid);
+  }
+
+  async function confirmReschedule(date, time) {
+    const errorEl = document.getElementById('rescheduleError');
+    errorEl.textContent = '';
+    try {
+      const resp = await fetch('/.netlify/functions/redeem-reschedule-credit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: rescheduleCredit.token, date: date, time: time })
+      });
+      const result = await resp.json();
+      if (!result.success) {
+        errorEl.textContent = result.error || 'Could not reschedule that slot. Please try a different time.';
+        return;
+      }
+      document.getElementById('modalTitle').textContent = 'Lesson Rescheduled!';
+      document.getElementById('modalBody').textContent = 'No charge \u2014 your lesson is now booked for ' + date + ' at ' + time + '. A confirmation email is on its way.';
+      document.getElementById('successModal').classList.add('open');
+      document.getElementById('reschedulePanel').style.display = 'none';
+      document.getElementById('rescheduleDivider').style.display = 'none';
+      loadLiveBookings();
+    } catch (e) {
+      errorEl.textContent = 'Could not reach the server. Please contact James directly.';
+    }
   }
 
   // Load real-time bookings from Netlify Blobs and merge them into BOOKED,
@@ -1440,7 +1575,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }
     } catch (e) {}
   }
-  loadLiveBookings().then(handleRebookParam);
+  loadLiveBookings().then(initRescheduleFlow);
   // STRIPE
   const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
   let stripe, cardElement;
