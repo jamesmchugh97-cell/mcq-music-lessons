@@ -416,7 +416,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free — your actual lesson length is chosen in the booking form below.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the booking form below.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -429,7 +429,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Book Now</p>
     <h2 class="section-title">Ready to <em>get started?</em></h2>
-    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like — choose a date and time for each one, whenever suits you.</p>
+    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like, choosing a date and time for each one, whenever suits you.</p>
 
     <form class="booking-form" name="booking" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return handleBooking(event)">
       <input type="hidden" name="form-name" value="booking">
@@ -456,7 +456,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="form-group">
           <label class="form-label">Preferred Date</label>
           <input class="form-input" type="date" id="bookDate" name="date" onchange="handleDateFieldChange(this)">
-          <p id="bookDateWarning" style="display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;">James is closed on weekends — please choose a weekday.</p>
+          <p id="bookDateWarning" style="display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;">James is closed on weekends. Please choose a weekday.</p>
         </div>
       </div>
       <div class="form-group">
@@ -481,8 +481,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div id="lessonsGroup" class="form-group">
         <label class="form-label">Number of Lessons</label>
         <input class="form-input" type="number" id="bookLessons" name="lessons_count" min="1" value="1" oninput="updateTotal()">
-        <p style="font-size:0.76rem;color:var(--muted);margin-top:0.4rem;line-height:1.5;">Booking more than one? Choose how below — no limit on how many.</p>
-        <p id="largeBookingNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin-top:0.4rem;line-height:1.5;">That's a big booking! For 20+ lessons, it might be quicker to reach out to James directly at <a href="mailto:jamesmcqmusic@gmail.com" style="color:var(--gold);">jamesmcqmusic@gmail.com</a> or <a href="tel:0499232898" style="color:var(--gold);">0499 232 898</a> to arrange it — but you're welcome to book here too.</p>
+        <p style="font-size:0.76rem;color:var(--muted);margin-top:0.4rem;line-height:1.5;">Booking more than one? Choose how below. No limit on how many.</p>
+        <p id="largeBookingNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin-top:0.4rem;line-height:1.5;">That's a big booking! For 20+ lessons, it might be quicker to reach out to James directly at <a href="mailto:jamesmcqmusic@gmail.com" style="color:var(--gold);">jamesmcqmusic@gmail.com</a> or <a href="tel:0499232898" style="color:var(--gold);">0499 232 898</a> to arrange it, but you're welcome to book here too.</p>
       </div>
       <div id="extraDatesGroup" class="form-group" style="display:none;">
         <label class="form-label">How would you like to book these lessons?</label>
@@ -755,7 +755,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <div style="margin-top:1.8rem;">
       <p class="section-eyebrow">Multi-Lesson Booking</p>
       <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:300;color:var(--white);margin-bottom:0.4rem;">Book as many lessons <em>as you like.</em></h3>
-      <p style="color:var(--muted);font-size:0.84rem;line-height:1.65;margin-bottom:1rem;">New students start with a one-off trial lesson. After that, book 5, 10, or any number of lessons, choosing a date and time for each one — weekly, fortnightly, twice a week, however suits you.</p>
+      <p style="color:var(--muted);font-size:0.84rem;line-height:1.65;margin-bottom:1rem;">New students start with a one-off trial lesson. After that, book 5, 10, or any number of lessons, choosing a date and time for each one: weekly, fortnightly, twice a week, however suits you.</p>
       <div class="packages-grid">
         <div class="package-card">
           <div class="package-badge">5 Lessons</div>
@@ -767,7 +767,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="package-card">
           <div class="package-badge">10 Lessons</div>
           <div class="package-name">Best for steady progress</div>
-          <div class="package-sub">10 lessons, on whatever dates suit you — ideal if you come more than once a week too.</div>
+          <div class="package-sub">10 lessons, on whatever dates suit you, ideal if you come more than once a week too.</div>
           <div class="package-lock">🔒 Every date you choose is reserved the moment you book. Maximum commitment, maximum results.</div>
           <a href="#book" onclick="presetLessonCount(10)" class="btn-primary" style="width:100%;text-align:center;display:block;">Book 10 lessons →</a>
         </div>
@@ -809,11 +809,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <h2 class="section-title">Common <em>questions.</em></h2>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">What is your cancellation policy? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">Cancel with 24 hours' notice or more and I'll do my best to find a makeup lesson within that same week — if we can't find a time that works for both of us, the lesson isn't refunded. Cancel with less than 24 hours' notice and the full lesson fee applies with no makeup available, since the time slot can't be filled at such short notice. If James ever needs to cancel, you'll receive a full refund or a free reschedule.</div>
+      <div class="faq-answer">Cancel with 24 hours' notice or more and I'll do my best to find a makeup lesson within that same week. If we can't find a time that works for both of us, the lesson isn't refunded. Cancel with less than 24 hours' notice and the full lesson fee applies with no makeup available, since the time slot can't be filled at such short notice. If James ever needs to cancel, you'll receive a full refund or a free reschedule.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">Do you offer casual, ongoing lessons? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">New students can book a one-off trial lesson to try it out. After the trial, you can book as many lessons as you like — 5, 10, or any number — choosing a date and time for each one. Come weekly, fortnightly, twice a week, however suits you. Every date you choose is reserved the moment you book, so it can't be taken by another student.</div>
+      <div class="faq-answer">New students can book a one-off trial lesson to try it out. After the trial, you can book as many lessons as you like (5, 10, or any number), choosing a date and time for each one. Come weekly, fortnightly, twice a week, however suits you. Every date you choose is reserved the moment you book, so it can't be taken by another student.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">How do I book my first lesson? <span class="faq-chevron">▾</span></button>
@@ -895,7 +895,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="policy-box">
       <div class="policy-title">Cancellation Policy</div>
-      <div class="policy-row"><strong>24+ hours notice</strong>I'll try to find a makeup lesson that same week — if we can't, it's not refunded</div>
+      <div class="policy-row"><strong>24+ hours notice</strong>I'll try to find a makeup lesson that same week. If we can't, it's not refunded</div>
       <div class="policy-row"><strong>Under 24 hours</strong>Full lesson fee applies, no makeup available</div>
     </div>
   </div>
@@ -974,7 +974,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  // Returns the furthest date anyone can book — one year from today.
+  // Returns the furthest date anyone can book, one year from today.
   function getMaxBookingDate() {
     const d = new Date(TODAY);
     d.setDate(d.getDate() + 365);
@@ -1027,7 +1027,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateInput.max = maxDateStr;
       const rowWarning = document.createElement('p');
       rowWarning.style.cssText = 'display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;grid-column:1 / -1;';
-      rowWarning.textContent = 'James is closed on weekends — please choose a weekday.';
+      rowWarning.textContent = 'James is closed on weekends. Please choose a weekday.';
       dateInput.addEventListener('change', () => {
         if (dateInput.value && isWeekendDate(dateInput.value)) {
           dateInput.value = '';
@@ -1082,7 +1082,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   // Victorian government school holiday date ranges (inclusive), per the
-  // official VIC DET term calendar as of Aug 2026 — vic.gov.au/school-term-dates-and-holidays-victoria.
+  // official VIC DET term calendar as of Aug 2026, vic.gov.au/school-term-dates-and-holidays-victoria.
   // Add next year's ranges here once VIC DET publishes them.
   const SCHOOL_HOLIDAY_RANGES = [
     ['2026-09-19', '2026-10-04'], // Spring holidays (between Term 3 and Term 4, 2026)
@@ -1098,7 +1098,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // to lock in the correct 14-day cycle. pauseForHolidays: true means the
   // lesson is skipped during VIC school holidays; false means it continues
   // year-round. Flaky/uncertain students (Ebony, Frida, Will, Lisa) are
-  // deliberately left out — their times stay open on the booking site.
+  // deliberately left out, their times stay open on the booking site.
   const RECURRING_STUDENTS = [
     { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false },
@@ -1109,7 +1109,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
     { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-11', pauseForHolidays: false },
     { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
-    { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false }, // time unconfirmed — see note
+    { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false }, // confirmed with James on Aug 7
     { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
@@ -1168,15 +1168,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     { minutes: 90, value: '90|130' }
   ];
   const MIN_NOTICE_HOURS = 24;
-  const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm — lessons must FINISH by this on Fri/Sat
-  const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm — lessons must FINISH by this on Mon-Thu
+  const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Fri/Sat
+  const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm, lessons must FINISH by this on Mon-Thu
 
   function dayOfWeek(dateStr) {
     return new Date(dateStr + 'T00:00:00').getDay();
   }
 
   // Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish
-  // by 4:30pm — so the last bookable start time shifts earlier depending
+  // by 4:30pm, so the last bookable start time shifts earlier depending
   // on how long the lesson runs.
   function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
     const dow = dayOfWeek(dateStr);
@@ -1192,11 +1192,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   // Given a date and a lesson duration, returns which of ALL_TIMES are
-  // valid start times — excluding anything that overlaps an existing
+  // valid start times, excluding anything that overlaps an existing
   // lesson, would leave an unusably small (<30 min) gap next to one,
   // falls outside business hours, or is less than 24 hours away. Sundays
   // are always closed. Saturdays are closed unless saturdayEligible is
-  // true — reserved for a specific Friday-cancellation makeup credit.
+  // true, reserved for a specific Friday-cancellation makeup credit.
   function getAvailableTimes(dateStr, durationMinutes, saturdayEligible) {
     if (!dateStr) return [];
     const dow = dayOfWeek(dateStr);
@@ -1224,7 +1224,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   // Returns, for a given date, a map of time -> smallest duration tier
   // that actually fits there. A time only appears if AT LEAST ONE
-  // offered lesson length works — used for the "is anything bookable
+  // offered lesson length works, used for the "is anything bookable
   // here" preview, since the shortest lesson isn't always the one that
   // fits (a longer lesson can land exactly on the next booking with
   // zero gap when a shorter one would leave an awkward gap instead).
@@ -1270,7 +1270,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       cell.appendChild(dateDiv);
 
       // Lesson hours: Monday to Friday, 12pm to 9pm. Saturday & Sunday closed.
-      // Availability shown here checks every offered lesson length — a
+      // Availability shown here checks every offered lesson length, a
       // time shows Available if ANY duration could actually be booked
       // there, since a longer lesson sometimes fits when a shorter one
       // wouldn't (e.g. landing exactly on the next booking, zero gap).
@@ -1307,7 +1307,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  let currentDetailDay = null; // { key, d, dayTimes } — tracks which day is open
+  let currentDetailDay = null; // { key, d, dayTimes }, tracks which day is open
 
   function showDayDetail(key, d, dayTimes) {
     dayTimes = dayTimes || ALL_TIMES;
@@ -1441,7 +1441,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return !getAvailableTimes(dateStr, durationMinutes || 45).includes(timeStr);
   }
 
-  // MANAGE BOOKING — self-service lookup and cancellation
+  // MANAGE BOOKING, self-service lookup and cancellation
   async function findMyBookings() {
     const email = document.getElementById('manageEmail').value.trim();
     const errEl = document.getElementById('manageError');
@@ -1513,7 +1513,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   // Rebuilds the "Preferred Time" dropdown to only show times that work
-  // for the currently selected date and duration — so a bad time never
+  // for the currently selected date and duration, so a bad time never
   // even shows as pickable. Also refreshes each additional lesson's time
   // picker against its own date.
   // If the primary date picker is set to a weekend, clear it immediately
@@ -1522,7 +1522,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const warning = document.getElementById('bookDateWarning');
     if (input.value && dayOfWeek(input.value) === 0) {
       input.value = '';
-      warning.textContent = 'James is closed on Sundays — please choose a different day.';
+      warning.textContent = 'James is closed on Sundays. Please choose a different day.';
       warning.style.display = 'block';
     } else {
       warning.style.display = 'none';
@@ -1531,7 +1531,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   // Tracks the result of the last Saturday-eligibility check, so we don't
-  // re-fetch on every keystroke — only when the date or email actually
+  // re-fetch on every keystroke, only when the date or email actually
   // changes to something we haven't already checked.
   let saturdayEligibility = { date: null, email: null, eligible: false };
 
@@ -1564,7 +1564,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       if (saturdayEligibility.date === primaryDate && saturdayEligibility.email === primaryEmail) {
         primarySaturdayEligible = saturdayEligibility.eligible;
       } else if (primaryEmail) {
-        checkSaturdayEligibility(primaryDate, primaryEmail); // async — will re-call refreshTimeOptions when done
+        checkSaturdayEligibility(primaryDate, primaryEmail); // async, will re-call refreshTimeOptions when done
       }
     }
 
@@ -1596,7 +1596,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       if (dInput.value && validTimes.length === 0) {
         const opt = document.createElement('option');
         const dow = dayOfWeek(dInput.value);
-        opt.textContent = dow === 6 ? 'Saturdays are for Friday makeups only — book those separately' : (dow === 0 ? 'Closed on Sundays' : 'No times available that day');
+        opt.textContent = dow === 6 ? 'Saturdays are for Friday makeups only, book those separately' : (dow === 0 ? 'Closed on Sundays' : 'No times available that day');
         opt.disabled = true; opt.selected = true;
         tSelect.appendChild(opt);
       } else {
@@ -1689,7 +1689,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           return;
         }
         if (isWeekendDate(dInput.value)) {
-          document.getElementById('stripe-error').textContent = 'James is closed on weekends — please choose a weekday for every lesson.';
+          document.getElementById('stripe-error').textContent = 'James is closed on weekends. Please choose a weekday for every lesson.';
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
@@ -1781,7 +1781,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     formData.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
     formData.append('total', document.getElementById('totalAmt').textContent);
     fetch('/', { method: 'POST', body: formData }).catch(() => {});
-    // Send the confirmation email — fire-and-forget so a failure here
+    // Send the confirmation email, fire-and-forget so a failure here
     // never blocks or alarms the student, since payment already succeeded.
     fetch('/.netlify/functions/send-confirmation-email', {
       method: 'POST',
