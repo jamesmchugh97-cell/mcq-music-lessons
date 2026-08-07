@@ -2,9 +2,9 @@
 // Verifies the email matches the booking before cancelling (so nobody can
 // cancel someone else's lesson), always frees the slot, and emails both
 // the student and James so nothing slips through unnoticed. Refunds are
-// never issued automatically, a 24+ hour cancellation depends on James
-// actually finding a workable makeup time first, so that call stays with
-// him via Stripe, not this function.
+// never issued automatically: a 24+ hour cancellation grants a free
+// single-use reschedule credit for the rest of that week (Mon-Sat), and
+// if the student doesn't use it, the lesson simply isn't refunded.
 const { getStore } = require('@netlify/blobs');
 const crypto = require('crypto');
 
@@ -44,20 +44,15 @@ function melbourneEpochMs(dateStr, timeStr) {
   return naiveUtcMs - offsetMinutes * 60000;
 }
 
-function addOneDay(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + 1);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
 function formatDateKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
-// The reschedule credit's window is Monday-to-Friday of the week the
-// cancelled lesson fell in (or through Saturday if a Saturday makeup
-// credit was granted instead), so a student can only use it to rebook
-// within that same week, never further out.
+// The reschedule credit's window is Monday of the week the cancelled
+// lesson fell in, through to the Saturday of the FOLLOWING week (a full
+// fortnight), so a student who's genuinely unwell (a cold that runs past
+// what's left of the current week, for example) still has a real chance
+// to use it, not just whatever days happen to be left in the current week.
 function mondayOfWeek(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   const day = d.getDay(); // 0=Sun..6=Sat
@@ -66,10 +61,10 @@ function mondayOfWeek(dateStr) {
   return formatDateKey(d);
 }
 
-function fridayOfWeek(dateStr) {
+function fortnightEnd(dateStr) {
   const mon = mondayOfWeek(dateStr);
   const d = new Date(mon + 'T00:00:00');
-  d.setDate(d.getDate() + 4);
+  d.setDate(d.getDate() + 12); // Monday + 12 days = Saturday of the following week
   return formatDateKey(d);
 }
 
@@ -123,36 +118,17 @@ exports.handler = async function (event) {
     const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
     const eligible = hoursUntil >= 24;
 
-    // Friday cancellations with 24+ hours' notice are the one case where
-    // there's no weekday left that same week for a makeup, so grant a
-    // one-time Saturday makeup credit for the Saturday right after.
-    let saturdayGranted = null;
-    const isFriday = new Date(date + 'T00:00:00').getDay() === 5;
-    if (eligible && isFriday) {
-      const satDate = addOneDay(date);
-      try {
-        const creditsStore = getStore({ name: 'saturday-credits', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
-        await creditsStore.setJSON(satDate + '_' + email.trim().toLowerCase(), {
-          email: email.trim().toLowerCase(),
-          date: satDate,
-          originalFriday: date,
-          grantedAt: new Date().toISOString()
-        });
-        saturdayGranted = satDate;
-      } catch (e) {}
-    }
-
     // Reschedule credit: when eligible, this cancelled lesson was already
-    // paid for, so rebooking within the same week should never charge the
-    // student again. A random single-use token is stored server-side with
-    // the week window it's valid for; the rebook link only ever carries
-    // this opaque token, never payment details or a way to book for free
-    // outside that specific window.
+    // paid for, so rebooking anywhere Mon-Sat within the same week should
+    // never charge the student again. A random single-use token is stored
+    // server-side with the week window it's valid for; the rebook link
+    // only ever carries this opaque token, never payment details or a way
+    // to book for free outside that specific window.
     let rescheduleToken = null;
     if (eligible) {
       rescheduleToken = crypto.randomBytes(16).toString('hex');
       const weekStart = mondayOfWeek(date);
-      const weekEnd = saturdayGranted || fridayOfWeek(date);
+      const weekEnd = fortnightEnd(date);
       try {
         const rescheduleStore = getStore({ name: 'reschedule-credits', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
         await rescheduleStore.setJSON(rescheduleToken, {
@@ -176,7 +152,7 @@ exports.handler = async function (event) {
     // details from the credit above, so it's obvious this is moving their
     // existing paid lesson rather than buying a new one.
     const rebookButtonHtml = rescheduleToken
-      ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook this week &mdash; no charge &rarr;</a></p>'
+      ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook within the next 2 weeks (no charge) &rarr;</a></p>'
       : '';
 
     const studentName = record.name || 'there';
@@ -190,11 +166,8 @@ exports.handler = async function (event) {
       '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
-        ? "You've got 24+ hours' notice, so you can move this lesson to a new time this same week yourself, with no extra charge, no need to contact James. If you don't rebook, this lesson won't be refunded."
-        : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no makeup lesson is available.") + '</p>' +
-      (saturdayGranted
-        ? '<p>Since your usual weekday makeup slots aren\'t available this week, you can book a one-off <strong>Saturday makeup lesson on ' + saturdayGranted + '</strong> using this same email address on the booking page.</p>'
-        : '') +
+        ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
+        : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.") + '</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '</div>';
     await sendEmail(email, 'Your lesson has been cancelled', studentHtml);
@@ -203,12 +176,11 @@ exports.handler = async function (event) {
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
       '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + date + ' at ' + time + '</strong>.</p>' +
-      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a same-week makeup attempt' : 'within 24 hours \u2014 no makeup, full fee applies') + ').</p>' +
-      (saturdayGranted ? '<p>Saturday makeup credit granted for <strong>' + saturdayGranted + '</strong>.</p>' : '') +
+      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : 'within 24 hours \u2014 no rebooking, full fee applies') + ').</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ' \u2014 ' + date + ' ' + time, jamesHtml);
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible, saturdayGranted: saturdayGranted }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible }) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }
