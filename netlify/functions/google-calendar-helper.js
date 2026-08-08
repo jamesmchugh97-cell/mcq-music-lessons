@@ -4,7 +4,7 @@
 
 const { google } = require('googleapis');
 
-const CALENDAR_ID = '2ff935679048c69b28ae7cd558a13f04fd48cc736cf56d524912afc52eae06dd@group.calendar.google.com';
+const CALENDAR_ID = '8aff170d18cc197e7f39ff0cda5ea1f6407fc354dc5d14359158a5bd4655ecd8@group.calendar.google.com';
 
 function getAuth() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
