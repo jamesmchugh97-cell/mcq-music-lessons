@@ -134,7 +134,16 @@ exports.handler = async function (event) {
     }
 
     const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
-    const eligible = hoursUntil >= 24;
+    // A student only ever gets one free reschedule per original booking.
+    // If this lesson already carries a rescheduledFrom tag (meaning it was
+    // itself created by redeem-reschedule-credit.js), that free reschedule
+    // has already been used, so cancelling it now does NOT grant another
+    // one, even with 24+ hours' notice. eligible still reflects the real
+    // 24-hour notice check on its own (used for the "full fee" wording),
+    // but a second credit is only ever issued when both are true.
+    const hasNoticeForCredit = hoursUntil >= 24;
+    const alreadyRescheduledOnce = !!record.rescheduledFrom;
+    const eligible = hasNoticeForCredit && !alreadyRescheduledOnce;
 
     // Reschedule credit: when eligible, this cancelled lesson was already
     // paid for, so rebooking anywhere Mon-Sat within the same week should
@@ -185,7 +194,9 @@ exports.handler = async function (event) {
       rebookButtonHtml +
       '<p>' + (eligible
         ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
-        : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.") + '</p>' +
+        : (alreadyRescheduledOnce
+          ? "This lesson had already been rescheduled once, so it's not eligible for a further free reschedule. The full lesson fee applies and no rebooking is available."
+          : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.")) + '</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       // Invisible per-email marker: Gmail auto-collapses content it
       // recognises as a repeated "signature" across emails from the same
@@ -202,7 +213,7 @@ exports.handler = async function (event) {
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
       '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + date + ' at ' + time + '</strong>.</p>' +
-      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : 'within 24 hours \u2014 no rebooking, full fee applies') + ').</p>' +
+      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule \u2014 no further rebooking, full fee applies' : 'within 24 hours \u2014 no rebooking, full fee applies')) + ').</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ' \u2014 ' + date + ' ' + time, jamesHtml);
 
