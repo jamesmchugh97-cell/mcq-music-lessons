@@ -289,6 +289,15 @@
 
   /* TESTIMONIALS */
   .testimonials-section { background: var(--navy-mid); }
+  .google-badge { display: inline-flex; align-items: center; gap: 1rem; background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 8px; padding: 0.9rem 1.4rem; text-decoration: none; transition: border-color 0.2s; margin: 1rem 0 0.3rem; }
+  .google-badge:hover { border-color: var(--gold); }
+  .google-badge-rating { display: flex; flex-direction: column; align-items: flex-start; }
+  .google-badge-stars { display: flex; gap: 0.15rem; margin-bottom: 0.2rem; }
+  .google-badge-stars svg { width: 15px; height: 15px; fill: var(--gold); }
+  .google-badge-text { font-size: 0.78rem; color: var(--muted); }
+  .google-badge-text strong { color: var(--cream); font-weight: 600; }
+  .google-badge-divider { width: 1px; height: 34px; background: var(--navy-border); }
+  .google-badge-cta { font-size: 0.78rem; color: var(--gold); font-weight: 500; letter-spacing: 0.02em; }
   .testimonials-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.2rem; }
   .testimonial-card { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 8px; padding: 1.4rem; position: relative; }
   .testimonial-stars { color: var(--gold); font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 0.75rem; }
