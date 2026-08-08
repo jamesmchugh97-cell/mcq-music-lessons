@@ -295,7 +295,10 @@ exports.handler = async function (event) {
           await store.set(key, JSON.stringify(record));
         }
       } catch (calErr) {
-        // Calendar sync failed silently — booking still stands.
+        // Booking still stands even if calendar sync fails — but log it
+        // visibly so failures show up in Netlify's function logs instead
+        // of vanishing silently.
+        console.error('Google Calendar event creation failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
       }
     }
 
