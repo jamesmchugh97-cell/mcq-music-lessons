@@ -3,10 +3,14 @@
 // actual new booking, with NO payment step, since the student already paid
 // for the lesson they cancelled, this only moves it to a new slot. Checks
 // the credit is unused, unexpired, and that the chosen date falls inside
-// the same week it was granted for, then reserves the slot exactly like a
-// normal booking (blocking anyone else from taking it) and emails a
-// confirmation that makes clear no charge was made.
+// the same week it was granted for, then reserves the slot using the same
+// duration-aware overlap check and recurring-student awareness as
+// reserve-multi-slots.js (not just an exact-key match), and writes
+// atomically so it can never land on top of another lesson.
 const { getStore } = require('@netlify/blobs');
+const { createCalendarEvent } = require('./google-calendar-helper');
+
+const MIN_GAP_MINUTES = 30;
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -17,6 +21,15 @@ function timeToMinutes(t) {
   if (ap === 'pm' && h !== 12) h += 12;
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
+}
+
+// Converts minutes-since-midnight into a zero-padded "HH:MM:SS" string for
+// building a local (timezone-naive) ISO datetime that Google Calendar will
+// interpret using the timeZone field passed alongside it.
+function minutesToIsoClock(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
 // Same Melbourne-local-time-to-epoch conversion used in cancel-booking.js,
@@ -43,6 +56,64 @@ function melbourneEpochMs(dateStr, timeStr) {
 
 const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm
 const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm
+
+function dayOfWeek(dateStr) {
+  return new Date(dateStr + 'T00:00:00').getDay();
+}
+
+function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
+  const dow = dayOfWeek(dateStr);
+  if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+  return endMinutes <= MON_THU_CLOSING_MINUTES;
+}
+
+// Kept in sync with reserve-multi-slots.js and index.html/booking.html.
+const SCHOOL_HOLIDAY_RANGES = [
+  ['2026-09-19', '2026-10-04'],
+  ['2026-12-19', '2027-01-26']
+];
+
+function isSchoolHoliday(dateStr) {
+  return SCHOOL_HOLIDAY_RANGES.some(([start, end]) => dateStr >= start && dateStr <= end);
+}
+
+const RECURRING_STUDENTS = [
+  { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Jacq',    dow: 2, time: '2:30 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-18', pauseForHolidays: false },
+  { name: 'Cash',    dow: 2, time: '4:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-11', pauseForHolidays: false },
+  { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Cash',    dow: 4, time: '3:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  }
+];
+
+function isStudentBookedOnDate(student, dateStr) {
+  if (dayOfWeek(dateStr) !== student.dow) return false;
+  if (student.pauseForHolidays && isSchoolHoliday(dateStr)) return false;
+  if (student.frequency === 'weekly') return true;
+  if (student.frequency === 'fortnightly' && student.anchorDate) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const anchor = new Date(student.anchorDate + 'T00:00:00');
+    const diffDays = Math.round((d - anchor) / 86400000);
+    return ((diffDays % 14) + 14) % 14 === 0;
+  }
+  return false;
+}
+
+function getRecurringBookingsForDate(dateStr) {
+  return RECURRING_STUDENTS.filter(s => isStudentBookedOnDate(s, dateStr)).map(s => ({ time: s.time, duration: s.duration }));
+}
 
 async function sendEmail(to, subject, html) {
   try {
@@ -92,7 +163,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This reschedule link has expired.' }) };
     }
     if (date < credit.weekStart || date > credit.weekEnd) {
-      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a date within your rebooking window.' }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a date within your original lesson\u2019s week.' }) };
     }
 
     const startMinutes = timeToMinutes(time);
@@ -101,12 +172,11 @@ exports.handler = async function (event) {
     }
     const duration = credit.duration || 45;
     const endMinutes = startMinutes + duration;
-    const dow = new Date(date + 'T00:00:00').getDay();
+    const dow = dayOfWeek(date);
     if (dow === 0) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'James is closed on Sundays.' }) };
     }
-    const closingMinutes = (dow === 5 || dow === 6) ? FRI_SAT_CLOSING_MINUTES : MON_THU_CLOSING_MINUTES;
-    if (endMinutes > closingMinutes) {
+    if (!isWithinBusinessHours(date, startMinutes, endMinutes)) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time runs past closing hours for that day.' }) };
     }
     const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
@@ -115,18 +185,81 @@ exports.handler = async function (event) {
     }
 
     const bookingsStore = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+
+    // Duration-aware overlap check against every real booking that day,
+    // PLUS the hardcoded recurring students, mirroring reserve-multi-slots.js.
+    // This is the fix: the old version only checked an exact date_time key
+    // match, so a reschedule could land inside an existing lesson (different
+    // start time, overlapping duration) or directly on a recurring student's
+    // slot without being caught.
+    const { blobs } = await bookingsStore.list({ prefix: date + '_' });
+    const existing = [];
+    for (const blob of blobs) {
+      const record = await bookingsStore.get(blob.key, { type: 'json' });
+      if (record && record.time) {
+        const s = timeToMinutes(record.time);
+        existing.push({ time: record.time, start: s, end: s + (record.duration || 45) });
+      }
+    }
+    getRecurringBookingsForDate(date).forEach(rb => {
+      const s = timeToMinutes(rb.time);
+      existing.push({ time: rb.time, start: s, end: s + rb.duration });
+    });
+
+    for (const ex of existing) {
+      const overlap = startMinutes < ex.end && ex.start < endMinutes;
+      if (overlap) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time overlaps a lesson already booked at ' + ex.time + '. Please choose a different time.' }) };
+      }
+      const gapBefore = startMinutes - ex.end;
+      const gapAfter = ex.start - endMinutes;
+      if (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time would leave less than 30 minutes free after the ' + ex.time + ' lesson. Please choose a different time.' }) };
+      }
+      if (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time would leave less than 30 minutes free before the ' + ex.time + ' lesson. Please choose a different time.' }) };
+      }
+    }
+
+    // Atomic write, matching reserve-multi-slots.js, so two people (or a
+    // reschedule racing a fresh booking) can never both claim this slot.
     const key = date + '_' + time;
-    const existing = await bookingsStore.get(key, { type: 'json' });
-    if (existing) {
+    const record = {
+      date: date,
+      time: time,
+      duration: duration,
+      name: credit.name,
+      email: credit.email,
+      rescheduledFrom: credit.originalDate + ' ' + credit.originalTime,
+      bookedAt: new Date().toISOString()
+    };
+    const writeResult = await bookingsStore.set(key, JSON.stringify(record), { onlyIfNew: true });
+    if (writeResult && writeResult.modified === false) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time was just taken. Please pick a different slot.' }) };
     }
 
-    await bookingsStore.setJSON(key, {
-      name: credit.name,
-      email: credit.email,
-      duration: duration,
-      rescheduledFrom: credit.originalDate + ' ' + credit.originalTime
-    });
+    // Create the matching Google Calendar event for the new slot. This is
+    // best-effort: if it fails, the reschedule itself must still succeed,
+    // since the student has already been told it worked. The old event
+    // (for the cancelled lesson) is already deleted separately by
+    // cancel-booking.js at the moment the original lesson was cancelled,
+    // so nothing needs deleting here, only creating the new one.
+    try {
+      const startDateTime = date + 'T' + minutesToIsoClock(startMinutes);
+      const endDateTime = date + 'T' + minutesToIsoClock(endMinutes);
+      const eventId = await createCalendarEvent({
+        studentName: credit.name || 'Student',
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+        notes: credit.email ? ('Rescheduled by ' + credit.email + ' from ' + credit.originalDate + ' ' + credit.originalTime) : ''
+      });
+      if (eventId) {
+        record.eventId = eventId;
+        await bookingsStore.set(key, JSON.stringify(record));
+      }
+    } catch (calErr) {
+      console.error('Google Calendar event creation failed for rescheduled ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
+    }
 
     credit.used = true;
     await creditsStore.setJSON(token, credit);
@@ -137,9 +270,12 @@ exports.handler = async function (event) {
       '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Rescheduled</h2>' +
-      '<p>Hi ' + (credit.name || 'there') + ', your lesson is now booked for <strong>' + date + ' at ' + time + '</strong>. No payment was needed, this simply moves the lesson you already paid for.</p>' +
-      '<p><strong>Location:</strong> 84 Nelson Road, South Melbourne VIC 3205</p>' +
+      '<p>Hi ' + (credit.name || 'there') + ',</p>' +
+      '<p>Your lesson is now booked for <strong>' + date + ' at ' + time + '</strong>. No payment was needed \u2014 this simply moves the lesson you already paid for.</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
+      '<p style="text-align:center;margin-top:16px;">' +
+      '<a href="https://mcqmusiclessons.com.au/booking.html?manage_email=' + encodeURIComponent(credit.email) + '#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>' +
+      '</p>' +
       '</div>';
     await sendEmail(credit.email, 'Your lesson has been rescheduled', html);
 
@@ -148,7 +284,7 @@ exports.handler = async function (event) {
       '<h3>Lesson rescheduled (no charge)</h3>' +
       '<p><strong>' + (credit.name || 'A student') + '</strong> (' + credit.email + ') moved their cancelled lesson from <strong>' + credit.originalDate + ' ' + credit.originalTime + '</strong> to <strong>' + date + ' ' + time + '</strong>, using their reschedule credit. No new payment was taken.</p>' +
       '</div>';
-    await sendEmail('jamesmcqmusic@gmail.com', 'Lesson rescheduled: ' + (credit.name || 'a student') + ', ' + date + ' ' + time, jamesHtml);
+    await sendEmail('jamesmcqmusic@gmail.com', 'Lesson rescheduled: ' + (credit.name || 'a student') + ' \u2014 ' + date + ' ' + time, jamesHtml);
 
     return { statusCode: 200, body: JSON.stringify({ success: true, date: date, time: time }) };
   } catch (err) {
