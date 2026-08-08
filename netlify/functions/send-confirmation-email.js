@@ -63,6 +63,24 @@ exports.handler = async function (event) {
       </p>
     </div>
   `;
+
+  // Separate, plainer notification to James himself so he knows a lesson
+  // was booked without digging through Resend logs or the site's own
+  // booking storage. Sent as a second, independent request so a failure
+  // here never blocks the student's own confirmation from going out.
+  const jamesHtml = `
+    <div style="font-family: -apple-system, sans-serif;">
+      <h3>New booking</h3>
+      <p><strong>${name}</strong> (${email}) booked ${isMulti ? lessonsCountNum + ' lessons' : 'a trial lesson'}.</p>
+      <ul>
+        <li><strong>Instrument:</strong> ${instrument || 'N/A'}</li>
+        ${dateFieldsHtml}
+        ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
+        <li><strong>Total:</strong> ${total || 'N/A'}</li>
+      </ul>
+    </div>
+  `;
+
   try {
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -78,6 +96,25 @@ exports.handler = async function (event) {
       })
     });
     const result = await resp.json();
+
+    // Fire-and-forget: don't let a failure here affect the response the
+    // student-facing booking flow relies on.
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+          to: ['jamesmcqmusic@gmail.com'],
+          subject: 'New booking: ' + name + (isMulti ? ' (' + lessonsCountNum + ' lessons)' : ''),
+          html: jamesHtml
+        })
+      });
+    } catch (notifyErr) {}
+
     if (!resp.ok) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: result.message || 'Failed to send email.' }) };
     }
