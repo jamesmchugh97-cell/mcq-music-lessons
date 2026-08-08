@@ -61,6 +61,9 @@ exports.handler = async function (event) {
       <p style="font-size: 0.85em; color: #666; border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
         <strong>Cancellation policy:</strong> ${cancellationNotice}
       </p>
+      <p style="text-align:center;margin-top:16px;">
+        <a href="https://mcqmusiclessons.com.au/booking.html?manage_email=${encodeURIComponent(email)}#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>
+      </p>
     </div>
   `;
 
