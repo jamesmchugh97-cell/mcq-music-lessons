@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -432,6 +432,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <div class="modal-title" id="modalTitle">Booking Confirmed!</div>
     <div class="modal-body" id="modalBody"></div>
     <button class="modal-close" onclick="closeModal()">Done</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cancelConfirmModal">
+  <div class="modal">
+    <div class="modal-title">Cancel this lesson?</div>
+    <div class="modal-body" id="cancelConfirmBody"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
+      <button class="modal-close" id="cancelConfirmYesBtn" style="background:#f87171;color:#1a1a1a;">Yes, cancel it</button>
+      <button class="btn-outline" id="cancelConfirmNoBtn" type="button">Keep my lesson</button>
+    </div>
   </div>
 </div>
 
@@ -1203,15 +1214,28 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  async function confirmCancelBooking(email, date, time) {
+  function confirmCancelBooking(email, date, time) {
+    document.getElementById('manageError').textContent = '';
     const start = new Date(date + 'T00:00:00');
     start.setMinutes(start.getMinutes() + (timeToMinutes(time) || 0));
     const hoursUntil = (start.getTime() - Date.now()) / (1000 * 60 * 60);
     const eligible = hoursUntil >= 24;
-    const msg = eligible
-      ? 'Cancel ' + date + ' at ' + time + '?\n\nThis is 24+ hours away, so you\'ll be able to rebook a new time yourself over the next two weeks, no need to contact James. If you don\'t rebook within that fortnight, it won\'t be refunded.'
-      : 'Cancel ' + date + ' at ' + time + '?\n\nThis is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
-    if (!confirm(msg)) return;
+    document.getElementById('cancelConfirmBody').textContent = eligible
+      ? 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll be able to rebook a new time yourself over the next two weeks, no need to contact James. If you don\'t rebook within that fortnight, it won\'t be refunded.'
+      : 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+    document.getElementById('cancelConfirmModal').classList.add('open');
+    document.getElementById('cancelConfirmYesBtn').onclick = () => submitCancelBooking(email, date, time);
+    document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
+  }
+
+  function closeCancelConfirmModal() {
+    document.getElementById('cancelConfirmModal').classList.remove('open');
+  }
+
+  async function submitCancelBooking(email, date, time) {
+    const yesBtn = document.getElementById('cancelConfirmYesBtn');
+    yesBtn.textContent = 'Cancelling...'; yesBtn.disabled = true;
+    const errEl = document.getElementById('manageError');
     try {
       const resp = await fetch('/.netlify/functions/cancel-booking', {
         method: 'POST',
@@ -1219,17 +1243,23 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         body: JSON.stringify({ email: email, date: date, time: time })
       });
       const result = await resp.json();
+      closeCancelConfirmModal();
+      yesBtn.textContent = 'Yes, cancel it'; yesBtn.disabled = false;
       if (result.success) {
-        alert('Your lesson has been cancelled. ' + (result.eligible
+        document.getElementById('modalTitle').textContent = 'Lesson Cancelled';
+        document.getElementById('modalBody').textContent = result.eligible
           ? 'Check your email for a link to rebook a new time within the next two weeks.'
-          : 'As this was within 24 hours, no makeup or refund applies.'));
+          : 'As this was within 24 hours, no makeup or refund applies.';
+        document.getElementById('successModal').classList.add('open');
         findMyBookings();
         loadLiveBookings();
       } else {
-        alert(result.error || 'Could not cancel that lesson. Please contact James directly.');
+        errEl.textContent = result.error || 'Could not cancel that lesson. Please contact James directly.';
       }
     } catch (e) {
-      alert('Could not reach the server. Please contact James directly.');
+      closeCancelConfirmModal();
+      yesBtn.textContent = 'Yes, cancel it'; yesBtn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please contact James directly.';
     }
   }
 
