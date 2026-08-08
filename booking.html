@@ -1063,7 +1063,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }
     } catch (e) {}
   }
-  loadLiveBookings().then(initRescheduleFlow);
+  loadLiveBookings().then(initRescheduleFlow).then(initManageFromLink);
 
   // Pricing page can link here with ?lessons=5 or ?lessons=10 to preset
   // the lesson count on the booking form (since presetLessonCount only
@@ -1212,6 +1212,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       btn.textContent = 'Find My Lessons'; btn.disabled = false;
       errEl.textContent = 'Could not reach the server. Please try again.';
     }
+  }
+
+  // If arriving via a booking confirmation email's cancellation link
+  // (?manage_email=...), pre-fill the Manage Booking email field, run the
+  // lookup automatically, and scroll straight to the results, so the
+  // student doesn't have to type their email in again.
+  async function initManageFromLink() {
+    const params = new URLSearchParams(window.location.search);
+    const manageEmail = params.get('manage_email');
+    if (!manageEmail) return;
+    document.getElementById('manageEmail').value = manageEmail;
+    await findMyBookings();
+    const manageSection = document.getElementById('manage');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      manageSection.scrollIntoView({ behavior: 'smooth' });
+    }));
   }
 
   function confirmCancelBooking(email, date, time) {
