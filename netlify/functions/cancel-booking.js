@@ -152,7 +152,7 @@ exports.handler = async function (event) {
     // details from the credit above, so it's obvious this is moving their
     // existing paid lesson rather than buying a new one.
     const rebookButtonHtml = rescheduleToken
-      ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook within the next 2 weeks (no charge) &rarr;</a></p>'
+      ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/booking.html?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook within the next 2 weeks (no charge) &rarr;</a></p>'
       : '';
 
     const studentName = record.name || 'there';
