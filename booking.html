@@ -221,7 +221,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <div class="form-group">
         <label class="form-label">Preferred Time</label>
-        <select class="form-input" id="bookTime" name="time">
+        <select class="form-input" id="bookTime" name="time" onchange="updateDurationAvailability()">
           <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
           <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
           <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
@@ -868,6 +868,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         document.getElementById('book').scrollIntoView({behavior:'smooth'});
         updateTotal();
         document.getElementById('bookTime').value = t;
+        updateDurationAvailability();
       };
       grid.appendChild(btn);
     });
@@ -1060,6 +1061,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         }
         renderCal();
         refreshTimeOptions();
+        updateDurationAvailability();
       }
     } catch (e) {}
   }
@@ -1295,6 +1297,38 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       warning.style.display = 'none';
     }
     refreshTimeOptions();
+    updateDurationAvailability();
+  }
+
+  // Disables any Lesson Duration option that would not actually fit the
+  // currently selected date + time (overlaps another lesson, runs past
+  // closing, etc.), rather than letting every duration always appear
+  // pickable and only failing at submit time. If the currently selected
+  // duration becomes invalid for the newly chosen time, auto-switches to
+  // the first duration that does fit.
+  function updateDurationAvailability() {
+    const date = document.getElementById('bookDate').value;
+    const time = document.getElementById('bookTime').value;
+    const durationSelect = document.getElementById('bookDuration');
+    if (!date || !time) {
+      Array.from(durationSelect.options).forEach(opt => { opt.disabled = false; });
+      return;
+    }
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = getAvailableTimes(date, minutes).includes(time);
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) {
+        durationSelect.value = firstValid.value;
+        updateTotal();
+      }
+    }
   }
 
   function refreshTimeOptions() {
