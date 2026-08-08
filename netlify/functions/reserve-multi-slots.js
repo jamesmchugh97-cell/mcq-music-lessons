@@ -3,6 +3,9 @@
 // unusably small gap (under 30 minutes) next to an existing lesson. This
 // is the authoritative check, the frontend also filters options for a
 // better experience, but this is what actually protects the schedule.
+// Saturday is a normal open day (Fri/Sat closing hours are enforced below
+// via isWithinBusinessHours) — the old Friday-makeup-only restriction and
+// its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
 
 const MIN_GAP_MINUTES = 30;
@@ -138,7 +141,6 @@ exports.handler = async function (event) {
   const durationMinutes = parseInt(duration, 10) || 45;
 
   const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
-  const creditsStore = getStore({ name: 'saturday-credits', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
   const emailLower = (email || '').trim().toLowerCase();
 
   try {
@@ -149,20 +151,10 @@ exports.handler = async function (event) {
       byDate[s.date].push(s);
     }
 
-    const saturdaySlotsUsed = [];
-
     for (const date in byDate) {
       const dow = dayOfWeek(date);
       if (dow === 0) {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Sunday, James is closed. Please choose a different date.' }) };
-      }
-      if (dow === 6) {
-        const creditKey = date + '_' + emailLower;
-        const credit = await creditsStore.get(creditKey, { type: 'json' });
-        if (!credit) {
-          return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Saturday, reserved for Friday makeup lessons only. Please choose a weekday.' }) };
-        }
-        saturdaySlotsUsed.push(creditKey);
       }
       const { blobs } = await store.list({ prefix: date + '_' });
       const existing = [];
@@ -270,12 +262,6 @@ exports.handler = async function (event) {
         };
       }
       written.push(key);
-    }
-
-    // Consume any Saturday makeup credits used in this booking, so they
-    // can't be reused for a second booking.
-    for (const creditKey of saturdaySlotsUsed) {
-      try { await creditsStore.delete(creditKey); } catch (e) {}
     }
 
     return { statusCode: 200, body: JSON.stringify({ success: true, slots: slots }) };
