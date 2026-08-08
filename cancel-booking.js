@@ -7,6 +7,7 @@
 // if the student doesn't use it, the lesson simply isn't refunded.
 const { getStore } = require('@netlify/blobs');
 const crypto = require('crypto');
+const { deleteCalendarEvent } = require('./google-calendar-helper');
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -114,6 +115,19 @@ exports.handler = async function (event) {
     }
 
     await store.delete(key);
+
+    // Remove the matching Google Calendar event, if this booking has one
+    // (older bookings made before the calendar integration existed won't
+    // have an eventId, which is fine — just nothing to delete). This is
+    // best-effort: a calendar failure must never block the cancellation
+    // itself from going through.
+    if (record.eventId) {
+      try {
+        await deleteCalendarEvent(record.eventId);
+      } catch (calErr) {
+        // Calendar sync failed silently — cancellation still stands.
+      }
+    }
 
     const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
     const eligible = hoursUntil >= 24;
