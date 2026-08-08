@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews · MCQ Music Lessons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '551157863990443');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="nav-logo-icon">♩</span>
+    <span class="nav-logo-text">MCQ <span>Music</span></span>
+  </a>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1.8rem;">
+    <ul class="nav-links">
+      <li><a href="programs.html">Programs</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="booking.html#calendar">Availability</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="booking.html#manage">Manage Booking</a></li>
+      <li><a href="booking.html#book" class="nav-cta">Book Now</a></li>
+    </ul>
+    <div class="nav-social">
+      <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+      </a>
+    </div>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="programs.html" onclick="toggleMenu()">Programs</a>
+  <a href="reviews.html" onclick="toggleMenu()">Reviews</a>
+  <a href="about.html" onclick="toggleMenu()">About</a>
+  <a href="pricing.html" onclick="toggleMenu()">Pricing</a>
+  <a href="booking.html#calendar" onclick="toggleMenu()">Availability</a>
+  <a href="faq.html" onclick="toggleMenu()">FAQ</a>
+  <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
+  <a href="booking.html#book" onclick="toggleMenu()">Book Now</a>
+  <div class="mobile-social">
+    <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+    </a>
+  </div>
+</div>
+
+<section id="reviews" class="testimonials-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">What Students Say</p>
+    <h2 class="section-title">Real results, <em>real students.</em></h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">I'd been wanting to learn guitar for about twenty years and just never got around to it. Honestly wasn't sure I'd be able to pick it up at my age but James was so patient and just focused on the stuff I actually wanted to play. Really glad I finally did it.</p>
+        <div class="testimonial-author">David M.</div>
+        <div class="testimonial-detail">Guitar · Adult learner, 50s</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">James figured out pretty quickly what kind of music I was into and just ran with it. I wanted country and fingerpicking and that's exactly what we've been doing. It never feels like a chore. I look forward to it every week which is more than I expected!</p>
+        <div class="testimonial-author">Robyn T.</div>
+        <div class="testimonial-detail">Guitar · Adult learner, 40s</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">My son has been doing piano with James for about six months now and the difference is amazing. He used to need reminding to practise and now he just goes and does it himself. James is really good with kids, he keeps it fun without letting them slack off.</p>
+        <div class="testimonial-author">Sarah K.</div>
+        <div class="testimonial-detail">Piano · Parent of student, age 9</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">I'd been playing guitar on my own for years and kind of hit a wall. James helped me actually understand what I was doing rather than just copying tabs. He clearly loves music and that comes through. My playing has come a long way in a pretty short time.</p>
+        <div class="testimonial-author">Tom R.</div>
+        <div class="testimonial-detail">Guitar · Student, mid-20s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<div class="divider"></div>
+
+<section id="contact">
+  <div class="section-inner">
+    <p class="section-eyebrow">Contact</p>
+    <h2 class="section-title">Get in <em>touch.</em></h2>
+    <div class="contact-grid">
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4.5c1.6 0 3 1 3.4 2.5l.5 1.8c.2.7 0 1.5-.6 2l-1 .9c1 2.4 2.9 4.3 5.3 5.3l.9-1c.5-.6 1.3-.8 2-.6l1.8.5c1.5.4 2.5 1.8 2.5 3.4v.9c0 1.2-1 2.1-2.2 2C9.9 21.1 2.9 14.1 2 6.4c-.1-1.2.8-2.2 2-2.2h1z"/></svg></span><div><div class="contact-label">Phone</div><div class="contact-value"><a href="tel:0499232898">0499 232 898</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></span><div><div class="contact-label">Email</div><div class="contact-value"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/></svg></span><div><div class="contact-label">Location</div><div class="contact-value">South Melbourne, VIC</div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Thu 12pm to 9pm, Fri & Sat 12pm to 4:30pm</div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span><div><div class="contact-label">Instagram</div><div class="contact-value"><a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg></span><div><div class="contact-label">Facebook</div><div class="contact-value"><a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">MCQ Music</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span><div><div class="contact-label">Music Links</div><div class="contact-value"><a href="https://linktr.ee/jamesmcq" target="_blank">linktr.ee/jamesmcq</a></div></div></div>
+    </div>
+
+      </div>
+</section>
+
+<footer>
+  <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a></p>
+</footer>
+
+
+<script>
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+</script>
+</body>
+</html>
