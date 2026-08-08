@@ -53,6 +53,7 @@ async function createCalendarEvent({ studentName, startDateTime, endDateTime, no
 }
 
 async function deleteCalendarEvent(eventId) {
+  console.log('[calendar-helper] deleteCalendarEvent called for eventId:', eventId);
   const auth = getAuth();
   const calendar = google.calendar({ version: 'v3', auth });
 
@@ -60,6 +61,7 @@ async function deleteCalendarEvent(eventId) {
     calendarId: CALENDAR_ID,
     eventId: eventId,
   });
+  console.log('[calendar-helper] event deleted successfully:', eventId);
 }
 
 module.exports = {
