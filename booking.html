@@ -883,7 +883,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const s = new Date(startStr + 'T00:00:00');
     const e = new Date(endStr + 'T00:00:00');
     const opts = { month: 'short', day: 'numeric' };
-    return s.toLocaleDateString('en-AU', opts) + ' \u2013 ' + e.toLocaleDateString('en-AU', opts);
+    return s.toLocaleDateString('en-AU', opts) + ' to ' + e.toLocaleDateString('en-AU', opts);
   }
 
   async function initRescheduleFlow() {
@@ -975,16 +975,38 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       btn.type = 'button';
       btn.className = 'time-slot-btn free';
       btn.textContent = t;
-      btn.onclick = () => confirmReschedule(dateKey, t);
+      btn.onclick = () => selectRescheduleTime(dateKey, t);
       grid.appendChild(btn);
     });
     timesWrap.appendChild(grid);
   }
 
-  async function confirmReschedule(date, time) {
+  // Picking a time doesn't reschedule immediately anymore - it shows a
+  // confirm step first, so an accidental click on the wrong time doesn't
+  // silently move the lesson. Only clicking "Yes, confirm this time" here
+  // actually submits it.
+  function selectRescheduleTime(date, time) {
+    const timesWrap = document.getElementById('rescheduleTimesWrap');
+    timesWrap.innerHTML =
+      '<div class="reschedule-confirm-box">' +
+        '<p class="reschedule-confirm-text">Move your lesson to <strong>' + date + '</strong> at <strong>' + time + '</strong>?</p>' +
+        '<div class="reschedule-confirm-buttons">' +
+          '<button type="button" class="btn-primary" id="rescheduleConfirmBtn">Yes, confirm this time</button>' +
+          '<button type="button" class="btn-outline" id="rescheduleBackBtn">Choose a different time</button>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('rescheduleConfirmBtn').onclick = () => submitReschedule(date, time);
+    document.getElementById('rescheduleBackBtn').onclick = () => renderRescheduleTimes(date);
+  }
+
+  async function submitReschedule(date, time) {
     const errorEl = document.getElementById('rescheduleError');
     errorEl.style.display = 'none';
     errorEl.textContent = '';
+    const confirmBtn = document.getElementById('rescheduleConfirmBtn');
+    const backBtn = document.getElementById('rescheduleBackBtn');
+    if (confirmBtn) { confirmBtn.textContent = 'Confirming...'; confirmBtn.disabled = true; }
+    if (backBtn) { backBtn.disabled = true; }
     try {
       const resp = await fetch('/.netlify/functions/redeem-reschedule-credit', {
         method: 'POST',
@@ -999,7 +1021,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         return;
       }
       document.getElementById('modalTitle').textContent = 'Lesson Rescheduled!';
-      document.getElementById('modalBody').textContent = 'No charge \u2014 your lesson is now booked for ' + date + ' at ' + time + '. A confirmation email is on its way.';
+      document.getElementById('modalBody').textContent = 'No charge, your lesson is now booked for ' + date + ' at ' + time + '. A confirmation email is on its way.';
       document.getElementById('successModal').classList.add('open');
       document.getElementById('reschedulePanel').style.display = 'none';
       document.getElementById('rescheduleDivider').style.display = 'none';

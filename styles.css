@@ -205,6 +205,10 @@
   .time-slot-btn.free { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: #4ade80; }
   .time-slot-btn.free:hover { background: rgba(74,222,128,0.2); }
   .time-slot-btn.taken { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.2); color: #f87171; cursor: not-allowed; }
+  .reschedule-confirm-box { background: var(--navy-mid); border: 1px solid var(--navy-border); border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .reschedule-confirm-text { font-size: 0.92rem; color: var(--cream); margin-bottom: 0.9rem; line-height: 1.5; }
+  .reschedule-confirm-text strong { color: var(--gold); }
+  .reschedule-confirm-buttons { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
   /* BOOKING */
   .booking-section { background: var(--navy-mid); }
