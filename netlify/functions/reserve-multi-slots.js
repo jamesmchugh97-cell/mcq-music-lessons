@@ -280,6 +280,7 @@ exports.handler = async function (event) {
       // The returned eventId is saved back onto the same blob record so
       // cancel-booking.js can look it up later to delete the event.
       try {
+        console.log('[reserve-multi-slots] attempting calendar sync for', key);
         const startMinutes = timeToMinutes(s.time);
         const endMinutes = startMinutes + durationMinutes;
         const startDateTime = s.date + 'T' + minutesToIsoClock(startMinutes);
@@ -293,6 +294,7 @@ exports.handler = async function (event) {
         if (eventId) {
           record.eventId = eventId;
           await store.set(key, JSON.stringify(record));
+          console.log('[reserve-multi-slots] calendar sync succeeded for', key, 'eventId:', eventId);
         }
       } catch (calErr) {
         // Booking still stands even if calendar sync fails — but log it
