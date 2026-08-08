@@ -8,6 +8,7 @@
 // reserve-multi-slots.js (not just an exact-key match), and writes
 // atomically so it can never land on top of another lesson.
 const { getStore } = require('@netlify/blobs');
+const { createCalendarEvent } = require('./google-calendar-helper');
 
 const MIN_GAP_MINUTES = 30;
 
@@ -20,6 +21,15 @@ function timeToMinutes(t) {
   if (ap === 'pm' && h !== 12) h += 12;
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
+}
+
+// Converts minutes-since-midnight into a zero-padded "HH:MM:SS" string for
+// building a local (timezone-naive) ISO datetime that Google Calendar will
+// interpret using the timeZone field passed alongside it.
+function minutesToIsoClock(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
 // Same Melbourne-local-time-to-epoch conversion used in cancel-booking.js,
@@ -226,6 +236,29 @@ exports.handler = async function (event) {
     const writeResult = await bookingsStore.set(key, JSON.stringify(record), { onlyIfNew: true });
     if (writeResult && writeResult.modified === false) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time was just taken. Please pick a different slot.' }) };
+    }
+
+    // Create the matching Google Calendar event for the new slot. This is
+    // best-effort: if it fails, the reschedule itself must still succeed,
+    // since the student has already been told it worked. The old event
+    // (for the cancelled lesson) is already deleted separately by
+    // cancel-booking.js at the moment the original lesson was cancelled,
+    // so nothing needs deleting here, only creating the new one.
+    try {
+      const startDateTime = date + 'T' + minutesToIsoClock(startMinutes);
+      const endDateTime = date + 'T' + minutesToIsoClock(endMinutes);
+      const eventId = await createCalendarEvent({
+        studentName: credit.name || 'Student',
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+        notes: credit.email ? ('Rescheduled by ' + credit.email + ' from ' + credit.originalDate + ' ' + credit.originalTime) : ''
+      });
+      if (eventId) {
+        record.eventId = eventId;
+        await bookingsStore.set(key, JSON.stringify(record));
+      }
+    } catch (calErr) {
+      console.error('Google Calendar event creation failed for rescheduled ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
     }
 
     credit.used = true;
