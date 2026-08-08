@@ -7,6 +7,7 @@
 // if the student doesn't use it, the lesson simply isn't refunded.
 const { getStore } = require('@netlify/blobs');
 const crypto = require('crypto');
+const { deleteCalendarEvent } = require('./google-calendar-helper');
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -115,6 +116,23 @@ exports.handler = async function (event) {
 
     await store.delete(key);
 
+    // Remove the matching Google Calendar event, if this booking has one
+    // (older bookings made before the calendar integration existed won't
+    // have an eventId, which is fine — just nothing to delete). This is
+    // best-effort: a calendar failure must never block the cancellation
+    // itself from going through.
+    if (record.eventId) {
+      console.log('[cancel-booking] attempting calendar delete for', key, 'eventId:', record.eventId);
+      try {
+        await deleteCalendarEvent(record.eventId);
+        console.log('[cancel-booking] calendar delete succeeded for', key);
+      } catch (calErr) {
+        console.error('Google Calendar event deletion failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
+      }
+    } else {
+      console.log('[cancel-booking] no eventId on record for', key, '- nothing to delete from calendar (likely a pre-fix booking)');
+    }
+
     const hoursUntil = (melbourneEpochMs(date, time) - Date.now()) / (1000 * 60 * 60);
     const eligible = hoursUntil >= 24;
 
@@ -169,6 +187,14 @@ exports.handler = async function (event) {
         ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
         : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.") + '</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
+      // Invisible per-email marker: Gmail auto-collapses content it
+      // recognises as a repeated "signature" across emails from the same
+      // sender, since every email ends with that same "Questions?" line.
+      // This unique, invisible token makes each email's HTML byte-for-byte
+      // different, so Gmail can't pattern-match it as identical boilerplate
+      // and the rebook button above stays visible instead of hiding
+      // behind "..." in the inbox.
+      '<span style="display:none;">Ref ' + date + '-' + time.replace(/[^0-9]/g, '') + '-' + crypto.randomBytes(4).toString('hex') + '</span>' +
       '</div>';
     await sendEmail(email, 'Your lesson has been cancelled', studentHtml);
 
