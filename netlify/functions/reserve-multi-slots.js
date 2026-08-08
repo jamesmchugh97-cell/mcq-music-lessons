@@ -7,6 +7,7 @@
 // via isWithinBusinessHours) — the old Friday-makeup-only restriction and
 // its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
+const { createCalendarEvent } = require('./google-calendar-helper');
 
 const MIN_GAP_MINUTES = 30;
 const MIN_NOTICE_HOURS = 24;
@@ -20,6 +21,15 @@ function timeToMinutes(t) {
   if (ap === 'pm' && h !== 12) h += 12;
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
+}
+
+// Converts minutes-since-midnight into a zero-padded "HH:MM:SS" string for
+// building a local (timezone-naive) ISO datetime that Google Calendar will
+// interpret using the timeZone field passed alongside it.
+function minutesToIsoClock(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
 // Converts a date ('YYYY-MM-DD') and time ('3:00 pm') given as Melbourne
@@ -262,6 +272,31 @@ exports.handler = async function (event) {
         };
       }
       written.push(key);
+
+      // Create the matching Google Calendar event now that the slot is
+      // safely claimed. This is best-effort: if Google's API is down or
+      // misconfigured, the booking itself must still succeed, so any
+      // failure here is swallowed rather than rolling back the booking.
+      // The returned eventId is saved back onto the same blob record so
+      // cancel-booking.js can look it up later to delete the event.
+      try {
+        const startMinutes = timeToMinutes(s.time);
+        const endMinutes = startMinutes + durationMinutes;
+        const startDateTime = s.date + 'T' + minutesToIsoClock(startMinutes);
+        const endDateTime = s.date + 'T' + minutesToIsoClock(endMinutes);
+        const eventId = await createCalendarEvent({
+          studentName: name || 'Student',
+          startDateTime: startDateTime,
+          endDateTime: endDateTime,
+          notes: email ? ('Booked by ' + email) : ''
+        });
+        if (eventId) {
+          record.eventId = eventId;
+          await store.set(key, JSON.stringify(record));
+        }
+      } catch (calErr) {
+        // Calendar sync failed silently — booking still stands.
+      }
     }
 
     return { statusCode: 200, body: JSON.stringify({ success: true, slots: slots }) };
