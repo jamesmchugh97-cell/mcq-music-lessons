@@ -162,11 +162,21 @@ exports.handler = async function (event) {
       '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Cancelled</h2>' +
-      '<p>Hi ' + studentName + ', your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested. ' + (eligible
+      '<p>Hi ' + studentName + ',</p>' +
+      '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
+      rebookButtonHtml +
+      '<p>' + (eligible
         ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
         : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.") + '</p>' +
-      rebookButtonHtml +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
+      // Invisible per-email marker: Gmail auto-collapses content it
+      // recognises as a repeated "signature" across emails from the same
+      // sender, since every email ends with that same "Questions?" line.
+      // This unique, invisible token makes each email's HTML byte-for-byte
+      // different, so Gmail can't pattern-match it as identical boilerplate
+      // and the rebook button above stays visible instead of hiding
+      // behind "..." in the inbox.
+      '<span style="display:none;">Ref ' + date + '-' + time.replace(/[^0-9]/g, '') + '-' + crypto.randomBytes(4).toString('hex') + '</span>' +
       '</div>';
     await sendEmail(email, 'Your lesson has been cancelled', studentHtml);
 
@@ -174,9 +184,9 @@ exports.handler = async function (event) {
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
       '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + date + ' at ' + time + '</strong>.</p>' +
-      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : 'within 24 hours, no rebooking, full fee applies') + ').</p>' +
+      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : 'within 24 hours \u2014 no rebooking, full fee applies') + ').</p>' +
       '</div>';
-    await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);
+    await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ' \u2014 ' + date + ' ' + time, jamesHtml);
 
     return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible }) };
   } catch (err) {
