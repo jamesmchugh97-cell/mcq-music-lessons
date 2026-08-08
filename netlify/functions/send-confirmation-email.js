@@ -24,14 +24,22 @@ exports.handler = async function (event) {
 
   const introLine = isMulti
     ? `<p>You've booked <strong>${lessonsCountNum} lessons</strong>. See the dates below.</p>`
-    : `<p>This is your <strong>trial lesson</strong>, a chance to see if it's the right fit before you commit.</p>`;
-  const cancellationNotice = `Cancel with 24+ hours' notice and I'll do my best to find a makeup lesson within that same week. If we can't, it's not refunded. Cancel with less than 24 hours' notice and the full lesson fee applies with no makeup available.`;
+    : `<p>This is your <strong>trial lesson</strong>, a chance to see if it's the right fit.</p>`;
+
+  // Fortnight self-service policy (matches cancel-booking.js): 24+ hours'
+  // notice gives a free single-use rebook link, not a "James finds you a
+  // makeup lesson" promise.
+  const cancellationNotice = `Cancel with 24+ hours' notice and you'll get a link by email to rebook a new time yourself, any day over the following two weeks, no charge. Cancel with less than 24 hours' notice and the full lesson fee applies with no rebooking available.`;
 
   const dateFieldsHtml = slotList.length > 1
     ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${s.date} at ${s.time}</li>`).join('')}</ul></li>`
     : `<li><strong>Date:</strong> ${slotList[0].date || 'N/A'}</li>
         <li><strong>Time:</strong> ${slotList[0].time || 'N/A'}</li>`;
 
+  // Order matters here: duration, total, and address are placed
+  // immediately after the greeting, before the longer policy text below,
+  // since some email clients (Gmail included) can clip long transactional
+  // emails and hide anything that comes after the clip point.
   const emailHtml = `
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
       <div style="text-align: center; margin-bottom: 24px;">
@@ -40,21 +48,18 @@ exports.handler = async function (event) {
         </p>
       </div>
       <h2 style="color: #1a1a1a; text-align: center; font-family: Georgia, serif; font-weight: normal;">Booking Confirmed</h2>
-      <p>Hi ${name},</p>
-      <p>Thanks for booking with MCQ Music Lessons! Here are your details:</p>
+      <p>Hi ${name}, thanks for booking with MCQ Music Lessons. Here are your details:</p>
       <ul>
         <li><strong>Instrument:</strong> ${instrument || 'N/A'}</li>
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
+        <li><strong>Location:</strong> 84 Nelson Road, South Melbourne VIC 3205</li>
       </ul>
       ${introLine}
-      <p>James will be in touch within 24 hours to confirm.</p>
+      <p>Looking forward to our lesson! If you have any questions before then, just reply to this email or call 0499 232 898.</p>
       <p style="font-size: 0.85em; color: #666; border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
         <strong>Cancellation policy:</strong> ${cancellationNotice}
-      </p>
-      <p style="font-size: 0.85em; color: #666;">
-        Questions? Reply to this email or call 0499 232 898.
       </p>
     </div>
   `;
