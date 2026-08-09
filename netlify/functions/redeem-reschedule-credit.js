@@ -9,6 +9,7 @@
 // atomically so it can never land on top of another lesson.
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent } = require('./google-calendar-helper');
+const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
 
@@ -23,25 +24,19 @@ function timeToMinutes(t) {
   return h * 60 + min;
 }
 
-// Converts minutes-since-midnight into a zero-padded "HH:MM:SS" string for
-// building a local (timezone-naive) ISO datetime that Google Calendar will
-// interpret using the timeZone field passed alongside it.
 function minutesToIsoClock(totalMinutes) {
   const h = Math.floor(totalMinutes / 60) % 24;
   const m = totalMinutes % 60;
   return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
-// Same Melbourne-local-time-to-epoch conversion used in cancel-booking.js,
-// so the 24-hour notice check here is correct regardless of the server's
-// own timezone or daylight saving.
 function melbourneEpochMs(dateStr, timeStr) {
   const minutes = timeToMinutes(timeStr) || 0;
   const [y, mo, d] = dateStr.split('-').map(Number);
   const hour = Math.floor(minutes / 60);
   const min = minutes % 60;
   const naiveUtcMs = Date.UTC(y, mo - 1, d, hour, min);
-  let offsetMinutes = 600; // fallback: AEST, UTC+10:00
+  let offsetMinutes = 600;
   try {
     const dtf = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Melbourne', timeZoneName: 'shortOffset' });
     const part = dtf.formatToParts(new Date(naiveUtcMs)).find(p => p.type === 'timeZoneName');
@@ -54,8 +49,8 @@ function melbourneEpochMs(dateStr, timeStr) {
   return naiveUtcMs - offsetMinutes * 60000;
 }
 
-const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm
-const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm
+const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30;
+const MON_THU_CLOSING_MINUTES = 21 * 60;
 
 function dayOfWeek(dateStr) {
   return new Date(dateStr + 'T00:00:00').getDay();
@@ -67,7 +62,6 @@ function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
   return endMinutes <= MON_THU_CLOSING_MINUTES;
 }
 
-// Kept in sync with reserve-multi-slots.js and index.html/booking.html.
 const SCHOOL_HOLIDAY_RANGES = [
   ['2026-09-19', '2026-10-04'],
   ['2026-12-19', '2027-01-26']
@@ -186,12 +180,6 @@ exports.handler = async function (event) {
 
     const bookingsStore = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
 
-    // Duration-aware overlap check against every real booking that day,
-    // PLUS the hardcoded recurring students, mirroring reserve-multi-slots.js.
-    // This is the fix: the old version only checked an exact date_time key
-    // match, so a reschedule could land inside an existing lesson (different
-    // start time, overlapping duration) or directly on a recurring student's
-    // slot without being caught.
     const { blobs } = await bookingsStore.list({ prefix: date + '_' });
     const existing = [];
     for (const blob of blobs) {
@@ -204,6 +192,13 @@ exports.handler = async function (event) {
     getRecurringBookingsForDate(date).forEach(rb => {
       const s = timeToMinutes(rb.time);
       existing.push({ time: rb.time, start: s, end: s + rb.duration });
+    });
+
+    const blockingSubs = await listBlockingSubscriptionsForDay(dow);
+    blockingSubs.forEach(sub => {
+      const s = subTimeToMinutes(sub.time);
+      const dur = parseInt(sub.durationMinutes, 10);
+      existing.push({ time: sub.time, start: s, end: s + dur });
     });
 
     for (const ex of existing) {
@@ -221,8 +216,6 @@ exports.handler = async function (event) {
       }
     }
 
-    // Atomic write, matching reserve-multi-slots.js, so two people (or a
-    // reschedule racing a fresh booking) can never both claim this slot.
     const key = date + '_' + time;
     const record = {
       date: date,
@@ -238,12 +231,6 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time was just taken. Please pick a different slot.' }) };
     }
 
-    // Create the matching Google Calendar event for the new slot. This is
-    // best-effort: if it fails, the reschedule itself must still succeed,
-    // since the student has already been told it worked. The old event
-    // (for the cancelled lesson) is already deleted separately by
-    // cancel-booking.js at the moment the original lesson was cancelled,
-    // so nothing needs deleting here, only creating the new one.
     try {
       const startDateTime = date + 'T' + minutesToIsoClock(startMinutes);
       const endDateTime = date + 'T' + minutesToIsoClock(endMinutes);
@@ -273,6 +260,9 @@ exports.handler = async function (event) {
       '<p>Hi ' + (credit.name || 'there') + ',</p>' +
       '<p>Your lesson is now booked for <strong>' + date + ' at ' + time + '</strong>. No payment was needed \u2014 this simply moves the lesson you already paid for.</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
+      '<p style="text-align:center;margin-top:16px;">' +
+      '<a href="https://mcqmusiclessons.com.au/booking.html?manage_email=' + encodeURIComponent(credit.email) + '#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>' +
+      '</p>' +
       '</div>';
     await sendEmail(credit.email, 'Your lesson has been rescheduled', html);
 
