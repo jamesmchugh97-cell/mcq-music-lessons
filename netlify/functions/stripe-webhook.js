@@ -22,7 +22,9 @@ const {
   listBlockingSubscriptionsForDay,
   conflictsWithSubscriptions,
   nextOccurrenceDate,
-  currentYear
+  nextRenewalDate,
+  currentYear,
+  PAYMENT_GRACE_PERIOD_DAYS
 } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -189,7 +191,6 @@ exports.handler = async function (event) {
         };
         await saveSubscriptionRecord(subscriptionId, record);
 
-        const intervalDays = meta.frequency === 'fortnightly' ? 14 : 7;
         const lessonDate = nextOccurrenceDate(dow, meta.time, MIN_NOTICE_HOURS, null);
         if (lessonDate) {
           record.nextLessonDate = lessonDate;
@@ -216,8 +217,22 @@ exports.handler = async function (event) {
         if (record.status !== 'active') {
           return { statusCode: 200, body: 'ok' };
         }
+        // A successful renewal means any earlier payment issue has
+        // resolved itself (a Stripe retry succeeded) - clear the
+        // grace-period tracking so it doesn't carry over to a future,
+        // unrelated failure. Harmless no-op if neither was set.
+        record.paymentFailedAt = null;
+        record.paymentFailureReminderSent = false;
+        // Uses nextRenewalDate (one full billing interval - 7 or 14
+        // days depending on frequency - after the previous lesson),
+        // not nextOccurrenceDate (which would always land 7 days later
+        // regardless of frequency, silently turning fortnightly
+        // subscriptions into weekly ones). Falls back to
+        // nextOccurrenceDate only if nextLessonDate is somehow missing.
         const dow = parseInt(record.dayOfWeek, 10);
-        const lessonDate = nextOccurrenceDate(dow, record.time, 0, record.nextLessonDate || null);
+        const lessonDate = record.nextLessonDate
+          ? nextRenewalDate(record.nextLessonDate, record.frequency)
+          : nextOccurrenceDate(dow, record.time, 0, null);
         if (lessonDate) {
           record.nextLessonDate = lessonDate;
           await saveSubscriptionRecord(subscriptionId, record);
@@ -231,16 +246,26 @@ exports.handler = async function (event) {
       const subscriptionId = invoice.subscription;
       if (subscriptionId) {
         const record = await getSubscriptionRecord(subscriptionId);
-        if (record) {
+        // Only act on the FIRST failure in a cycle. Stripe's Smart
+        // Retries fire this same event again on each subsequent retry
+        // attempt (typically several times over ~1-2 weeks) - without
+        // this guard, every retry would reset the grace-period clock
+        // (subscription-payment-grace-check.js reads paymentFailedAt)
+        // and re-send this email each time, which is both spammy and
+        // would mean the slot never actually gets released on schedule.
+        if (record && !record.paymentFailedAt) {
+          record.paymentFailedAt = new Date().toISOString();
+          await saveSubscriptionRecord(subscriptionId, record);
+
           await sendEmail(
             record.studentEmail,
             'MCQ Music Lessons — payment issue with your subscription',
-            '<p>Hi ' + record.studentName + ',</p><p>We could not process your latest subscription payment. Stripe will automatically retry over the next few days — please make sure your card details are up to date to avoid your subscription being cancelled.</p><p>James</p>'
+            '<p>Hi ' + record.studentName + ',</p><p>We could not process your latest subscription payment. Stripe will automatically retry over the next few days — please make sure your card details are up to date. If this isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, your slot will be automatically released so it doesn\'t sit unused.</p><p>James</p>'
           );
           await sendEmail(
             JAMES_EMAIL,
             'Payment failed: ' + record.studentName,
-            '<p>' + record.studentName + '\'s subscription payment failed. Stripe will retry automatically. No lesson will be booked for this cycle unless payment succeeds.</p>'
+            '<p>' + record.studentName + '\'s subscription payment failed. Stripe will retry automatically. If it isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, their slot will be automatically released and you\'ll get a separate email confirming it.</p>'
           );
         }
       }
