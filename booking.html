@@ -158,7 +158,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Book Now</p>
     <h2 class="section-title">Ready to <em>get started?</em></h2>
-    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial. After that, book as many lessons as you like, choosing a date and time for each one, whenever suits you.</p>
+    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial, a chance to make sure it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved for them every week, no re-booking required. <a href="booking.html#subscribe" style="color:var(--gold);">See how that works</a>.</p>
 
     <form class="booking-form" name="booking" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return handleBooking(event)">
       <input type="hidden" name="form-name" value="booking">
@@ -215,10 +215,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <label class="form-label">How would you like to book these lessons?</label>
         <select class="form-input" id="bookingMode" onchange="updateTotal()">
           <option value="weekly">Same time, every week</option>
-          <option value="fortnightly">Same time, every fortnight</option>
+          <option value="fortnightly" id="fortnightlyOption">Same time, every fortnight</option>
           <option value="custom">Choose a different date & time for each lesson</option>
         </select>
         <p style="font-size:0.76rem;color:var(--muted);margin:0.5rem 0;">Your first lesson uses the date & time set above. You can still adjust any individual date below if needed.</p>
+        <p id="bookingPatternNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin:0.5rem 0;line-height:1.5;"></p>
         <div id="extraDatesContainer"></div>
       </div>
       <div class="form-group">
@@ -291,7 +292,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Weekly Subscription</p>
     <h2 class="section-title">Subscribe to a <em>weekly slot</em></h2>
-    <p class="section-sub">Already had a lesson with James? Lock in the same time every week or fortnight and skip paying lesson by lesson. No sign-up fee, pause for up to 4 weeks a year, cancel any time — all fully self-service below.</p>
+    <p class="section-sub">Already had a lesson with James? Lock in the same time every week or fortnight and skip paying lesson by lesson. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
       <div class="form-row">
@@ -582,6 +583,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!lessons || lessons < 1) lessons = 1;
     document.getElementById('extraDatesGroup').style.display = lessons > 1 ? 'block' : 'none';
     document.getElementById('largeBookingNote').style.display = lessons >= 20 ? 'block' : 'none';
+    updateBookingPatternGuidance(lessons);
     renderExtraDateRows(lessons);
     refreshTimeOptions();
     document.getElementById('subtotalAmt').textContent = '$' + price;
@@ -595,11 +597,79 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
+  // Keeps the "how would you like to book these" options honest against
+  // the same rule reserve-multi-slots.js enforces server-side: a
+  // fortnightly series reaching past 30 days out is capped at 5 lessons.
+  // If the lesson count grows past 5 while fortnightly is selected, it's
+  // switched to weekly automatically (with a note explaining why) rather
+  // than letting the student fill in 10 fortnightly dates only to have
+  // it rejected at the very end. Also surfaces a short reminder for
+  // custom mode, since that's the option most likely to drift into the
+  // sporadic pattern the rule exists to prevent.
+  function updateBookingPatternGuidance(lessons) {
+    const modeSelect = document.getElementById('bookingMode');
+    const fortnightlyOption = document.getElementById('fortnightlyOption');
+    const note = document.getElementById('bookingPatternNote');
+    if (!modeSelect || !fortnightlyOption || !note) return;
+    const MAX_FORTNIGHTLY_LESSONS = 5;
+    const tooManyForFortnightly = lessons > MAX_FORTNIGHTLY_LESSONS;
+    fortnightlyOption.disabled = tooManyForFortnightly;
+    let switched = false;
+    if (tooManyForFortnightly && modeSelect.value === 'fortnightly') {
+      modeSelect.value = 'weekly';
+      switched = true;
+    }
+    if (switched) {
+      note.style.display = 'block';
+      note.textContent = 'Switched to weekly, fortnightly bookings past 30 days out are limited to 5 lessons at a time.';
+    } else if (tooManyForFortnightly && modeSelect.value === 'custom') {
+      note.style.display = 'block';
+      note.textContent = 'Custom dates reaching more than 30 days out need to form a consistent weekly pattern (fortnightly is limited to 5 lessons). Keep everything within 30 days, or switch to weekly above.';
+    } else if (modeSelect.value === 'custom') {
+      note.style.display = 'block';
+      note.textContent = 'Custom dates are fine within the next 30 days. Reaching further out than that needs a consistent weekly or fortnightly pattern instead.';
+    } else {
+      note.style.display = 'none';
+    }
+  }
+
   // Returns the furthest date anyone can book, one year from today.
   function getMaxBookingDate() {
     const d = new Date(TODAY);
     d.setDate(d.getDate() + 365);
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function daysBetweenDates(dateStr1, dateStr2) {
+    const d1 = new Date(dateStr1 + 'T00:00:00');
+    const d2 = new Date(dateStr2 + 'T00:00:00');
+    return Math.round((d2 - d1) / 86400000);
+  }
+
+  // Mirrors the authoritative server-side check in reserve-multi-slots.js
+  // exactly, so a student gets an instant answer here rather than
+  // filling in the whole form and only finding out at the very end. The
+  // server re-checks this regardless, this is purely for a faster,
+  // friendlier response, never the actual enforcement.
+  function validateBookingPattern(allSlots) {
+    if (allSlots.length <= 1) return null;
+    const todayStr = dKey(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    const farthestDaysOut = Math.max.apply(null, allSlots.map(s => daysBetweenDates(todayStr, s.date)));
+    if (farthestDaysOut <= 30) return null;
+    const sortedDates = allSlots.map(s => s.date).slice().sort();
+    const gaps = [];
+    for (let i = 1; i < sortedDates.length; i++) {
+      gaps.push(daysBetweenDates(sortedDates[i - 1], sortedDates[i]));
+    }
+    const isWeeklySeries = gaps.every(g => g === 7);
+    const isFortnightlySeries = gaps.every(g => g === 14);
+    if (isFortnightlySeries && allSlots.length > 5) {
+      return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons at a time. Please reduce to 5 lessons, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.';
+    }
+    if (!isWeeklySeries && !isFortnightlySeries) {
+      return 'Bookings reaching more than 30 days out need to be an evenly-spaced weekly or fortnightly series, not individually chosen dates. Please keep all dates within the next 30 days, pick a consistent weekly or fortnightly pattern, or set up an ongoing subscription from the Subscribe section instead.';
+    }
+    return null;
   }
 
   // Builds one date+time picker per additional lesson (lessons - 1 of them).
@@ -1548,13 +1618,30 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       }
     }
 
+    const patternError = validateBookingPattern(allSlots);
+    if (patternError) {
+      document.getElementById('stripe-error').textContent = patternError;
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+
     // Reserve every slot before charging, so two people can never both pay for the same time.
     let reserveResult;
     try {
       const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots: allSlots, name: name, email: email, duration: primaryDurationMinutes })
+        body: JSON.stringify({
+          slots: allSlots,
+          name: name,
+          email: email,
+          duration: primaryDurationMinutes,
+          instrument: selectedInstrument,
+          song_requests: document.getElementById('bookSongRequests').value.trim(),
+          genre_focus: document.getElementById('bookGenreFocus').value,
+          theory_interest: document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No',
+          lesson_goals_notes: document.getElementById('bookGoalsNotes').value.trim()
+        })
       });
       reserveResult = await reserveResp.json();
     } catch (e) {
@@ -1647,9 +1734,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     btn.textContent = 'Proceed to Payment'; btn.disabled = false;
     document.getElementById('modalTitle').textContent = 'Booking Confirmed!';
-    document.getElementById('modalBody').textContent = isMultiLesson
-      ? 'Your payment went through and all ' + reservedSlots.length + ' lessons are booked. James will be in touch within 24 hours to confirm. Keep an eye on ' + email + ' for his message.'
-      : 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.';
+    if (isMultiLesson) {
+      document.getElementById('modalBody').textContent = 'Your payment went through and all ' + reservedSlots.length + ' lessons are booked. James will be in touch within 24 hours to confirm. Keep an eye on ' + email + ' for his message.';
+    } else {
+      document.getElementById('modalBody').innerHTML = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.<br><br>Most students then lock in this same time every week or fortnight, no need to book each one individually. <a href="booking.html#subscribe" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a>.';
+    }
     document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
 
   document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
@@ -1803,7 +1892,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const freqLabel = sub.frequency === 'fortnightly' ? 'Fortnightly' : 'Weekly';
         let statusLabel;
         if (sub.cancelling) {
-          statusLabel = 'Cancelling — ends after next paid lesson';
+          statusLabel = 'Cancelling, ends after next paid lesson';
         } else if (sub.status === 'paused') {
           statusLabel = 'Paused' + (sub.pausedUntil ? ', resumes automatically ' + sub.pausedUntil : '');
         } else {
