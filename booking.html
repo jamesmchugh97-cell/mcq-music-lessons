@@ -776,6 +776,79 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function padZ(n) { return String(n).padStart(2,'0'); }
   function dKey(y,m,d) { return y+'-'+padZ(m+1)+'-'+padZ(d); }
 
+  // ===== ADD TO CALENDAR (student's own calendar, separate from the
+  // Google Calendar sync that already exists for James's own bookings
+  // calendar). Two options are offered rather than assuming everyone
+  // uses Google: a one-click Google Calendar link, and a universal
+  // .ics download that Apple Calendar, Outlook, and anything else that
+  // reads the standard format can open.
+  function calGcalDateTime(dateStr, minutesSinceMidnight) {
+    const ymd = dateStr.replace(/-/g, '');
+    const h = Math.floor(minutesSinceMidnight / 60);
+    const m = minutesSinceMidnight % 60;
+    return ymd + 'T' + padZ(h) + padZ(m) + '00';
+  }
+
+  // recurrenceRule is optional, e.g. 'RRULE:FREQ=WEEKLY' or
+  // 'RRULE:FREQ=WEEKLY;INTERVAL=2' for a subscription's recurring slot.
+  // ctz=Australia/Melbourne means Google handles daylight saving itself,
+  // no manual UTC offset math needed here.
+  function buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const startMin = timeToMinutes(timeStr);
+    const endMin = startMin + durationMinutes;
+    const dates = calGcalDateTime(dateStr, startMin) + '/' + calGcalDateTime(dateStr, endMin);
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: dates,
+      details: 'Lesson with James McHugh, MCQ Music Lessons.',
+      location: '84 Nelson Rd, South Melbourne VIC 3205',
+      ctz: 'Australia/Melbourne'
+    });
+    if (recurrenceRule) params.set('recur', recurrenceRule);
+    return 'https://calendar.google.com/calendar/render?' + params.toString();
+  }
+
+  function buildIcsBlobUrl(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const startMin = timeToMinutes(timeStr);
+    const endMin = startMin + durationMinutes;
+    const dtStart = calGcalDateTime(dateStr, startMin);
+    const dtEnd = calGcalDateTime(dateStr, endMin);
+    const uid = 'mcq-' + dateStr + '-' + timeStr.replace(/[^0-9]/g, '') + '-' + Date.now() + '@mcqmusiclessons.com.au';
+    const lines = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MCQ Music Lessons//Booking//EN',
+      'BEGIN:VEVENT',
+      'UID:' + uid,
+      'DTSTART;TZID=Australia/Melbourne:' + dtStart,
+      'DTEND;TZID=Australia/Melbourne:' + dtEnd,
+      'SUMMARY:' + title,
+      'LOCATION:84 Nelson Rd\\, South Melbourne VIC 3205',
+      'DESCRIPTION:Lesson with James McHugh\\, MCQ Music Lessons.'
+    ];
+    if (recurrenceRule) lines.push(recurrenceRule);
+    lines.push('END:VEVENT', 'END:VCALENDAR');
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    return URL.createObjectURL(blob);
+  }
+
+  // Returns the small HTML snippet for both add-to-calendar links,
+  // dropped straight into a modal body alongside the confirmation text.
+  function calendarLinksHtml(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const gcalUrl = buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, recurrenceRule);
+    const icsId = 'icsLink' + Date.now();
+    setTimeout(() => {
+      const el = document.getElementById(icsId);
+      if (el) {
+        el.href = buildIcsBlobUrl(title, dateStr, timeStr, durationMinutes, recurrenceRule);
+        el.download = 'mcq-lesson.ics';
+      }
+    }, 0);
+    return '<div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-top:0.8rem;">' +
+      '<a href="' + gcalUrl + '" target="_blank" rel="noopener" class="btn-outline" style="font-size:0.76rem;padding:0.5rem 1rem;">Add to Google Calendar</a>' +
+      '<a href="#" id="' + icsId + '" class="btn-outline" style="font-size:0.76rem;padding:0.5rem 1rem;">Download calendar file</a>' +
+      '</div>';
+  }
+
   // Converts "3:15 pm" to minutes since midnight, and back, for gap math.
   function timeToMinutes(t) {
     const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -1316,9 +1389,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       sessionStorage.removeItem('mcqSubscribePending');
     } catch (e) {}
     document.getElementById('modalTitle').textContent = "You're Subscribed!";
-    document.getElementById('modalBody').textContent = details
-      ? 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.'
-      : 'Your subscription is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.';
+    if (details) {
+      const rrule = 'RRULE:FREQ=WEEKLY' + (details.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
+      const calTitle = (details.instrument || 'Music') + ' Lesson - MCQ Music';
+      const startDate = getNextDateForDow(details.dow);
+      document.getElementById('modalBody').innerHTML = 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.' +
+        calendarLinksHtml(calTitle, startDate, details.time, details.durationMinutes || 45, rrule);
+    } else {
+      document.getElementById('modalBody').textContent = 'Your subscription is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.';
+    }
     document.getElementById('successModal').classList.add('open');
     // Strips the ?subscribed=1 param so refreshing the page afterwards
     // doesn't show this same confirmation again.
@@ -1808,7 +1887,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (isMultiLesson) {
       document.getElementById('modalBody').textContent = 'Your payment went through and all ' + reservedSlots.length + ' lessons are booked. James will be in touch within 24 hours to confirm. Keep an eye on ' + email + ' for his message.';
     } else {
-      document.getElementById('modalBody').innerHTML = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.<br><br>Most students then lock in this same time every week or fortnight, no need to book each one individually. <a href="booking.html#subscribe" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a>.';
+      const calTitle = (selectedInstrument || 'Music') + ' Lesson - MCQ Music';
+      document.getElementById('modalBody').innerHTML = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.' +
+        calendarLinksHtml(calTitle, date, time, primaryDurationMinutes) +
+        '<br><br>Most students then lock in this same time every week or fortnight, no need to book each one individually. <a href="booking.html#subscribe" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a>.';
     }
     document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
 
@@ -1926,9 +2008,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const dayName = document.getElementById('subDay').options[document.getElementById('subDay').selectedIndex].text;
           sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
             instrument: selectedSubscribeInstrument,
+            dow: dow,
             dayName: dayName,
             time: time,
-            frequency: frequency
+            frequency: frequency,
+            durationMinutes: durationMinutes
           }));
         } catch (e) {}
         window.location.href = result.url;
