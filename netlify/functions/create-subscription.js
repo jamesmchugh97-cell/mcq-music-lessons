@@ -26,15 +26,22 @@ function timeToMinutes(t) {
   return h * 60 + min;
 }
 
-function dayOfWeek(dateStr) {
-  return new Date(dateStr + 'T00:00:00').getDay();
-}
-
 const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30;
 const MON_THU_CLOSING_MINUTES = 21 * 60;
 
-function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
-  const dow = dayOfWeek(dateStr);
+// Checks business hours directly off the day-of-week integer (0=Sun,
+// 1=Mon..6=Sat) rather than reconstructing a fake calendar date just to
+// read its weekday back off it. The previous version used a
+// placeholderDates[] array indexed 0-5 against a dow range of 0-6, which
+// was off by one: Thursday (dow=4) read Friday's date and got checked
+// against the earlier 4:30pm Fri/Sat closing instead of the correct
+// 9pm Mon-Thu closing, wrongly rejecting most real Thursday evening
+// requests; Saturday (dow=6) fell through to the "|| placeholderDates[1]"
+// fallback (Tuesday) and got checked against the later 9pm closing
+// instead of the correct 4:30pm, wrongly allowing times that should
+// have been blocked. This version can't drift the same way since it
+// never touches a date at all.
+function isWithinBusinessHoursForDow(dow, startMinutes, endMinutes) {
   if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
   if (dow === 0) return false; // Sunday closed
   return endMinutes <= MON_THU_CLOSING_MINUTES;
@@ -123,11 +130,7 @@ exports.handler = async function (event) {
   }
   const endMinutes = startMinutes + parseInt(durationMinutes, 10);
 
-  // Business hours check uses a placeholder date matching the target
-  // weekday just to reuse the same Mon-Thu/Fri-Sat closing rules.
-  const placeholderDates = ['2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13', '2026-08-14', '2026-08-15'];
-  const placeholderDate = placeholderDates[dow] || placeholderDates[1];
-  if (!isWithinBusinessHours(placeholderDate, startMinutes, endMinutes)) {
+  if (!isWithinBusinessHoursForDow(dow, startMinutes, endMinutes)) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time falls outside business hours for that day.' }) };
   }
 
@@ -162,6 +165,16 @@ exports.handler = async function (event) {
     console.error('[create-subscription] conflict check failed:', checkErr && checkErr.message ? checkErr.message : checkErr);
   }
 
+  // ===== RECONSTRUCTED FROM HERE DOWN =====
+  // Everything above this point is exactly what was pasted in. Below is
+  // rebuilt to match what stripe-webhook.js reads back off
+  // subscription.metadata (studentName, studentEmail, instrument,
+  // dayOfWeek, time, durationMinutes, frequency - confirmed by reading
+  // stripe-webhook.js directly), plus the success/cancel redirect
+  // Stripe requires for a hosted Checkout Session. The redirect URLs
+  // are a best guess (back to the Subscribe section either way) - if
+  // your live version already sends students somewhere specific after
+  // paying, let me know and I'll match it exactly.
   try {
     const siteUrl = process.env.URL || 'https://mcqmusiclessons.com.au';
     const session = await stripe.checkout.sessions.create({
@@ -171,3 +184,27 @@ exports.handler = async function (event) {
       subscription_data: {
         metadata: {
           studentName: studentName,
+          studentEmail: studentEmail,
+          instrument: instrument,
+          dayOfWeek: String(dow),
+          time: time,
+          durationMinutes: String(durationMinutes),
+          frequency: frequency
+        }
+      },
+      success_url: siteUrl + '/booking.html?subscribed=1#subscribe',
+      cancel_url: siteUrl + '/booking.html#subscribe'
+    });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, url: session.url })
+    };
+  } catch (stripeErr) {
+    console.error('[create-subscription] Stripe checkout session creation failed:', stripeErr && stripeErr.message ? stripeErr.message : stripeErr);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: false, error: 'Could not start checkout. Please try again or contact James directly.' })
+    };
+  }
+};
