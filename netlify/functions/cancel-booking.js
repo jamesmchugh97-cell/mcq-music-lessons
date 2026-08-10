@@ -49,6 +49,14 @@ function formatDateKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// Formats a 'YYYY-MM-DD' date string into something readable in an
+// email, e.g. 'Monday, 17 August 2026', instead of showing students the
+// raw machine-format date.
+function formatFriendlyDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 // The reschedule credit's window is Monday of the week the cancelled
 // lesson fell in, through to the Saturday of the FOLLOWING week (a full
 // fortnight), so a student who's genuinely unwell (a cold that runs past
@@ -118,7 +126,7 @@ exports.handler = async function (event) {
 
     // Remove the matching Google Calendar event, if this booking has one
     // (older bookings made before the calendar integration existed won't
-    // have an eventId, which is fine — just nothing to delete). This is
+    // have an eventId, which is fine, just nothing to delete). This is
     // best-effort: a calendar failure must never block the cancellation
     // itself from going through.
     if (record.eventId) {
@@ -161,6 +169,7 @@ exports.handler = async function (event) {
         await rescheduleStore.setJSON(rescheduleToken, {
           email: email.trim().toLowerCase(),
           name: record.name || 'there',
+          instrument: record.instrument || '',
           duration: record.duration || 45,
           weekStart: weekStart,
           weekEnd: weekEnd,
@@ -190,7 +199,7 @@ exports.handler = async function (event) {
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Cancelled</h2>' +
       '<p>Hi ' + studentName + ',</p>' +
-      '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
+      '<p>Your lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
         ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
@@ -212,10 +221,10 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
-      '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + date + ' at ' + time + '</strong>.</p>' +
-      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule \u2014 no further rebooking, full fee applies' : 'within 24 hours \u2014 no rebooking, full fee applies')) + ').</p>' +
+      '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.</p>' +
+      '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule, no further rebooking, full fee applies' : 'within 24 hours, no rebooking, full fee applies')) + ').</p>' +
       '</div>';
-    await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ' \u2014 ' + date + ' ' + time, jamesHtml);
+    await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);
 
     return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible }) };
   } catch (err) {

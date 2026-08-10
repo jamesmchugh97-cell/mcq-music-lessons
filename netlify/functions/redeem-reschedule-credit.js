@@ -30,6 +30,14 @@ function minutesToIsoClock(totalMinutes) {
   return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
+// Formats a 'YYYY-MM-DD' date string into something readable in an
+// email, e.g. 'Monday, 17 August 2026', instead of showing students the
+// raw machine-format date.
+function formatFriendlyDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function melbourneEpochMs(dateStr, timeStr) {
   const minutes = timeToMinutes(timeStr) || 0;
   const [y, mo, d] = dateStr.split('-').map(Number);
@@ -238,7 +246,8 @@ exports.handler = async function (event) {
         studentName: credit.name || 'Student',
         startDateTime: startDateTime,
         endDateTime: endDateTime,
-        notes: credit.email ? ('Rescheduled by ' + credit.email + ' from ' + credit.originalDate + ' ' + credit.originalTime) : ''
+        notes: (credit.instrument ? 'Instrument: ' + credit.instrument + '\n' : '') + (credit.email ? ('Rescheduled by ' + credit.email + ' from ' + credit.originalDate + ' ' + credit.originalTime) : ''),
+        instrument: credit.instrument
       });
       if (eventId) {
         record.eventId = eventId;
@@ -258,7 +267,8 @@ exports.handler = async function (event) {
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Rescheduled</h2>' +
       '<p>Hi ' + (credit.name || 'there') + ',</p>' +
-      '<p>Your lesson is now booked for <strong>' + date + ' at ' + time + '</strong>. No payment was needed \u2014 this simply moves the lesson you already paid for.</p>' +
+      '<p>Your lesson is now booked for <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>. No payment was needed, this simply moves the lesson you already paid for.</p>' +
+      '<p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '<p style="text-align:center;margin-top:16px;">' +
       '<a href="https://mcqmusiclessons.com.au/booking.html?manage_email=' + encodeURIComponent(credit.email) + '#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>' +
@@ -269,9 +279,9 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson rescheduled (no charge)</h3>' +
-      '<p><strong>' + (credit.name || 'A student') + '</strong> (' + credit.email + ') moved their cancelled lesson from <strong>' + credit.originalDate + ' ' + credit.originalTime + '</strong> to <strong>' + date + ' ' + time + '</strong>, using their reschedule credit. No new payment was taken.</p>' +
+      '<p><strong>' + (credit.name || 'A student') + '</strong> (' + credit.email + ') moved their cancelled lesson from <strong>' + formatFriendlyDate(credit.originalDate) + ' ' + credit.originalTime + '</strong> to <strong>' + formatFriendlyDate(date) + ' ' + time + '</strong>, using their reschedule credit. No new payment was taken.</p>' +
       '</div>';
-    await sendEmail('jamesmcqmusic@gmail.com', 'Lesson rescheduled: ' + (credit.name || 'a student') + ' \u2014 ' + date + ' ' + time, jamesHtml);
+    await sendEmail('jamesmcqmusic@gmail.com', 'Lesson rescheduled: ' + (credit.name || 'a student') + ', ' + date + ' ' + time, jamesHtml);
 
     return { statusCode: 200, body: JSON.stringify({ success: true, date: date, time: time }) };
   } catch (err) {

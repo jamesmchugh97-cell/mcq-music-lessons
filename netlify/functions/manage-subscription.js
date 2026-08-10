@@ -1,6 +1,6 @@
 // manage-subscription.js
 // Netlify serverless function: fully self-service subscription
-// management for students — look up their own subscription(s) by
+// management for students, look up their own subscription(s) by
 // email, pause (within the 4-weeks-a-year cap), or cancel. No manual
 // involvement from James at any point; every action here is something
 // the student triggers themselves.
@@ -72,7 +72,7 @@ exports.handler = async function (event) {
     }
 
     // Every action below acts on one specific subscription, and the
-    // email in the request must match the record on file — this is the
+    // email in the request must match the record on file, this is the
     // only "auth" check, same lightweight email-match approach already
     // used by Manage Booking elsewhere on the site.
     const { subscriptionId } = body;
@@ -110,6 +110,13 @@ exports.handler = async function (event) {
       record.pausedUntil = resumeDate.toISOString().slice(0, 10);
       record.pausedWeeksThisYear = usedBefore + weeks;
       record.pauseYear = currentYear();
+      // Pausing is a deliberate choice to stop billing, which makes any
+      // in-progress payment-failure grace period moot. Clearing it here
+      // stops a resume from accidentally inheriting a stale, unrelated
+      // failure timestamp from before the pause and getting cancelled
+      // by subscription-payment-grace-check.js almost immediately after.
+      record.paymentFailedAt = null;
+      record.paymentFailureReminderSent = false;
       await saveSubscriptionRecord(subscriptionId, record);
 
       return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: 4 - record.pausedWeeksThisYear }) };

@@ -5,7 +5,7 @@
 // upcoming one-off booking, then creates a Stripe Checkout Session in
 // subscription mode. The actual booking + calendar event for each lesson
 // is created later by stripe-webhook.js when Stripe confirms payment
-// (invoice.payment_succeeded) — this function only starts the
+// (invoice.payment_succeeded), this function only starts the
 // subscription and never writes a booking record itself.
 const Stripe = require('stripe');
 const { getStore } = require('@netlify/blobs');
@@ -48,7 +48,7 @@ function isWithinBusinessHoursForDow(dow, startMinutes, endMinutes) {
 }
 
 // Same hardcoded roster used by reserve-multi-slots.js. Kept in sync
-// manually — after a new subscription is confirmed, James still needs
+// manually, after a new subscription is confirmed, James still needs
 // to add the student here (and in reserve-multi-slots.js /
 // redeem-reschedule-credit.js) so future one-off bookings can't land on
 // top of their slot.

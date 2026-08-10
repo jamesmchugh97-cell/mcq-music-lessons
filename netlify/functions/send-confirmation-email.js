@@ -22,9 +22,22 @@ exports.handler = async function (event) {
   const isMulti = lessonsCountNum > 1;
   const durationMinutes = duration ? String(duration).split('|')[0] : '';
 
+  // Formats a 'YYYY-MM-DD' date string into something readable in an
+  // email, e.g. 'Monday, 17 August 2026', instead of showing students
+  // the raw machine-format date. Falls back to the raw string if the
+  // date is missing or malformed rather than showing "Invalid Date".
+  function formatFriendlyDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
   const introLine = isMulti
     ? `<p>You've booked <strong>${lessonsCountNum} lessons</strong>. See the dates below.</p>`
-    : `<p>This is your <strong>trial lesson</strong>, a chance to see if it's the right fit.</p>`;
+    : `<p>Welcome to your first lesson with MCQ Music! This is your <strong>trial lesson</strong>, a chance to see if it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved every week. You can <a href="https://mcqmusiclessons.com.au/booking.html#subscribe" style="color:#c9942a;">set that up</a> any time after your lesson.</p>`;
+
+  const emailSubject = isMulti ? 'Your lesson booking is confirmed!' : 'Welcome to your first lesson!';
 
   // Fortnight self-service policy (matches cancel-booking.js): 24+ hours'
   // notice gives a free single-use rebook link, not a "James finds you a
@@ -32,8 +45,8 @@ exports.handler = async function (event) {
   const cancellationNotice = `Cancel with 24+ hours' notice and you'll get a link by email to rebook a new time yourself, any day over the following two weeks, no charge. Cancel with less than 24 hours' notice and the full lesson fee applies with no rebooking available.`;
 
   const dateFieldsHtml = slotList.length > 1
-    ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${s.date} at ${s.time}</li>`).join('')}</ul></li>`
-    : `<li><strong>Date:</strong> ${slotList[0].date || 'N/A'}</li>
+    ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${formatFriendlyDate(s.date)} at ${s.time}</li>`).join('')}</ul></li>`
+    : `<li><strong>Date:</strong> ${formatFriendlyDate(slotList[0].date)}</li>
         <li><strong>Time:</strong> ${slotList[0].time || 'N/A'}</li>`;
 
   // Order matters here: duration, total, and address are placed
@@ -94,7 +107,7 @@ exports.handler = async function (event) {
       body: JSON.stringify({
         from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
         to: [email],
-        subject: 'Your lesson booking is confirmed!',
+        subject: emailSubject,
         html: emailHtml
       })
     });

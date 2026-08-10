@@ -4,10 +4,11 @@
 // is the authoritative check, the frontend also filters options for a
 // better experience, but this is what actually protects the schedule.
 // Saturday is a normal open day (Fri/Sat closing hours are enforced below
-// via isWithinBusinessHours) — the old Friday-makeup-only restriction and
+// via isWithinBusinessHours), the old Friday-makeup-only restriction and
 // its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent } = require('./google-calendar-helper');
+const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
 const MIN_NOTICE_HOURS = 24;
@@ -63,6 +64,17 @@ function hoursUntilSlot(dateStr, timeStr) {
 
 function dayOfWeek(dateStr) {
   return new Date(dateStr + 'T00:00:00').getDay();
+}
+
+function daysBetweenDates(dateStr1, dateStr2) {
+  const d1 = new Date(dateStr1 + 'T00:00:00');
+  const d2 = new Date(dateStr2 + 'T00:00:00');
+  return Math.round((d2 - d1) / 86400000);
+}
+
+function todayDateKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Fri/Sat
@@ -129,6 +141,22 @@ function getRecurringBookingsForDate(dateStr) {
   return RECURRING_STUDENTS.filter(s => isStudentBookedOnDate(s, dateStr)).map(s => ({ time: s.time, duration: s.duration }));
 }
 
+// Builds the multi-line Google Calendar event description from
+// everything the student filled in on the booking form. Each line is
+// only included if the student actually provided something for it, so
+// the description stays short for students who left the optional fields
+// blank instead of showing a wall of "Genre focus: (none)"-style noise.
+function buildCalendarNotes({ instrument, email, songRequests, genreFocus, theoryInterest, goalsNotes }) {
+  const lines = [];
+  if (instrument) lines.push('Instrument: ' + instrument);
+  if (email) lines.push('Booked by: ' + email);
+  if (songRequests) lines.push('Songs/artists: ' + songRequests);
+  if (genreFocus) lines.push('Genre focus: ' + genreFocus);
+  if (theoryInterest === 'Yes') lines.push('Wants music theory included');
+  if (goalsNotes) lines.push('Notes: ' + goalsNotes);
+  return lines.join('\n');
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
@@ -139,7 +167,10 @@ exports.handler = async function (event) {
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
-  const { slots, name, email, duration } = body;
+  const {
+    slots, name, email, duration,
+    instrument, song_requests, genre_focus, theory_interest, lesson_goals_notes
+  } = body;
   if (!Array.isArray(slots) || slots.length === 0) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'No lesson dates provided.' }) };
   }
@@ -149,6 +180,18 @@ exports.handler = async function (event) {
     }
   }
   const durationMinutes = parseInt(duration, 10) || 45;
+  // Same info applies to every lesson in this booking (song requests,
+  // genre, theory interest, and notes are entered once for the whole
+  // booking, not per lesson), so this is built once and reused for each
+  // calendar event created below.
+  const calendarNotes = buildCalendarNotes({
+    instrument: instrument,
+    email: email,
+    songRequests: song_requests,
+    genreFocus: genre_focus,
+    theoryInterest: theory_interest,
+    goalsNotes: lesson_goals_notes
+  });
 
   const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
   const emailLower = (email || '').trim().toLowerCase();
@@ -181,6 +224,18 @@ exports.handler = async function (event) {
       getRecurringBookingsForDate(date).forEach(rb => {
         const start = timeToMinutes(rb.time);
         existing.push({ time: rb.time, duration: rb.duration, start: start, end: start + rb.duration });
+      });
+      // Active subscribers (the newer Stripe-subscription roster, separate
+      // from the hardcoded RECURRING_STUDENTS above) also need to block
+      // this slot, or a one-off booking could land directly on top of a
+      // paying subscriber's lesson. A 'paused' subscription is correctly
+      // excluded here since the whole point of pausing is to free the
+      // slot for that window.
+      const blockingSubs = await listBlockingSubscriptionsForDay(dow);
+      blockingSubs.forEach(sub => {
+        const start = subTimeToMinutes(sub.time);
+        const dur = parseInt(sub.durationMinutes, 10);
+        existing.push({ time: sub.time, duration: dur, start: start, end: start + dur });
       });
 
       for (const s of byDate[date]) {
@@ -238,6 +293,75 @@ exports.handler = async function (event) {
       }
     }
 
+    // Booking-pattern policy: a multi-lesson booking whose dates stay
+    // within the next 30 days can be picked however the student likes
+    // (that's normal flexible use). But once any date in the SAME
+    // booking reaches further out than that, EACH day of the week used
+    // must form a strict, evenly-spaced weekly or fortnightly series on
+    // its own, not a scattered handful of individually-picked dates.
+    // Without this, a student can hold a popular slot on far-future
+    // dates while only actually attending sporadically (e.g. three
+    // consecutive Tuesdays, then a lone date two months later, then
+    // another a month after that), which blocks that slot from students
+    // or subscribers who'd actually use it every week.
+    //
+    // Checked PER WEEKDAY rather than across the whole date list at
+    // once, since the site explicitly offers "twice a week" bookings
+    // (see pricing.html/faq.html) - e.g. every Monday AND every
+    // Thursday. Checked as one combined sequence, those two legitimate
+    // weekly patterns interleave into gaps of 3 and 4 days, not a
+    // consistent 7, and would be wrongly rejected. Grouped by weekday,
+    // each day's own dates are checked for their own consistent
+    // spacing, which correctly allows any number of consistent
+    // once/twice/thrice-a-week patterns while still catching the actual
+    // sporadic-squatting case (same weekday, inconsistent spacing).
+    // This is checked directly against the submitted dates themselves
+    // (not a client-supplied "mode" flag), so it can't be bypassed by
+    // hand-crafting a request.
+    //
+    // Fortnightly is additionally capped at 5 lessons on any one
+    // weekday: a fortnightly series of 10 on the same day would hold
+    // that slot for nearly 5 months on a once-a-fortnight basis, the
+    // same low-commitment-long-hold pattern this check exists to
+    // prevent. Weekly has no extra cap here beyond whatever the
+    // existing large-booking note already suggests.
+    const MAX_SPORADIC_DAYS_OUT = 30;
+    const MAX_FORTNIGHTLY_LESSONS = 5;
+    if (slots.length > 1) {
+      const todayStr = todayDateKey();
+      const farthestDaysOut = Math.max(...slots.map(s => daysBetweenDates(todayStr, s.date)));
+      if (farthestDaysOut > MAX_SPORADIC_DAYS_OUT) {
+        const byWeekday = {};
+        slots.forEach(s => {
+          const dw = dayOfWeek(s.date);
+          if (!byWeekday[dw]) byWeekday[dw] = [];
+          byWeekday[dw].push(s.date);
+        });
+        for (const dw in byWeekday) {
+          const datesOnThisDay = byWeekday[dw].slice().sort();
+          if (datesOnThisDay.length === 1) continue; // one lone future date on this weekday needs no pattern check
+          const gaps = [];
+          for (let i = 1; i < datesOnThisDay.length; i++) {
+            gaps.push(daysBetweenDates(datesOnThisDay[i - 1], datesOnThisDay[i]));
+          }
+          const isWeeklySeries = gaps.every(g => g === 7);
+          const isFortnightlySeries = gaps.every(g => g === 14);
+          if (!isWeeklySeries && !isFortnightlySeries) {
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: false, error: 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing subscription from the Subscribe section instead.' })
+            };
+          }
+          if (isFortnightlySeries && datesOnThisDay.length > MAX_FORTNIGHTLY_LESSONS) {
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: false, error: 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.' })
+            };
+          }
+        }
+      }
+    }
+
     // Reserve every slot using an atomic "only if new" write, so if two
     // people request the exact same slot in the same instant, only one
     // of them can actually claim it, the other gets a clean rejection
@@ -253,6 +377,7 @@ exports.handler = async function (event) {
         duration: durationMinutes,
         name: name || '',
         email: email || '',
+        instrument: instrument || '',
         bookedAt: new Date().toISOString()
       };
       let claimed = true;
@@ -289,7 +414,8 @@ exports.handler = async function (event) {
           studentName: name || 'Student',
           startDateTime: startDateTime,
           endDateTime: endDateTime,
-          notes: email ? ('Booked by ' + email) : ''
+          notes: calendarNotes,
+          instrument: instrument
         });
         if (eventId) {
           record.eventId = eventId;
@@ -297,7 +423,7 @@ exports.handler = async function (event) {
           console.log('[reserve-multi-slots] calendar sync succeeded for', key, 'eventId:', eventId);
         }
       } catch (calErr) {
-        // Booking still stands even if calendar sync fails — but log it
+        // Booking still stands even if calendar sync fails, but log it
         // visibly so failures show up in Netlify's function logs instead
         // of vanishing silently.
         console.error('Google Calendar event creation failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);

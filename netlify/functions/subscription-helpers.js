@@ -4,7 +4,7 @@
 // pause-expiry-check.js, reserve-multi-slots.js, and
 // redeem-reschedule-credit.js. This store is what actually blocks and
 // frees a subscriber's weekly/fortnightly slot in real time (active =
-// blocked, paused = freed) — it works alongside, not instead of, the
+// blocked, paused = freed), it works alongside, not instead of, the
 // old hardcoded RECURRING_STUDENTS roster used for James's existing
 // manually-managed students.
 const { getStore } = require('@netlify/blobs');

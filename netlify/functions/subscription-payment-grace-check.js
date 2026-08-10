@@ -77,8 +77,8 @@ exports.handler = schedule('@daily', async (event) => {
         const daysLeft = Math.max(1, Math.ceil(PAYMENT_GRACE_PERIOD_DAYS - daysElapsed));
         await sendEmail(
           record.studentEmail,
-          'MCQ Music Lessons — action needed on your subscription payment',
-          '<p>Hi ' + record.studentName + ',</p><p>Your subscription payment still hasn\'t gone through. Please update your card details as soon as you can — if this isn\'t resolved within the next ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ', your slot will be automatically released.</p><p>James</p>'
+          'MCQ Music Lessons: action needed on your subscription payment',
+          '<p>Hi ' + record.studentName + ',</p><p>Your subscription payment still hasn\'t gone through. Please update your card details as soon as you can. If this isn\'t resolved within the next ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ', your slot will be automatically released. You can check or update your subscription from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
