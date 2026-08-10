@@ -2072,6 +2072,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         info.style.cssText = 'font-size:0.85rem;color:var(--cream);margin-bottom:0.7rem;';
         info.textContent = (sub.instrument ? sub.instrument + ' · ' : '') + dayName + ' ' + sub.time + ' (' + sub.durationMinutes + ' min) · ' + freqLabel + ' · ' + statusLabel;
         row.appendChild(info);
+        if (!sub.cancelling) {
+          const rescheduleNote = document.createElement('div');
+          rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
+          rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from Manage Booking below, no need to pause or cancel.";
+          row.appendChild(rescheduleNote);
+        }
         // Once cancelling, there's nothing further to do - no pause or
         // cancel controls needed. Pausing has no self-service "resume
         // now": manage-subscription.js only supports lookup/pause/cancel,
