@@ -56,6 +56,7 @@ exports.handler = async function (event) {
       const subs = await findSubscriptionsByEmail(email);
       const summarized = subs.map(s => ({
         subscriptionId: s.subscriptionId,
+        instrument: s.instrument,
         dayOfWeek: DAY_NAMES[parseInt(s.dayOfWeek, 10)],
         time: s.time,
         durationMinutes: s.durationMinutes,
