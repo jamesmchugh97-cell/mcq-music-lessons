@@ -56,6 +56,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="booking.html#calendar">Availability</a></li>
       <li><a href="faq.html">FAQ</a></li>
       <li><a href="booking.html#manage">Manage Booking</a></li>
+      <li><a href="booking.html#subscribe">Subscribe</a></li>
       <li><a href="booking.html#book" class="nav-cta">Book Now</a></li>
     </ul>
     <div class="nav-social">
@@ -82,6 +83,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="booking.html#calendar" onclick="toggleMenu()">Availability</a>
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
   <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
+  <a href="booking.html#subscribe" onclick="toggleMenu()">Subscribe</a>
   <a href="booking.html#book" onclick="toggleMenu()">Book Now</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -221,7 +223,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <div class="form-group">
         <label class="form-label">Preferred Time</label>
-        <select class="form-input" id="bookTime" name="time" onchange="updateDurationAvailability()">
+        <select class="form-input" id="bookTime" onchange="updateDurationAvailability()">
           <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
           <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
           <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
@@ -280,6 +282,112 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <button class="btn-primary" id="submitBtn" onclick="handleBooking()" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;" type="button">Proceed to Payment</button>
       <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:3px;"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Secure payment via Stripe · Card details never stored</p>
     </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="subscribe">
+  <div class="section-inner">
+    <p class="section-eyebrow">Weekly Subscription</p>
+    <h2 class="section-title">Subscribe to a <em>weekly slot</em></h2>
+    <p class="section-sub">Already had a lesson with James? Lock in the same time every week or fortnight and skip paying lesson by lesson. No sign-up fee, pause for up to 4 weeks a year, cancel any time — all fully self-service below.</p>
+
+    <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="subName" placeholder="Your full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="subEmail" placeholder="your@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="subPhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectSubscribeInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectSubscribeInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Day of the week</label>
+          <select class="form-input" id="subDay" onchange="handleSubscribeDayChange()">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <select class="form-input" id="subTime">
+            <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
+            <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
+            <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
+            <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
+            <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
+            <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
+            <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
+            <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
+            <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
+            <option>9:00 pm</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lesson Duration</label>
+          <select class="form-input" id="subDuration" onchange="handleSubscribeDurationChange()">
+            <option value="30|50">30 minutes · $50</option>
+            <option value="45|70" selected>45 minutes · $70</option>
+            <option value="60|85">60 minutes · $85</option>
+            <option value="75|100">75 minutes · $100</option>
+            <option value="90|130">90 minutes · $130</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frequency</label>
+          <select class="form-input" id="subFrequency" onchange="updateSubscribeTotal()">
+            <option value="weekly">Every week</option>
+            <option value="fortnightly">Every fortnight</option>
+          </select>
+        </div>
+      </div>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Billed</span><span id="subTotalAmt">$70 every week</span></div>
+      </div>
+      <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Subscribe →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? <a href="booking.html#book" style="color:var(--gold);">Book a single lesson</a> first, then come back to subscribe. Need to pause, resume, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="manage-subscription">
+  <div class="section-inner">
+    <p class="section-eyebrow">Manage Subscription</p>
+    <h2 class="section-title">Already <em>subscribed?</em></h2>
+    <p class="section-sub">Enter the email you subscribed with to pause, resume, or cancel.</p>
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Your Email</label>
+        <input class="form-input" type="email" id="manageSubEmail" placeholder="your@email.com">
+      </div>
+      <button class="btn-outline" id="findSubBtn" onclick="findMySubscriptions()" type="button" style="width:100%;text-align:center;">Find My Subscription</button>
+      <p id="manageSubError" style="color:#f87171;font-size:0.8rem;margin-top:0.6rem;min-height:1.2em;"></p>
+      <div id="manageSubResults" style="margin-top:1rem;"></div>
+    </div>
   </div>
 </section>
 
@@ -1062,6 +1170,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         renderCal();
         refreshTimeOptions();
         updateDurationAvailability();
+        refreshSubscribeTimeOptions();
       }
     } catch (e) {}
   }
@@ -1547,6 +1656,247 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   document.getElementById('bookDate').max = getMaxBookingDate();
   document.getElementById('groupDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('groupDate').max = getMaxBookingDate();
+
+  // ===== SUBSCRIPTIONS =====
+  let selectedSubscribeInstrument = 'Guitar';
+  function selectSubscribeInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSubscribeInstrument = name;
+  }
+
+  // Returns the nearest future date (starting tomorrow) that falls on the
+  // given day-of-week, used purely as a stand-in date to preview
+  // availability for a recurring slot against the existing calendar logic.
+  // The real, authoritative check (against every other subscriber, not
+  // just this one representative date) happens server-side in
+  // create-subscription.js at checkout time.
+  function getNextDateForDow(dow) {
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() !== dow) d.setDate(d.getDate() + 1);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function refreshSubscribeTimeOptions() {
+    const daySelect = document.getElementById('subDay');
+    const timeSelect = document.getElementById('subTime');
+    const durationSelect = document.getElementById('subDuration');
+    if (!daySelect || !timeSelect || !durationSelect) return;
+    const dow = parseInt(daySelect.value, 10);
+    const durationMinutes = parseInt(durationSelect.value.split('|')[0], 10) || 45;
+    const prevVal = timeSelect.value;
+    const previewDate = getNextDateForDow(dow);
+    const validTimes = getAvailableTimes(previewDate, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = ''; // explicit empty value - without this, a <option> with no
+                       // value attribute defaults its .value to its own text,
+                       // which is truthy and would slip past handleSubscribe's
+                       // "if (!time)" guard
+      opt.textContent = 'No times currently free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+
+  function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); }
+  function handleSubscribeDurationChange() { refreshSubscribeTimeOptions(); updateSubscribeTotal(); }
+
+  function updateSubscribeTotal() {
+    const price = parseInt(document.getElementById('subDuration').value.split('|')[1], 10);
+    const freq = document.getElementById('subFrequency').value;
+    const freqLabel = freq === 'fortnightly' ? 'every fortnight' : 'every week';
+    document.getElementById('subTotalAmt').textContent = '$' + price + ' ' + freqLabel;
+  }
+
+  refreshSubscribeTimeOptions();
+
+  // Posts to create-subscription.js, which validates the slot against
+  // every existing subscriber and one-off booking server-side, then
+  // returns a Stripe Checkout URL to redirect to. Nothing is charged
+  // until the student completes checkout on Stripe's own page.
+  async function handleSubscribe(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('subName').value.trim();
+    const email = document.getElementById('subEmail').value.trim();
+    const phone = document.getElementById('subPhone').value.trim();
+    const dow = parseInt(document.getElementById('subDay').value, 10);
+    const time = document.getElementById('subTime').value;
+    const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10);
+    const frequency = document.getElementById('subFrequency').value;
+    const errEl = document.getElementById('subError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
+    const btn = document.getElementById('subSubmitBtn');
+    btn.textContent = 'Redirecting to checkout…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName: name,
+          studentEmail: email,
+          phone: phone,
+          instrument: selectedSubscribeInstrument,
+          dayOfWeek: dow,
+          time: time,
+          durationMinutes: durationMinutes,
+          frequency: frequency
+        })
+      });
+      const result = await resp.json();
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        errEl.style.display = 'block';
+        errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
+        btn.textContent = 'Subscribe →'; btn.disabled = false;
+        refreshSubscribeTimeOptions();
+      }
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Subscribe →'; btn.disabled = false;
+    }
+    return false;
+  }
+
+  // MANAGE SUBSCRIPTION, self-service lookup, pause, resume, cancel
+  async function findMySubscriptions() {
+    const email = document.getElementById('manageSubEmail').value.trim();
+    const errEl = document.getElementById('manageSubError');
+    const resultsEl = document.getElementById('manageSubResults');
+    errEl.textContent = '';
+    resultsEl.innerHTML = '';
+    if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+    const btn = document.getElementById('findSubBtn');
+    btn.textContent = 'Searching…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/manage-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'lookup', email: email })
+      });
+      const result = await resp.json();
+      btn.textContent = 'Find My Subscription'; btn.disabled = false;
+      if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
+      if (!result.subscriptions || result.subscriptions.length === 0) {
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No subscription found for that email.</p>';
+        return;
+      }
+      result.subscriptions.forEach(sub => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;margin-bottom:0.6rem;';
+        // sub.dayOfWeek already comes back as a day name ("Monday"), not
+        // a number - manage-subscription.js converts it server-side.
+        const dayName = sub.dayOfWeek || '';
+        const freqLabel = sub.frequency === 'fortnightly' ? 'Fortnightly' : 'Weekly';
+        let statusLabel;
+        if (sub.cancelling) {
+          statusLabel = 'Cancelling — ends after next paid lesson';
+        } else if (sub.status === 'paused') {
+          statusLabel = 'Paused' + (sub.pausedUntil ? ', resumes automatically ' + sub.pausedUntil : '');
+        } else {
+          statusLabel = 'Active';
+        }
+        const info = document.createElement('div');
+        info.style.cssText = 'font-size:0.85rem;color:var(--cream);margin-bottom:0.7rem;';
+        info.textContent = (sub.instrument ? sub.instrument + ' · ' : '') + dayName + ' ' + sub.time + ' (' + sub.durationMinutes + ' min) · ' + freqLabel + ' · ' + statusLabel;
+        row.appendChild(info);
+        // Once cancelling, there's nothing further to do - no pause or
+        // cancel controls needed. Pausing has no self-service "resume
+        // now": manage-subscription.js only supports lookup/pause/cancel,
+        // a pause always resumes automatically on pausedUntil via Stripe's
+        // resumes_at, so a paused row shows status only, no button.
+        if (!sub.cancelling) {
+          const btnRow = document.createElement('div');
+          btnRow.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;';
+          if (sub.status !== 'paused') {
+            const weeksLeft = typeof sub.pauseWeeksRemaining === 'number' ? sub.pauseWeeksRemaining : 4;
+            if (weeksLeft > 0) {
+              const pauseSelect = document.createElement('select');
+              pauseSelect.className = 'form-input';
+              pauseSelect.style.cssText = 'padding:0.4rem 0.6rem;font-size:0.76rem;width:auto;';
+              for (let w = 1; w <= weeksLeft; w++) {
+                const opt = document.createElement('option');
+                opt.value = w; opt.textContent = w + (w === 1 ? ' week' : ' weeks');
+                pauseSelect.appendChild(opt);
+              }
+              const pauseBtn = document.createElement('button');
+              pauseBtn.className = 'btn-outline'; pauseBtn.type = 'button';
+              pauseBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+              pauseBtn.textContent = 'Pause';
+              pauseBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pause', parseInt(pauseSelect.value, 10));
+              btnRow.appendChild(pauseSelect);
+              btnRow.appendChild(pauseBtn);
+            } else {
+              const usedUp = document.createElement('span');
+              usedUp.style.cssText = 'font-size:0.74rem;color:var(--muted);';
+              usedUp.textContent = "You've used all 4 pause weeks this year.";
+              btnRow.appendChild(usedUp);
+            }
+          }
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn-outline'; cancelBtn.type = 'button';
+          cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+          cancelBtn.textContent = 'Cancel subscription';
+          cancelBtn.onclick = () => confirmCancelSubscription(email, sub.subscriptionId, dayName + ' ' + sub.time);
+          btnRow.appendChild(cancelBtn);
+          row.appendChild(btnRow);
+        }
+        resultsEl.appendChild(row);
+      });
+    } catch (e) {
+      btn.textContent = 'Find My Subscription'; btn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  async function submitSubscriptionAction(email, subscriptionId, action, weeks) {
+    const errEl = document.getElementById('manageSubError');
+    errEl.textContent = '';
+    try {
+      const body = { email: email, subscriptionId: subscriptionId, action: action };
+      if (weeks) body.weeks = weeks;
+      const resp = await fetch('/.netlify/functions/manage-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await resp.json();
+      if (result.success) {
+        findMySubscriptions();
+      } else {
+        errEl.textContent = result.error || 'Could not update your subscription. Please try again.';
+      }
+    } catch (e) {
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  // Reuses the same confirm modal as one-off booking cancellation, just
+  // rewiring its buttons for this action, same pattern as
+  // confirmCancelBooking above.
+  function confirmCancelSubscription(email, subscriptionId, label) {
+    document.getElementById('manageSubError').textContent = '';
+    document.getElementById('cancelConfirmBody').textContent = 'Cancelling your ' + label + ' subscription keeps any lesson you\'ve already paid for, but stops future billing and frees the slot. Want to go ahead?';
+    document.getElementById('cancelConfirmModal').classList.add('open');
+    document.getElementById('cancelConfirmYesBtn').onclick = () => {
+      closeCancelConfirmModal();
+      submitSubscriptionAction(email, subscriptionId, 'cancel');
+    };
+    document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
+  }
 </script>
 </body>
 </html>
