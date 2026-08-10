@@ -10,6 +10,8 @@
 const { getStore } = require('@netlify/blobs');
 
 const MAX_PAUSE_WEEKS_PER_YEAR = 4;
+const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
+const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails before sending a warning email (2-day heads up before release)
 
 function subsStore() {
   return getStore({ name: 'subscriptions', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
@@ -76,6 +78,22 @@ function conflictsWithSubscriptions(subs, startMinutes, endMinutes) {
   });
 }
 
+// Returns every subscription record regardless of status or day - used
+// by subscription-payment-grace-check.js to scan every active
+// subscription for an unresolved payment failure, not just those
+// blocking one particular day (which is what
+// listBlockingSubscriptionsForDay is for).
+async function listAllSubscriptions() {
+  const store = subsStore();
+  const { blobs } = await store.list({ prefix: 'sub_' });
+  const results = [];
+  for (const blob of blobs) {
+    const record = await store.get(blob.key, { type: 'json' });
+    if (record) results.push(record);
+  }
+  return results;
+}
+
 // Finds the next date matching the given day-of-week/time that is at
 // least minNoticeHours away, using Melbourne local time so DST doesn't
 // throw off the 24-hour check. Optionally requires the date to be
@@ -125,6 +143,21 @@ function nextOccurrenceDate(dow, time, minNoticeHours, afterDateStr) {
   return null; // should never happen
 }
 
+// Used only for RENEWAL invoices, not the first lesson. The next lesson
+// is always exactly one billing interval (7 days for weekly, 14 for
+// fortnightly) after the previous one - not just "the next matching
+// weekday", which is always 7 days out regardless of frequency and
+// would silently turn every fortnightly subscription into a weekly
+// one. nextOccurrenceDate() above is still correct and still used for
+// finding the FIRST lesson date, where "next matching weekday that's
+// >=24 hours away" is exactly what's needed.
+function nextRenewalDate(afterDateStr, frequency) {
+  const stepDays = frequency === 'fortnightly' ? 14 : 7;
+  const d = new Date(afterDateStr + 'T00:00:00');
+  d.setDate(d.getDate() + stepDays);
+  return toDateStr(d);
+}
+
 // Pause-cap check: resets the counter automatically when the calendar
 // year has rolled over since the record was last touched.
 function pausedWeeksThisYear(record) {
@@ -139,6 +172,8 @@ function canPauseWeeks(record, requestedWeeks) {
 
 module.exports = {
   MAX_PAUSE_WEEKS_PER_YEAR,
+  PAYMENT_GRACE_PERIOD_DAYS,
+  PAYMENT_REMINDER_AFTER_DAYS,
   timeToMinutes,
   dayOfWeek,
   currentYear,
@@ -146,8 +181,10 @@ module.exports = {
   saveSubscriptionRecord,
   deleteSubscriptionRecord,
   listBlockingSubscriptionsForDay,
+  listAllSubscriptions,
   conflictsWithSubscriptions,
   nextOccurrenceDate,
+  nextRenewalDate,
   pausedWeeksThisYear,
   canPauseWeeks
 };
