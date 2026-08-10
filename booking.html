@@ -1298,6 +1298,35 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   })();
 
+  // Stripe redirects back here with ?subscribed=1 once checkout actually
+  // completes (see create-subscription.js's success_url). Without this,
+  // a student who just paid lands back on the page with no on-screen
+  // acknowledgement at all, only the confirmation email, which reads as
+  // if nothing happened. Shows the same success modal already used for
+  // one-off bookings, so it looks and behaves consistently with the
+  // rest of the site, and needs an explicit "Done" click to dismiss
+  // rather than silently dropping them back into the page.
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscribed') !== '1') return;
+    let details = null;
+    try {
+      const raw = sessionStorage.getItem('mcqSubscribePending');
+      if (raw) details = JSON.parse(raw);
+      sessionStorage.removeItem('mcqSubscribePending');
+    } catch (e) {}
+    document.getElementById('modalTitle').textContent = "You're Subscribed!";
+    document.getElementById('modalBody').textContent = details
+      ? 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.'
+      : 'Your subscription is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.';
+    document.getElementById('successModal').classList.add('open');
+    // Strips the ?subscribed=1 param so refreshing the page afterwards
+    // doesn't show this same confirmation again.
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+  })();
+
   // STRIPE
   const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
   let stripe, cardElement;
@@ -1887,6 +1916,21 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       });
       const result = await resp.json();
       if (result.success && result.url) {
+        // Saved so the confirmation shown on return from Stripe (see the
+        // ?subscribed=1 handler near the bottom of this script) can
+        // state the actual day/time/frequency, not just a generic
+        // "you're subscribed". sessionStorage survives the round trip
+        // to Stripe's own domain and back since it's scoped to this
+        // browser tab, not this origin alone.
+        try {
+          const dayName = document.getElementById('subDay').options[document.getElementById('subDay').selectedIndex].text;
+          sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
+            instrument: selectedSubscribeInstrument,
+            dayName: dayName,
+            time: time,
+            frequency: frequency
+          }));
+        } catch (e) {}
         window.location.href = result.url;
       } else {
         errEl.style.display = 'block';
