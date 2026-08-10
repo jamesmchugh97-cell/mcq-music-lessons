@@ -155,11 +155,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
         </a>
       </div>
-      <div class="hero-buttons">
-        <a href="booking.html#calendar" class="btn-primary">Check Availability</a>
-        <a href="booking.html#book" class="btn-outline">Book a Lesson</a>
-        <a href="booking.html#group" class="btn-outline">Book a Group Lesson</a>
+      <div class="hero-buttons" style="margin-bottom:0.6rem;">
+        <a href="booking.html?frequency=weekly#subscribe" class="btn-outline">Subscribe Weekly</a>
+        <a href="booking.html?frequency=fortnightly#subscribe" class="btn-outline">Subscribe Fortnightly</a>
       </div>
+      <div class="hero-buttons">
+        <button type="button" class="btn-primary" onclick="openBookChoiceModal()" style="cursor:pointer;white-space:nowrap;">Book a Lesson</button>
+      </div>
+      <p style="margin-top:0.9rem;">
+        <a href="booking.html#group" style="font-size:0.85rem;color:var(--muted);text-decoration:underline;">Book a Group Lesson</a>
+      </p>
     </div>
     <div class="hero-split-photo-wrap">
       <img src="james-mchugh.webp" alt="James McHugh playing guitar">
@@ -210,9 +215,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a></p>
 </footer>
 
+<div class="modal-overlay" id="bookChoiceModal">
+  <div class="modal">
+    <div class="modal-title">How would you like to book?</div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:0.6rem;margin-top:0.8rem;">
+      <a href="booking.html#book" class="btn-primary" style="text-align:center;">Book One Lesson</a>
+      <a href="booking.html?frequency=weekly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Weekly</a>
+      <a href="booking.html?frequency=fortnightly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Fortnightly</a>
+    </div>
+    <button class="btn-outline" type="button" onclick="closeBookChoiceModal()" style="margin-top:1rem;width:100%;">Cancel</button>
+  </div>
+</div>
 
 <script>
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  function openBookChoiceModal() { document.getElementById('bookChoiceModal').classList.add('open'); }
+  function closeBookChoiceModal() { document.getElementById('bookChoiceModal').classList.remove('open'); }
 </script>
 </body>
 </html>

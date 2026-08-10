@@ -293,6 +293,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <p class="section-eyebrow">Weekly Subscription</p>
     <h2 class="section-title">Subscribe to a <em>weekly slot</em></h2>
     <p class="section-sub">Already had a lesson with James? Lock in the same time every week or fortnight and skip paying lesson by lesson. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">New here? We'd recommend <a href="booking.html#book" style="color:var(--gold);">booking a trial lesson</a> first, so we can make sure it's the right fit. You're welcome to subscribe any time after.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
       <div class="form-row">
@@ -651,23 +652,38 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // filling in the whole form and only finding out at the very end. The
   // server re-checks this regardless, this is purely for a faster,
   // friendlier response, never the actual enforcement.
+  //
+  // Checked PER WEEKDAY rather than across the whole date list at once,
+  // since the site explicitly offers "twice a week" bookings (see
+  // pricing.html/faq.html) - checked as one combined sequence, two
+  // legitimate weekly patterns on different days would interleave into
+  // uneven gaps and be wrongly rejected.
   function validateBookingPattern(allSlots) {
     if (allSlots.length <= 1) return null;
     const todayStr = dKey(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
     const farthestDaysOut = Math.max.apply(null, allSlots.map(s => daysBetweenDates(todayStr, s.date)));
     if (farthestDaysOut <= 30) return null;
-    const sortedDates = allSlots.map(s => s.date).slice().sort();
-    const gaps = [];
-    for (let i = 1; i < sortedDates.length; i++) {
-      gaps.push(daysBetweenDates(sortedDates[i - 1], sortedDates[i]));
-    }
-    const isWeeklySeries = gaps.every(g => g === 7);
-    const isFortnightlySeries = gaps.every(g => g === 14);
-    if (isFortnightlySeries && allSlots.length > 5) {
-      return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons at a time. Please reduce to 5 lessons, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.';
-    }
-    if (!isWeeklySeries && !isFortnightlySeries) {
-      return 'Bookings reaching more than 30 days out need to be an evenly-spaced weekly or fortnightly series, not individually chosen dates. Please keep all dates within the next 30 days, pick a consistent weekly or fortnightly pattern, or set up an ongoing subscription from the Subscribe section instead.';
+    const byWeekday = {};
+    allSlots.forEach(s => {
+      const dw = dayOfWeek(s.date);
+      if (!byWeekday[dw]) byWeekday[dw] = [];
+      byWeekday[dw].push(s.date);
+    });
+    for (const dw in byWeekday) {
+      const datesOnThisDay = byWeekday[dw].slice().sort();
+      if (datesOnThisDay.length === 1) continue;
+      const gaps = [];
+      for (let i = 1; i < datesOnThisDay.length; i++) {
+        gaps.push(daysBetweenDates(datesOnThisDay[i - 1], datesOnThisDay[i]));
+      }
+      const isWeeklySeries = gaps.every(g => g === 7);
+      const isFortnightlySeries = gaps.every(g => g === 14);
+      if (!isWeeklySeries && !isFortnightlySeries) {
+        return 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing subscription from the Subscribe section instead.';
+      }
+      if (isFortnightlySeries && datesOnThisDay.length > 5) {
+        return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.';
+      }
     }
     return null;
   }
@@ -1253,6 +1269,32 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const presetLessons = new URLSearchParams(window.location.search).get('lessons');
     if (presetLessons && document.getElementById('bookLessons')) {
       presetLessonCount(parseInt(presetLessons));
+    }
+  })();
+
+  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" links (and
+  // the book-a-lesson choice popup) use ?frequency=weekly or
+  // ?frequency=fortnightly#subscribe, so the Subscribe form opens with the
+  // right frequency already chosen rather than making them pick it again.
+  (function() {
+    const presetFrequency = new URLSearchParams(window.location.search).get('frequency');
+    const freqSelect = document.getElementById('subFrequency');
+    if ((presetFrequency === 'weekly' || presetFrequency === 'fortnightly') && freqSelect) {
+      freqSelect.value = presetFrequency;
+      updateSubscribeTotal();
+    }
+  })();
+
+  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" buttons
+  // link here with ?frequency=weekly or ?frequency=fortnightly, so the
+  // Subscribe form arrives with the right frequency already selected
+  // instead of defaulting to weekly regardless of which button was
+  // actually clicked.
+  (function() {
+    const presetFrequency = new URLSearchParams(window.location.search).get('frequency');
+    if ((presetFrequency === 'weekly' || presetFrequency === 'fortnightly') && document.getElementById('subFrequency')) {
+      document.getElementById('subFrequency').value = presetFrequency;
+      updateSubscribeTotal();
     }
   })();
 
