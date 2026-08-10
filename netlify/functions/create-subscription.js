@@ -9,6 +9,7 @@
 // subscription and never writes a booking record itself.
 const Stripe = require('stripe');
 const { getStore } = require('@netlify/blobs');
+const { getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -116,6 +117,28 @@ exports.handler = async function (event) {
   }
   if (frequency !== 'weekly' && frequency !== 'fortnightly') {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Frequency must be weekly or fortnightly.' }) };
+  }
+
+  // Only blocks the specific case of someone who has ALREADY used their
+  // full annual pause-week allowance (via pausing, cancel-then-resubscribe
+  // cycling, or a mix) trying to cycle again within the same short
+  // window - not every cancellation, which would unfairly punish anyone
+  // with a genuine one-off reason to cancel and later come back sooner
+  // than the gap window. Checked here (before Stripe Checkout even
+  // starts) so nobody's charged only to be told no afterwards.
+  const emailHistory = await getEmailHistory(studentEmail);
+  const wouldInherit = inheritedPauseWeeksForNewSubscription(emailHistory);
+  if (wouldInherit > MAX_PAUSE_WEEKS_PER_YEAR && emailHistory && emailHistory.lastEndedAt) {
+    const daysSinceEnded = Math.floor((Date.now() - new Date(emailHistory.lastEndedAt + 'T00:00:00').getTime()) / 86400000);
+    if (daysSinceEnded >= 0 && daysSinceEnded <= RESUBSCRIBE_GAP_DAYS) {
+      const availableAgainDate = new Date(emailHistory.lastEndedAt + 'T00:00:00');
+      availableAgainDate.setDate(availableAgainDate.getDate() + RESUBSCRIBE_GAP_DAYS + 1);
+      const availableAgainStr = availableAgainDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: false, error: "You've already used your " + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks of flexibility for this year. You\'re welcome to subscribe again from ' + availableAgainStr + ', or book lessons one at a time in the meantime.' })
+      };
+    }
   }
 
   const priceKey = String(durationMinutes) + '_' + frequency;

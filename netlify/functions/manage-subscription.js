@@ -10,7 +10,9 @@ const {
   saveSubscriptionRecord,
   canPauseWeeks,
   pausedWeeksThisYear,
-  currentYear
+  currentYear,
+  getEmailHistory,
+  saveEmailHistory
 } = require('./subscription-helpers');
 const { getStore } = require('@netlify/blobs');
 
@@ -118,6 +120,22 @@ exports.handler = async function (event) {
       record.paymentFailedAt = null;
       record.paymentFailureReminderSent = false;
       await saveSubscriptionRecord(subscriptionId, record);
+
+      // Also persisted at the email level (not just on this one
+      // subscription record) so this usage survives even if this
+      // subscription is later cancelled and a new one started - see
+      // inheritedPauseWeeksForNewSubscription in subscription-helpers.js.
+      try {
+        const existingHistory = await getEmailHistory(email);
+        const emailWeeksSoFar = existingHistory && existingHistory.pauseYear === currentYear() ? (existingHistory.pausedWeeksThisYear || 0) : 0;
+        await saveEmailHistory(email, {
+          pausedWeeksThisYear: Math.max(emailWeeksSoFar, record.pausedWeeksThisYear),
+          pauseYear: currentYear(),
+          lastEndedAt: existingHistory ? existingHistory.lastEndedAt : undefined
+        });
+      } catch (historyErr) {
+        console.error('[manage-subscription] failed to sync email history on pause:', historyErr && historyErr.message ? historyErr.message : historyErr);
+      }
 
       return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: 4 - record.pausedWeeksThisYear }) };
     }

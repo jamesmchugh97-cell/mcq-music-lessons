@@ -33,6 +33,38 @@ exports.handler = async function (event) {
     return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  // Builds a one-click "add to your own calendar" link, separate from
+  // the Google Calendar sync James's own bookings calendar already has.
+  // ctz=Australia/Melbourne means Google handles daylight saving itself.
+  function timeToMinutesForCal(t) {
+    const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ap = m[3].toLowerCase();
+    if (ap === 'pm' && h !== 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+  function buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes) {
+    const startMin = timeToMinutesForCal(timeStr);
+    if (startMin === null || !dateStr) return null;
+    const endMin = startMin + (parseInt(durationMinutes, 10) || 45);
+    const toGcal = (mins) => {
+      const h = Math.floor(mins / 60), m = mins % 60;
+      return dateStr.replace(/-/g, '') + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
+    };
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: toGcal(startMin) + '/' + toGcal(endMin),
+      details: 'Lesson with James McHugh, MCQ Music Lessons.',
+      location: '84 Nelson Rd, South Melbourne VIC 3205',
+      ctz: 'Australia/Melbourne'
+    });
+    return 'https://calendar.google.com/calendar/render?' + params.toString();
+  }
+
   const introLine = isMulti
     ? `<p>You've booked <strong>${lessonsCountNum} lessons</strong>. See the dates below.</p>`
     : `<p>Welcome to your first lesson with MCQ Music! This is your <strong>trial lesson</strong>, a chance to see if it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved every week. You can <a href="https://mcqmusiclessons.com.au/booking.html#subscribe" style="color:#c9942a;">set that up</a> any time after your lesson.</p>`;
@@ -42,12 +74,17 @@ exports.handler = async function (event) {
   // Fortnight self-service policy (matches cancel-booking.js): 24+ hours'
   // notice gives a free single-use rebook link, not a "James finds you a
   // makeup lesson" promise.
-  const cancellationNotice = `Cancel with 24+ hours' notice and you'll get a link by email to rebook a new time yourself, any day over the following two weeks, no charge. Cancel with less than 24 hours' notice and the full lesson fee applies with no rebooking available.`;
+  const cancellationNotice = `Can't make it? With 24+ hours' notice, cancel from the link below and you'll get a link by email to reschedule to a new time yourself, any day over the following two weeks, no charge. Cancelling with less than 24 hours' notice means the full lesson fee applies and rescheduling isn't available.`;
 
   const dateFieldsHtml = slotList.length > 1
     ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${formatFriendlyDate(s.date)} at ${s.time}</li>`).join('')}</ul></li>`
     : `<li><strong>Date:</strong> ${formatFriendlyDate(slotList[0].date)}</li>
         <li><strong>Time:</strong> ${slotList[0].time || 'N/A'}</li>`;
+
+  const gcalLink = !isMulti ? buildGoogleCalendarLink((instrument || 'Music') + ' Lesson - MCQ Music', slotList[0].date, slotList[0].time, durationMinutes) : null;
+  const gcalLinkHtml = gcalLink
+    ? `<p style="text-align:center;margin-top:12px;"><a href="${gcalLink}" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Add to Google Calendar</a></p>`
+    : '';
 
   // Order matters here: duration, total, and address are placed
   // immediately after the greeting, before the longer policy text below,
@@ -69,13 +106,14 @@ exports.handler = async function (event) {
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
         <li><strong>Location:</strong> 84 Nelson Road, South Melbourne VIC 3205</li>
       </ul>
+      ${gcalLinkHtml}
       ${introLine}
       <p>Looking forward to our lesson! If you have any questions before then, just reply to this email or call 0499 232 898.</p>
       <p style="font-size: 0.85em; color: #666; border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
-        <strong>Cancellation policy:</strong> ${cancellationNotice}
+        <strong>Need to reschedule or cancel?</strong> ${cancellationNotice}
       </p>
       <p style="text-align:center;margin-top:16px;">
-        <a href="https://mcqmusiclessons.com.au/booking.html?manage_email=${encodeURIComponent(email)}#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>
+        <a href="https://mcqmusiclessons.com.au/booking.html?manage_email=${encodeURIComponent(email)}#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Reschedule or cancel this lesson</a>
       </p>
     </div>
   `;

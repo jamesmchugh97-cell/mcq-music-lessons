@@ -170,10 +170,63 @@ function canPauseWeeks(record, requestedWeeks) {
   return (used + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
 }
 
+// If someone cancels a subscription and starts a new one again within
+// this many days, the gap counts against the same annual pause-week
+// allowance pausing already uses, instead of resetting to a clean
+// slate. Pausing itself maxes out at 4 weeks in a single go, so a
+// threshold a little past that catches "skip a few weeks by cancelling
+// and resubscribing" without penalizing someone who's genuinely been
+// away much longer and is legitimately starting fresh.
+const RESUBSCRIBE_GAP_DAYS = 35;
+
+function historyStore() {
+  return getStore({ name: 'subscriber-history', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+async function getEmailHistory(email) {
+  if (!email) return null;
+  const store = historyStore();
+  return await store.get('email_' + email.trim().toLowerCase(), { type: 'json' });
+}
+
+async function saveEmailHistory(email, record) {
+  if (!email) return;
+  const store = historyStore();
+  await store.set('email_' + email.trim().toLowerCase(), JSON.stringify(record));
+}
+
+// Same year-rollover reset logic as pausedWeeksThisYear above, just
+// scoped to the student (persists across subscription IDs) rather than
+// one specific subscription record.
+function emailPausedWeeksThisYear(historyRecord) {
+  if (!historyRecord || !historyRecord.pauseYear || historyRecord.pauseYear !== currentYear()) return 0;
+  return historyRecord.pausedWeeksThisYear || 0;
+}
+
+// Called when a brand new subscription's first payment succeeds, before
+// its own pausedWeeksThisYear is set. Returns how many weeks should be
+// inherited as already "used" this year: whatever pause weeks this
+// email has already used (on any earlier subscription), plus - if their
+// last subscription ended within RESUBSCRIBE_GAP_DAYS - the gap itself,
+// treated as an unlogged pause. Not capped at MAX_PAUSE_WEEKS_PER_YEAR
+// here; canPauseWeeks() already blocks further pausing correctly once
+// the inherited total meets or exceeds the cap on its own.
+function inheritedPauseWeeksForNewSubscription(historyRecord) {
+  let weeks = emailPausedWeeksThisYear(historyRecord);
+  if (historyRecord && historyRecord.lastEndedAt) {
+    const daysSinceEnded = Math.floor((Date.now() - new Date(historyRecord.lastEndedAt + 'T00:00:00').getTime()) / 86400000);
+    if (daysSinceEnded >= 0 && daysSinceEnded <= RESUBSCRIBE_GAP_DAYS) {
+      weeks += Math.max(1, Math.round(daysSinceEnded / 7));
+    }
+  }
+  return weeks;
+}
+
 module.exports = {
   MAX_PAUSE_WEEKS_PER_YEAR,
   PAYMENT_GRACE_PERIOD_DAYS,
   PAYMENT_REMINDER_AFTER_DAYS,
+  RESUBSCRIBE_GAP_DAYS,
   timeToMinutes,
   dayOfWeek,
   currentYear,
@@ -186,5 +239,9 @@ module.exports = {
   nextOccurrenceDate,
   nextRenewalDate,
   pausedWeeksThisYear,
-  canPauseWeeks
+  canPauseWeeks,
+  getEmailHistory,
+  saveEmailHistory,
+  emailPausedWeeksThisYear,
+  inheritedPauseWeeksForNewSubscription
 };

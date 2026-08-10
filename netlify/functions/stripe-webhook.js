@@ -24,7 +24,11 @@ const {
   nextOccurrenceDate,
   nextRenewalDate,
   currentYear,
-  PAYMENT_GRACE_PERIOD_DAYS
+  PAYMENT_GRACE_PERIOD_DAYS,
+  getEmailHistory,
+  saveEmailHistory,
+  pausedWeeksThisYear,
+  inheritedPauseWeeksForNewSubscription
 } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -52,6 +56,30 @@ function formatFriendlyDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Builds a one-click "add to your own calendar" link for a subscription's
+// recurring slot, separate from the Google Calendar sync James's own
+// bookings calendar already has. Includes an RRULE so the student's own
+// calendar shows it repeating every week or fortnight, not just once.
+function buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, frequency) {
+  const startMin = timeToMinutes(timeStr);
+  if (startMin === null || !dateStr) return null;
+  const endMin = startMin + (parseInt(durationMinutes, 10) || 45);
+  const toGcal = (mins) => {
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return dateStr.replace(/-/g, '') + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
+  };
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: toGcal(startMin) + '/' + toGcal(endMin),
+    details: 'Lesson with James McHugh, MCQ Music Lessons.',
+    location: '84 Nelson Rd, South Melbourne VIC 3205',
+    ctz: 'Australia/Melbourne',
+    recur: 'RRULE:FREQ=WEEKLY' + (frequency === 'fortnightly' ? ';INTERVAL=2' : '')
+  });
+  return 'https://calendar.google.com/calendar/render?' + params.toString();
 }
 
 async function sendEmail(to, subject, html) {
@@ -218,6 +246,15 @@ exports.handler = async function (event) {
           return { statusCode: 200, body: 'ok' };
         }
 
+        // Inherits any pause-week usage this email has already used this
+        // year - either from pausing an earlier subscription, or from
+        // resubscribing soon after a previous one ended (see
+        // RESUBSCRIBE_GAP_DAYS in subscription-helpers.js) - so
+        // cancelling and starting fresh can't be used to dodge the same
+        // 4-week/year cap pausing is deliberately capped at.
+        const emailHistory = await getEmailHistory(meta.studentEmail);
+        const inheritedWeeks = inheritedPauseWeeksForNewSubscription(emailHistory);
+
         record = {
           subscriptionId: subscriptionId,
           studentName: meta.studentName,
@@ -228,7 +265,7 @@ exports.handler = async function (event) {
           durationMinutes: meta.durationMinutes,
           frequency: meta.frequency,
           status: 'active',
-          pausedWeeksThisYear: 0,
+          pausedWeeksThisYear: inheritedWeeks,
           pauseYear: currentYear(),
           createdAt: new Date().toISOString()
         };
@@ -241,10 +278,12 @@ exports.handler = async function (event) {
         }
 
         const price = PRICE_BY_DURATION[String(meta.durationMinutes)];
+        const gcalLink = lessonDate ? buildGoogleCalendarLink((meta.instrument || 'Music') + ' Lesson - MCQ Music', lessonDate, meta.time, meta.durationMinutes, meta.frequency) : null;
+        const gcalLinkHtml = gcalLink ? '<p><a href="' + gcalLink + '">Add to Google Calendar</a> (repeats automatically)</p>' : '';
         await sendEmail(
           meta.studentEmail,
           'MCQ Music Lessons: your ' + meta.frequency + ' subscription is confirmed',
-          '<p>Hi ' + meta.studentName + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p><p>You can pause (up to 4 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page, no need to contact James.</p><p>James</p>'
+          '<p>Hi ' + meta.studentName + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 4 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
@@ -333,6 +372,23 @@ exports.handler = async function (event) {
       const record = await getSubscriptionRecord(subscriptionId);
       if (record) {
         await deleteSubscriptionRecord(subscriptionId);
+
+        // Persists this student's pause-week usage and end date at the
+        // email level so it survives this subscription record being
+        // deleted - needed so a new subscription created soon after
+        // correctly inherits it instead of resetting to a clean slate
+        // every time someone cancels and restarts.
+        if (record.studentEmail) {
+          const existingHistory = await getEmailHistory(record.studentEmail);
+          const emailWeeksSoFar = existingHistory && existingHistory.pauseYear === currentYear() ? (existingHistory.pausedWeeksThisYear || 0) : 0;
+          const subscriptionWeeks = pausedWeeksThisYear(record);
+          await saveEmailHistory(record.studentEmail, {
+            pausedWeeksThisYear: Math.max(emailWeeksSoFar, subscriptionWeeks),
+            pauseYear: currentYear(),
+            lastEndedAt: new Date().toISOString().slice(0, 10)
+          });
+        }
+
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: subscription ended',
