@@ -107,6 +107,10 @@ exports.handler = schedule('@daily', async (event) => {
       for (const blob of blobs) {
         const record = await bStore.get(blob.key, { type: 'json' });
         if (!record || !record.email || !record.time) continue;
+        // An unpaid pending hold (abandoned or failed checkout) is not a
+        // lesson that happened - nudging "hope you enjoyed your lesson"
+        // off the back of one would be embarrassing and confusing.
+        if (record.pendingPayment === true) continue;
 
         // Subscription-generated lessons don't need a nudge - that
         // student is already subscribed by definition.

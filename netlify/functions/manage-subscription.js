@@ -12,9 +12,37 @@ const {
   pausedWeeksThisYear,
   currentYear,
   getEmailHistory,
-  saveEmailHistory
+  saveEmailHistory,
+  summerWeeksUsed,
+  canUseSummerWeeks,
+  SUMMER_PAUSE_START,
+  SUMMER_PAUSE_END,
+  MAX_SUMMER_PAUSE_WEEKS,
+  clearImminentLessonIfWithinPause,
+  PRICE_IDS
 } = require('./subscription-helpers');
 const { getStore } = require('@netlify/blobs');
+
+const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
+
+async function sendEmail(to, subject, html) {
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', to: [to], subject: subject, html: html })
+    });
+  } catch (e) {
+    console.error('[manage-subscription] email send failed:', e && e.message ? e.message : e);
+  }
+}
+
+function formatFriendlyDate(dateStr) {
+  if (!dateStr) return dateStr;
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -68,9 +96,12 @@ exports.handler = async function (event) {
         pausedWeeksUsedThisYear: pausedWeeksThisYear(s),
         pauseWeeksRemaining: 4 - pausedWeeksThisYear(s),
         nextLessonDate: s.nextLessonDate || null,
-        cancelling: !!s.cancelling
+        cancelling: !!s.cancelling,
+        summerPausePending: !!s.summerPausePending,
+        summerPauseEndDate: s.summerPauseEndDate || null,
+        summerWeeksRemaining: MAX_SUMMER_PAUSE_WEEKS - summerWeeksUsed(s)
       }));
-      return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized, summerPauseStart: SUMMER_PAUSE_START, summerPauseEnd: SUMMER_PAUSE_END }) };
     }
 
     // Every action below acts on one specific subscription, and the
@@ -137,7 +168,121 @@ exports.handler = async function (event) {
         console.error('[manage-subscription] failed to sync email history on pause:', historyErr && historyErr.message ? historyErr.message : historyErr);
       }
 
+      let clearedLessonDate = null;
+      try {
+        clearedLessonDate = await clearImminentLessonIfWithinPause(record, record.pausedUntil);
+      } catch (clearErr) {
+        console.error('[manage-subscription] failed to clear imminent lesson on pause:', clearErr && clearErr.message ? clearErr.message : clearErr);
+      }
+
+      if (record.studentEmail) {
+        await sendEmail(
+          record.studentEmail,
+          'MCQ Music Lessons: your subscription is paused',
+          '<p>Hi ' + record.studentName + ',</p><p>Your subscription is paused' + (clearedLessonDate ? ', including your lesson on ' + formatFriendlyDate(clearedLessonDate) : '') + '. No charge while paused. It resumes automatically on ' + formatFriendlyDate(record.pausedUntil) + ', nothing further to do.</p><p>James</p>'
+        );
+      }
+      await sendEmail(
+        JAMES_EMAIL,
+        'Subscription paused: ' + record.studentName,
+        '<p>' + record.studentName + ' (' + record.studentEmail + ') has paused for ' + weeks + ' week(s), resuming ' + formatFriendlyDate(record.pausedUntil) + '.' + (clearedLessonDate ? ' Their lesson on ' + formatFriendlyDate(clearedLessonDate) + ' has been cleared from the calendar as part of this.' : '') + '</p>'
+      );
+
       return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: 4 - record.pausedWeeksThisYear }) };
+    }
+
+    if (action === 'pauseSummer') {
+      const weeks = parseInt(body.weeks, 10);
+      if (!weeks || weeks < 1 || weeks > MAX_SUMMER_PAUSE_WEEKS) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose between 1 and ' + MAX_SUMMER_PAUSE_WEEKS + ' weeks.' }) };
+      }
+      if (record.status === 'paused' || record.summerPausePending) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription already has a pause in place.' }) };
+      }
+      if (!canUseSummerWeeks(record, weeks)) {
+        const remaining = MAX_SUMMER_PAUSE_WEEKS - summerWeeksUsed(record);
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' summer week(s) left for this break.' }) };
+      }
+
+      // Stripe's pause_collection takes effect the moment it's called,
+      // there's no way to schedule it for a future start date. So this
+      // just records the request now (which can happen any time in
+      // advance) and a daily check (summer-closure-start-check.js)
+      // actually applies the Stripe pause once SUMMER_PAUSE_START
+      // arrives, exactly like a subscription that's still 'active' in
+      // every other respect right up until then.
+      const proposedEnd = new Date(SUMMER_PAUSE_START + 'T00:00:00');
+      proposedEnd.setDate(proposedEnd.getDate() + weeks * 7);
+      const windowEnd = new Date(SUMMER_PAUSE_END + 'T00:00:00');
+      const summerPauseEndDate = (proposedEnd < windowEnd ? proposedEnd : windowEnd).toISOString().slice(0, 10);
+
+      record.summerPausePending = true;
+      record.summerPauseEndDate = summerPauseEndDate;
+      record.summerWeeksUsed = summerWeeksUsed(record) + weeks;
+      await saveSubscriptionRecord(subscriptionId, record);
+
+      if (record.studentEmail) {
+        await sendEmail(
+          record.studentEmail,
+          'MCQ Music Lessons: your summer break is booked in',
+          '<p>Hi ' + record.studentName + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
+        );
+      }
+
+      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: summerPauseEndDate, summerWeeksRemaining: MAX_SUMMER_PAUSE_WEEKS - record.summerWeeksUsed }) };
+    }
+
+    if (action === 'changeFrequency') {
+      const newFrequency = body.newFrequency;
+      if (newFrequency !== 'weekly' && newFrequency !== 'fortnightly') {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Frequency must be weekly or fortnightly.' }) };
+      }
+      if (newFrequency === record.frequency) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That is already your current frequency.' }) };
+      }
+      if (record.status !== 'active') {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Only an active subscription can change frequency. Please wait until any pause has ended.' }) };
+      }
+      const priceId = PRICE_IDS[String(record.durationMinutes) + '_' + newFrequency];
+      if (!priceId) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Could not find a matching price for that duration and frequency.' }) };
+      }
+
+      // Swaps the price on the EXISTING subscription (rather than
+      // cancelling and creating a new one), so there's no gap in
+      // coverage and no need to go through Checkout again. Takes effect
+      // from the next renewal onward: their already-scheduled next
+      // lesson (record.nextLessonDate) stays exactly as it is, and
+      // nextRenewalDate() in stripe-webhook.js will pick up the new
+      // frequency automatically the next time it computes an interval
+      // from record.frequency, since that's read fresh each time. No
+      // proration, matching the "no fussy adjustments" approach used
+      // everywhere else on this site.
+      const stripeSub = await stripe.subscriptions.retrieve(subscriptionId);
+      const itemId = stripeSub.items.data[0].id;
+      await stripe.subscriptions.update(subscriptionId, {
+        items: [{ id: itemId, price: priceId }],
+        proration_behavior: 'none'
+      });
+
+      const oldFrequency = record.frequency;
+      record.frequency = newFrequency;
+      await saveSubscriptionRecord(subscriptionId, record);
+
+      if (record.studentEmail) {
+        await sendEmail(
+          record.studentEmail,
+          'MCQ Music Lessons: your subscription is now ' + newFrequency,
+          '<p>Hi ' + record.studentName + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p>James</p>'
+        );
+      }
+      await sendEmail(
+        JAMES_EMAIL,
+        'Frequency changed: ' + record.studentName,
+        '<p>' + record.studentName + ' switched from ' + oldFrequency + ' to ' + newFrequency + '.</p>'
+      );
+
+      return { statusCode: 200, body: JSON.stringify({ success: true, frequency: newFrequency }) };
     }
 
     if (action === 'cancel') {

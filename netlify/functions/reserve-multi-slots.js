@@ -7,7 +7,7 @@
 // via isWithinBusinessHours), the old Friday-makeup-only restriction and
 // its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
-const { createCalendarEvent } = require('./google-calendar-helper');
+const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
@@ -368,9 +368,56 @@ exports.handler = async function (event) {
     // instead of silently overwriting the first booking. If any slot in
     // this request loses that race, roll back everything already written
     // so the booking never ends up half-confirmed.
+    //
+    // Every slot is marked pendingPayment: true here, since the slot is
+    // deliberately locked in BEFORE the card is actually charged (see
+    // booking.html), so two people can never both pay for the same time.
+    // That's correct, but it means an abandoned or failed checkout would
+    // otherwise leave the slot permanently blocked forever, with nobody
+    // able to book it again, since nothing ever un-reserves it. Fixed by
+    // treating a pending hold older than RESERVATION_HOLD_MINUTES as
+    // stale and safe to release, checked right here whenever someone
+    // else wants that same slot, rather than needing a separate cleanup
+    // job. confirm-reservation.js clears this flag once payment actually
+    // succeeds, turning it into a permanent, real booking.
+    const RESERVATION_HOLD_MINUTES = 20;
+    function isStaleHold(existing) {
+      if (!existing || existing.pendingPayment !== true || !existing.reservedAt) return false;
+      const ageMs = Date.now() - new Date(existing.reservedAt).getTime();
+      return ageMs > RESERVATION_HOLD_MINUTES * 60 * 1000;
+    }
+
     const written = [];
     for (const s of slots) {
       const key = s.date + '_' + s.time;
+
+      // If the existing record at this key is just a stale, unpaid hold
+      // from an earlier abandoned checkout, release it first so this
+      // request gets a fair shot at the slot via the same atomic write
+      // used for everyone else, rather than being blocked by a booking
+      // that was never actually completed. Separately: if the existing
+      // hold is unpaid AND belongs to this same email, release it
+      // regardless of age. That's the person whose payment just failed
+      // retrying with fixed card details; without this, their own
+      // first attempt's hold would block their retry with a baffling
+      // "just booked by someone else" for the full hold window. Only a
+      // pendingPayment record can ever be released this way - a
+      // confirmed, paid booking is never touched, even for the same
+      // email.
+      try {
+        const existing = await store.get(key, { type: 'json' });
+        const sameOwnerRetry = !!(existing && existing.pendingPayment === true && email && existing.email && existing.email.trim().toLowerCase() === email.trim().toLowerCase());
+        if (isStaleHold(existing) || sameOwnerRetry) {
+          await store.delete(key);
+          if (existing.eventId) {
+            try { await deleteCalendarEvent(existing.eventId); } catch (e) {}
+          }
+          console.log('[reserve-multi-slots] released ' + (sameOwnerRetry ? 'same-owner retry' : 'stale') + ' pending hold at', key, 'reserved at', existing.reservedAt);
+        }
+      } catch (staleCheckErr) {
+        console.error('[reserve-multi-slots] stale-hold check failed for', key, ':', staleCheckErr && staleCheckErr.message ? staleCheckErr.message : staleCheckErr);
+      }
+
       const record = {
         date: s.date,
         time: s.time,
@@ -378,7 +425,9 @@ exports.handler = async function (event) {
         name: name || '',
         email: email || '',
         instrument: instrument || '',
-        bookedAt: new Date().toISOString()
+        bookedAt: new Date().toISOString(),
+        pendingPayment: true,
+        reservedAt: new Date().toISOString()
       };
       let claimed = true;
       try {

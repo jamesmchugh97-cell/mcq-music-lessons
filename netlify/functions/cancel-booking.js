@@ -122,6 +122,27 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That lesson is not associated with this email address.' }) };
     }
 
+    // An unpaid pending hold (reserve-multi-slots.js locks the slot in
+    // BEFORE the card is charged; confirm-reservation.js clears this
+    // flag once payment succeeds) is not a real booking. Cancelling one
+    // must NEVER fall through to the normal path below, which issues a
+    // free reschedule credit - that would let anyone turn a deliberately
+    // failed payment into a credit for a lesson that was never paid for.
+    // Instead the hold is simply removed: record + calendar event gone,
+    // no credit, no rebook email, nothing owed in either direction.
+    if (record.pendingPayment === true) {
+      await store.delete(key);
+      if (record.eventId) {
+        try {
+          await deleteCalendarEvent(record.eventId);
+        } catch (calErr) {
+          console.error('[cancel-booking] calendar delete failed for unpaid hold ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
+        }
+      }
+      console.log('[cancel-booking] removed unpaid pending hold at', key, '- no credit issued');
+      return { statusCode: 200, body: JSON.stringify({ success: true, unpaidHold: true }) };
+    }
+
     await store.delete(key);
 
     // Remove the matching Google Calendar event, if this booking has one
@@ -226,7 +247,7 @@ exports.handler = async function (event) {
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible, alreadyRescheduledOnce: alreadyRescheduledOnce }) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }

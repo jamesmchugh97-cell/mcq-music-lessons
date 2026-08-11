@@ -8,13 +8,109 @@
 // old hardcoded RECURRING_STUDENTS roster used for James's existing
 // manually-managed students.
 const { getStore } = require('@netlify/blobs');
+const { deleteCalendarEvent } = require('./google-calendar-helper');
 
 const MAX_PAUSE_WEEKS_PER_YEAR = 4;
 const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
 const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails before sending a warning email (2-day heads up before release)
 
+// Victorian government school summer holidays, 2026-2027. A separate
+// allowance from the normal 4-week pause budget, specifically for this
+// window, so families whose kids are off school for a genuinely long
+// stretch aren't forced to either burn their whole yearly allowance on
+// one break or cancel outright and risk losing their slot. These dates
+// need updating by hand each year - school holiday dates aren't on a
+// fixed formula, so there's no safe way to calculate them automatically.
+const SUMMER_PAUSE_START = '2026-12-19';
+const SUMMER_PAUSE_END = '2027-01-26';
+const MAX_SUMMER_PAUSE_WEEKS = 6;
+
+// Shared with create-subscription.js and manage-subscription.js (for
+// the changeFrequency action), so there's exactly one source of truth
+// for these instead of two copies that could drift out of sync.
+const PRICE_IDS = {
+  '30_weekly': 'price_1U2PyCAOM8tPKKgkdcq71eaP',
+  '30_fortnightly': 'price_1U2Q23AOM8tPKKgkzEozmG31',
+  '45_weekly': 'price_1U2Q64AOM8tPKKgkxAsei52J',
+  '45_fortnightly': 'price_1U2Q7LAOM8tPKKgkQovjrxBD',
+  '60_weekly': 'price_1U2Q8jAOM8tPKKgkd1rMpX1A',
+  '60_fortnightly': 'price_1U2Q9AAOM8tPKKgk3VG8itQN',
+  '75_weekly': 'price_1U2QBIAOM8tPKKgkrNFPjDhZ',
+  '75_fortnightly': 'price_1U2QBkAOM8tPKKgkMnVMuT2O',
+  '90_weekly': 'price_1U2QCNAOM8tPKKgkJUtWzyEL',
+  '90_fortnightly': 'price_1U2QCqAOM8tPKKgknCBOj1VG'
+};
+
 function subsStore() {
   return getStore({ name: 'subscriptions', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+function bookingsStore() {
+  return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+// Shared by every path that can pause a subscription (a student's own
+// last-minute pause, a scheduled summer break starting, or an admin
+// closure starting). If an already-booked, already-paid-for upcoming
+// lesson now falls inside the pause window, it's cleared off the
+// calendar and booking system as part of processing the pause, rather
+// than left dangling (which would mean James still expects them, with
+// zero warning, for a lesson they're not coming to). No reschedule
+// credit is issued for it, since the student is taking a broader break,
+// not asking to move one specific lesson - their normal schedule simply
+// resumes after the pause ends. This costs James nothing: that lesson
+// was already invoiced and paid for before the pause was requested,
+// pausing only ever affects FUTURE billing, never refunds something
+// already collected.
+async function clearImminentLessonIfWithinPause(record, pausedUntilStr) {
+  if (!record.nextLessonDate) return null;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (record.nextLessonDate < todayStr || record.nextLessonDate >= pausedUntilStr) return null;
+  const store = bookingsStore();
+  const key = record.nextLessonDate + '_' + record.time;
+  const booking = await store.get(key, { type: 'json' });
+  if (!booking) return null;
+  // Ownership check: the record at this key must actually belong to the
+  // pausing subscriber. record.nextLessonDate can go stale - if the
+  // subscriber cancelled that specific lesson via Manage Booking and a
+  // DIFFERENT student then booked a one-off in the freed slot, the key
+  // now holds that other student's paid booking, which must never be
+  // deleted as a side effect of this subscriber pausing.
+  const bookingEmail = (booking.email || '').trim().toLowerCase();
+  const subscriberEmail = (record.studentEmail || '').trim().toLowerCase();
+  if (!bookingEmail || !subscriberEmail || bookingEmail !== subscriberEmail) return null;
+  await store.delete(key);
+  if (booking.eventId) {
+    try {
+      await deleteCalendarEvent(booking.eventId);
+    } catch (e) {
+      console.error('[subscription-helpers] calendar delete failed for', key, ':', e && e.message ? e.message : e);
+    }
+  }
+  return record.nextLessonDate;
+}
+
+// A single small store for site-wide settings, currently just the
+// admin-set studio closure window (see admin-closure.js). Deliberately
+// separate from the per-subscription "subscriptions" store since this
+// is one shared setting, not per-student data.
+function settingsStore() {
+  return getStore({ name: 'studio-settings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+async function getClosureSettings() {
+  const store = settingsStore();
+  return await store.get('closure', { type: 'json' });
+}
+
+async function saveClosureSettings(record) {
+  const store = settingsStore();
+  await store.set('closure', JSON.stringify(record));
+}
+
+async function deleteClosureSettings() {
+  const store = settingsStore();
+  await store.delete('closure');
 }
 
 function timeToMinutes(t) {
@@ -55,7 +151,16 @@ async function deleteSubscriptionRecord(subscriptionId) {
 // day of week and is currently blocking that slot (status 'active'; a
 // 'paused' subscription does NOT block, since the whole point of pausing
 // is to free the slot up for that window).
-async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId) {
+// includeStatuses defaults to active-only, matching the original
+// behavior every existing caller relies on (a paused slot is free for
+// one-off bookings and reschedules - that's the whole point of
+// pausing). Callers deciding whether a NEW SUBSCRIPTION can start here
+// pass ['active', 'paused'] instead, since letting a new subscriber
+// claim a slot that's only temporarily free would collide with the
+// paused student's own return - see create-subscription.js and
+// stripe-webhook.js's slotStillFree.
+async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId, includeStatuses) {
+  const statuses = includeStatuses || ['active'];
   const store = subsStore();
   const { blobs } = await store.list({ prefix: 'sub_' });
   const results = [];
@@ -63,7 +168,7 @@ async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId) {
     const record = await store.get(blob.key, { type: 'json' });
     if (!record) continue;
     if (record.subscriptionId === excludeSubscriptionId) continue;
-    if (record.status !== 'active') continue;
+    if (!statuses.includes(record.status)) continue;
     if (parseInt(record.dayOfWeek, 10) !== dow) continue;
     results.push(record);
   }
@@ -165,6 +270,17 @@ function pausedWeeksThisYear(record) {
   return record.pausedWeeksThisYear || 0;
 }
 
+// Separate from pausedWeeksThisYear on purpose - the summer allowance is
+// its own budget, tied to SUMMER_PAUSE_START/END above, not the rolling
+// calendar year, and never touches or is touched by the regular 4-week
+// pause tracking.
+function summerWeeksUsed(record) {
+  return record.summerWeeksUsed || 0;
+}
+function canUseSummerWeeks(record, requestedWeeks) {
+  return (summerWeeksUsed(record) + requestedWeeks) <= MAX_SUMMER_PAUSE_WEEKS;
+}
+
 function canPauseWeeks(record, requestedWeeks) {
   const used = pausedWeeksThisYear(record);
   return (used + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
@@ -227,6 +343,9 @@ module.exports = {
   PAYMENT_GRACE_PERIOD_DAYS,
   PAYMENT_REMINDER_AFTER_DAYS,
   RESUBSCRIBE_GAP_DAYS,
+  SUMMER_PAUSE_START,
+  SUMMER_PAUSE_END,
+  MAX_SUMMER_PAUSE_WEEKS,
   timeToMinutes,
   dayOfWeek,
   currentYear,
@@ -240,8 +359,15 @@ module.exports = {
   nextRenewalDate,
   pausedWeeksThisYear,
   canPauseWeeks,
+  summerWeeksUsed,
+  canUseSummerWeeks,
   getEmailHistory,
   saveEmailHistory,
   emailPausedWeeksThisYear,
-  inheritedPauseWeeksForNewSubscription
+  inheritedPauseWeeksForNewSubscription,
+  getClosureSettings,
+  saveClosureSettings,
+  deleteClosureSettings,
+  clearImminentLessonIfWithinPause,
+  PRICE_IDS
 };

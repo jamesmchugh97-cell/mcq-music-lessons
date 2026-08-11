@@ -111,7 +111,12 @@ const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
 async function slotStillFree(dow, time, durationMinutes, excludeSubscriptionId) {
   const startMinutes = timeToMinutes(time);
   const endMinutes = startMinutes + parseInt(durationMinutes, 10);
-  const blocking = await listBlockingSubscriptionsForDay(dow, excludeSubscriptionId);
+  // Includes paused subscribers, not just active ones - a new
+  // subscription shouldn't be able to slip through onto a paused
+  // student's slot even in the narrow window between the initial
+  // create-subscription.js check and Stripe Checkout actually
+  // completing (e.g. if that other student paused during that window).
+  const blocking = await listBlockingSubscriptionsForDay(dow, excludeSubscriptionId, ['active', 'paused']);
   return !conflictsWithSubscriptions(blocking, startMinutes, endMinutes);
 }
 

@@ -10,12 +10,24 @@
 // agreed to.
 const { schedule } = require('@netlify/functions');
 const { getStore } = require('@netlify/blobs');
-const { nextOccurrenceDate } = require('./subscription-helpers');
+const Stripe = require('stripe');
+const {
+  nextOccurrenceDate,
+  listBlockingSubscriptionsForDay,
+  conflictsWithSubscriptions,
+  timeToMinutes
+} = require('./subscription-helpers');
+
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
 
 function subsStore() {
   return getStore({ name: 'subscriptions', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+function bookingsStore() {
+  return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
 }
 
 async function sendEmail(to, subject, html) {
@@ -53,13 +65,12 @@ async function run() {
   const { blobs } = await store.list({ prefix: 'sub_' });
   const today = new Date().toISOString().slice(0, 10);
   let resumedCount = 0;
+  let blockedCount = 0;
   for (const blob of blobs) {
     const record = await store.get(blob.key, { type: 'json' });
     if (!record) continue;
     if (record.status === 'paused' && record.pausedUntil && record.pausedUntil <= today) {
       const resumedFrom = record.pausedUntil;
-      record.status = 'active';
-      delete record.pausedUntil;
 
       // record.nextLessonDate is left completely untouched by the pause
       // action itself (confirmed - manage-subscription.js's pause
@@ -71,6 +82,73 @@ async function run() {
       // from the actual resume point fixes that.
       const dow = parseInt(record.dayOfWeek, 10);
       const recomputedLessonDate = nextOccurrenceDate(dow, record.time, 0, resumedFrom);
+
+      // While paused, this slot is deliberately free for anyone else to
+      // take (see listBlockingSubscriptionsForDay, which only counts
+      // 'active' subscriptions) - that's the whole point of pausing
+      // freeing it up. But that means by the time a pause ends, someone
+      // else may have genuinely claimed the exact same day/time in the
+      // meantime, either as a new subscriber or a one-off/rescheduled
+      // booking. Resuming blindly into that would double-book the slot
+      // and charge this student for a lesson time that's no longer
+      // actually theirs. Checked here, before flipping back to active,
+      // rather than left to be discovered as a scheduling conflict
+      // later.
+      let conflict = false;
+      if (recomputedLessonDate) {
+        const startMin = timeToMinutes(record.time);
+        const endMin = startMin + parseInt(record.durationMinutes, 10);
+        const otherSubs = await listBlockingSubscriptionsForDay(dow, record.subscriptionId);
+        if (conflictsWithSubscriptions(otherSubs, startMin, endMin)) {
+          conflict = true;
+        }
+        if (!conflict) {
+          const bStore = bookingsStore();
+          const existingBooking = await bStore.get(recomputedLessonDate + '_' + record.time, { type: 'json' });
+          if (existingBooking) conflict = true;
+        }
+      }
+
+      if (conflict) {
+        // Doesn't try to resolve this automatically, since it genuinely
+        // needs a human decision (a new time, a conversation between
+        // James and the returning student, etc.) - just makes sure
+        // nothing bad happens (no wrongful charge, no double-booking)
+        // while that gets sorted out, and pushes the check out 2 weeks
+        // rather than re-flagging this every single day.
+        const extendedResume = new Date();
+        extendedResume.setDate(extendedResume.getDate() + 14);
+        const extendedResumeStr = extendedResume.toISOString().slice(0, 10);
+        const extendedResumeEpoch = Math.floor(extendedResume.getTime() / 1000);
+        try {
+          await stripe.subscriptions.update(record.subscriptionId, {
+            pause_collection: { behavior: 'void', resumes_at: extendedResumeEpoch }
+          });
+        } catch (e) {
+          console.error('[pause-expiry-check] failed to extend Stripe pause for', record.subscriptionId, ':', e && e.message ? e.message : e);
+        }
+        record.pausedUntil = extendedResumeStr;
+        await store.set(blob.key, JSON.stringify(record));
+        blockedCount++;
+        console.log('[pause-expiry-check] resume BLOCKED for ' + record.subscriptionId + ' (' + record.studentName + '), slot ' + dow + ' ' + record.time + ' no longer free, pause extended to ' + extendedResumeStr);
+
+        if (record.studentEmail) {
+          await sendEmail(
+            record.studentEmail,
+            'MCQ Music Lessons: your old time slot is no longer available',
+            '<p>Hi ' + record.studentName + ',</p><p>Your pause has ended, but your usual time has since been taken by another student. No charge will happen while this gets sorted out, your subscription stays paused for now. James will be in touch to arrange a new time, or you\'re welcome to <a href="https://mcqmusiclessons.com.au/booking.html#subscribe">subscribe to a different available time</a> yourself.</p><p>James</p>'
+          );
+        }
+        await sendEmail(
+          JAMES_EMAIL,
+          'Action needed: ' + record.studentName + '\'s old slot is taken',
+          '<p>' + record.studentName + '\'s (' + record.studentEmail + ') pause just ended, but their old slot (' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + ' ' + record.time + ') has since been taken by someone else. Their subscription stays paused, no charge, until this is sorted out, either manually here or by them subscribing to a new time themselves.</p>'
+        );
+        continue;
+      }
+
+      record.status = 'active';
+      delete record.pausedUntil;
       if (recomputedLessonDate) {
         record.nextLessonDate = recomputedLessonDate;
       }
@@ -93,7 +171,7 @@ async function run() {
       );
     }
   }
-  console.log('[pause-expiry-check] checked ' + blobs.length + ' subscriptions, resumed ' + resumedCount);
+  console.log('[pause-expiry-check] checked ' + blobs.length + ' subscriptions, resumed ' + resumedCount + ', blocked (slot taken) ' + blockedCount);
   return { statusCode: 200, body: 'ok' };
 }
 // Runs daily. Netlify's scheduler interprets cron expressions in UTC, so

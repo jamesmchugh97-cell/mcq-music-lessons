@@ -3,7 +3,6 @@
 // bookings, no login system, just an email match against the booking
 // records already stored in Netlify Blobs.
 const { getStore } = require('@netlify/blobs');
-
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
@@ -12,9 +11,7 @@ exports.handler = async function (event) {
   if (!email) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Email is required.' }) };
   }
-
   const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
-
   try {
     const { blobs } = await store.list();
     const today = new Date();
@@ -22,10 +19,10 @@ exports.handler = async function (event) {
     const bookings = [];
     for (const blob of blobs) {
       const record = await store.get(blob.key, { type: 'json' });
-      if (record && record.email && record.email.trim().toLowerCase() === email && record.date) {
+      if (record && record.email && record.email.trim().toLowerCase() === email && record.date && record.pendingPayment !== true) {
         const d = new Date(record.date + 'T00:00:00');
         if (d >= today) {
-          bookings.push({ date: record.date, time: record.time, duration: record.duration || 45 });
+          bookings.push({ date: record.date, time: record.time, duration: record.duration || 45, alreadyRescheduled: !!record.rescheduledFrom });
         }
       }
     }
