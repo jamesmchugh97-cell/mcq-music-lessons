@@ -291,8 +291,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 <section id="subscribe">
   <div class="section-inner">
     <p class="section-eyebrow">Weekly Subscription</p>
-    <h2 class="section-title">Subscribe to a <em>weekly slot</em></h2>
-    <p class="section-sub">Already had a lesson with James? Lock in the same time every week or fortnight and skip paying lesson by lesson. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
+    <h2 class="section-title">Reserve your <em>own time slot</em></h2>
+    <p class="section-sub">Already had a lesson with James? Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
     <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">New here? We'd recommend <a href="booking.html#book" style="color:var(--gold);">booking a trial lesson</a> first, so we can make sure it's the right fit. You're welcome to subscribe any time after.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
@@ -369,7 +369,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
       <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Subscribe →</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? <a href="booking.html#book" style="color:var(--gold);">Book a single lesson</a> first, then come back to subscribe. Need to pause, resume, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? <a href="booking.html#book" style="color:var(--gold);">Book a single lesson</a> first, then come back to subscribe. Need to pause, reschedule, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
     </form>
   </div>
 </section>
@@ -380,7 +380,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Manage Subscription</p>
     <h2 class="section-title">Already <em>subscribed?</em></h2>
-    <p class="section-sub">Enter the email you subscribed with to pause, resume, or cancel.</p>
+    <p class="section-sub">Enter the email you subscribed with to pause, reschedule an individual lesson, or cancel, all yourself, no need to message James. A pause always resumes automatically on its own, nothing to click.</p>
     <div class="booking-form">
       <div class="form-group">
         <label class="form-label">Your Email</label>
@@ -466,8 +466,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 <section id="manage">
   <div class="section-inner">
     <p class="section-eyebrow">Manage Booking</p>
-    <h2 class="section-title">Need to <em>cancel a lesson?</em></h2>
-    <p class="section-sub">Enter the email you booked with to find your upcoming lessons.</p>
+    <h2 class="section-title">Need to <em>reschedule or cancel?</em></h2>
+    <p class="section-sub">Enter the email you booked with to find your upcoming lessons, reschedule, or cancel, all yourself, no need to message James.</p>
     <div class="booking-form">
       <div class="form-group">
         <label class="form-label">Your Email</label>
@@ -533,7 +533,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <footer>
   <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
-  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a></p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="privacy.html">Privacy Policy</a></p>
 </footer>
 
 <div class="modal-overlay" id="successModal">
@@ -1533,8 +1533,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         cancelBtn.className = 'btn-outline';
         cancelBtn.type = 'button';
         cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
-        cancelBtn.textContent = 'Cancel this lesson';
-        cancelBtn.onclick = () => confirmCancelBooking(email, b.date, b.time);
+        cancelBtn.textContent = 'Cancel or Reschedule';
+        cancelBtn.onclick = () => confirmCancelBooking(email, b.date, b.time, b.alreadyRescheduled);
         row.appendChild(info);
         row.appendChild(cancelBtn);
         resultsEl.appendChild(row);
@@ -1561,15 +1561,25 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }));
   }
 
-  function confirmCancelBooking(email, date, time) {
+  function confirmCancelBooking(email, date, time, alreadyRescheduled) {
     document.getElementById('manageError').textContent = '';
     const start = new Date(date + 'T00:00:00');
     start.setMinutes(start.getMinutes() + (timeToMinutes(time) || 0));
     const hoursUntil = (start.getTime() - Date.now()) / (1000 * 60 * 60);
-    const eligible = hoursUntil >= 24;
-    document.getElementById('cancelConfirmBody').textContent = eligible
-      ? 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll be able to rebook a new time yourself over the next two weeks, no need to contact James. If you don\'t rebook within that fortnight, it won\'t be refunded.'
-      : 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+    const hasNotice = hoursUntil >= 24;
+    // Mirrors cancel-booking.js's own eligible = hasNoticeForCredit &&
+    // !alreadyRescheduledOnce exactly, so this pre-confirmation message
+    // can never end up promising something the server then contradicts.
+    const eligible = hasNotice && !alreadyRescheduled;
+    let message;
+    if (eligible) {
+      message = 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll get a link by email to rebook a new time yourself over the next two weeks, no need to contact James. If you don\'t rebook within that fortnight, it won\'t be refunded.';
+    } else if (alreadyRescheduled) {
+      message = 'Your lesson on ' + date + ' at ' + time + ' has already been rescheduled once, so it isn\'t eligible for a further free reschedule. The full lesson fee applies and no rebooking is available.';
+    } else {
+      message = 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+    }
+    document.getElementById('cancelConfirmBody').textContent = message;
     document.getElementById('cancelConfirmModal').classList.add('open');
     document.getElementById('cancelConfirmYesBtn').onclick = () => submitCancelBooking(email, date, time);
     document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
@@ -1593,10 +1603,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       closeCancelConfirmModal();
       yesBtn.textContent = 'Yes, cancel it'; yesBtn.disabled = false;
       if (result.success) {
-        document.getElementById('modalTitle').textContent = 'Lesson Cancelled';
-        document.getElementById('modalBody').textContent = result.eligible
-          ? 'Check your email for a link to rebook a new time within the next two weeks.'
-          : 'As this was within 24 hours, no makeup or refund applies.';
+        document.getElementById('modalTitle').textContent = result.unpaidHold ? 'Reservation Removed' : 'Lesson Cancelled';
+        document.getElementById('modalBody').textContent = result.unpaidHold
+          ? 'That reservation was never paid for, so it has simply been removed. No charge applies and nothing further is needed.'
+          : (result.eligible
+            ? 'Check your email for a link to rebook a new time within the next two weeks.'
+            : (result.alreadyRescheduledOnce
+              ? 'This lesson had already been rescheduled once, so it wasn\'t eligible for a further free reschedule. No makeup or refund applies.'
+              : 'As this was within 24 hours, no makeup or refund applies.'));
         document.getElementById('successModal').classList.add('open');
         findMyBookings();
         loadLiveBookings();
@@ -1842,6 +1856,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         return;
       }
     }
+    // Payment succeeded - clear the pending-hold flag on every slot just
+    // reserved, so it's now a permanent booking rather than something
+    // that could later be treated as an abandoned, stale hold. Fire-and-
+    // forget: the payment has already gone through at this point, so a
+    // failure here shouldn't block the confirmation the student is
+    // about to see.
+    fetch('/.netlify/functions/confirm-reservation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slots: reservedSlots.map(s => ({ date: s.date, time: s.time })) })
+    }).catch(() => {});
     // Payment succeeded, submit booking details to Netlify Forms
     const lessons = lessonsForReserve;
     const duration = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value : '';
@@ -2030,7 +2055,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return false;
   }
 
-  // MANAGE SUBSCRIPTION, self-service lookup, pause, resume, cancel
+  // MANAGE SUBSCRIPTION, self-service lookup, pause, reschedule, cancel
   async function findMySubscriptions() {
     const email = document.getElementById('manageSubEmail').value.trim();
     const errEl = document.getElementById('manageSubError');
@@ -2072,6 +2097,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         info.style.cssText = 'font-size:0.85rem;color:var(--cream);margin-bottom:0.7rem;';
         info.textContent = (sub.instrument ? sub.instrument + ' · ' : '') + dayName + ' ' + sub.time + ' (' + sub.durationMinutes + ' min) · ' + freqLabel + ' · ' + statusLabel;
         row.appendChild(info);
+        if (sub.summerPausePending) {
+          const summerNote = document.createElement('div');
+          summerNote.style.cssText = 'font-size:0.78rem;color:var(--gold-pale);margin-bottom:0.7rem;';
+          summerNote.textContent = 'Summer break booked: pauses ' + result.summerPauseStart + ', resumes automatically ' + sub.summerPauseEndDate + '.';
+          row.appendChild(summerNote);
+        }
         if (!sub.cancelling) {
           const rescheduleNote = document.createElement('div');
           rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
@@ -2101,7 +2132,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
               pauseBtn.className = 'btn-outline'; pauseBtn.type = 'button';
               pauseBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
               pauseBtn.textContent = 'Pause';
-              pauseBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pause', parseInt(pauseSelect.value, 10));
+              pauseBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pause', { weeks: parseInt(pauseSelect.value, 10) });
               btnRow.appendChild(pauseSelect);
               btnRow.appendChild(pauseBtn);
             } else {
@@ -2111,6 +2142,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
               btnRow.appendChild(usedUp);
             }
           }
+          if (sub.status === 'active') {
+            const freqBtn = document.createElement('button');
+            freqBtn.className = 'btn-outline'; freqBtn.type = 'button';
+            freqBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+            const otherFrequency = sub.frequency === 'fortnightly' ? 'weekly' : 'fortnightly';
+            freqBtn.textContent = 'Switch to ' + (otherFrequency === 'weekly' ? 'Weekly' : 'Fortnightly');
+            freqBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'changeFrequency', { newFrequency: otherFrequency });
+            btnRow.appendChild(freqBtn);
+          }
           const cancelBtn = document.createElement('button');
           cancelBtn.className = 'btn-outline'; cancelBtn.type = 'button';
           cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
@@ -2118,6 +2158,31 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           cancelBtn.onclick = () => confirmCancelSubscription(email, sub.subscriptionId, dayName + ' ' + sub.time);
           btnRow.appendChild(cancelBtn);
           row.appendChild(btnRow);
+
+          if (!sub.summerPausePending && sub.status !== 'paused' && sub.summerWeeksRemaining > 0) {
+            const summerRow = document.createElement('div');
+            summerRow.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;';
+            const summerLabel = document.createElement('span');
+            summerLabel.style.cssText = 'font-size:0.76rem;color:var(--muted);';
+            summerLabel.textContent = 'Summer break (' + result.summerPauseStart + ' - ' + result.summerPauseEnd + '):';
+            const summerSelect = document.createElement('select');
+            summerSelect.className = 'form-input';
+            summerSelect.style.cssText = 'padding:0.4rem 0.6rem;font-size:0.76rem;width:auto;';
+            for (let w = 1; w <= sub.summerWeeksRemaining; w++) {
+              const opt = document.createElement('option');
+              opt.value = w; opt.textContent = w + (w === 1 ? ' week' : ' weeks');
+              summerSelect.appendChild(opt);
+            }
+            const summerBtn = document.createElement('button');
+            summerBtn.className = 'btn-outline'; summerBtn.type = 'button';
+            summerBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+            summerBtn.textContent = 'Book summer break';
+            summerBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pauseSummer', { weeks: parseInt(summerSelect.value, 10) });
+            summerRow.appendChild(summerLabel);
+            summerRow.appendChild(summerSelect);
+            summerRow.appendChild(summerBtn);
+            row.appendChild(summerRow);
+          }
         }
         resultsEl.appendChild(row);
       });
@@ -2127,12 +2192,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  async function submitSubscriptionAction(email, subscriptionId, action, weeks) {
+  async function submitSubscriptionAction(email, subscriptionId, action, extra) {
     const errEl = document.getElementById('manageSubError');
     errEl.textContent = '';
     try {
       const body = { email: email, subscriptionId: subscriptionId, action: action };
-      if (weeks) body.weeks = weeks;
+      if (extra) Object.assign(body, extra);
       const resp = await fetch('/.netlify/functions/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

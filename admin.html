@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Studio Closure · Admin</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<section style="padding-top:3rem;">
+  <div class="section-inner" style="max-width:520px;">
+    <p class="section-eyebrow">Admin</p>
+    <h2 class="section-title">Studio <em>Closure</em></h2>
+    <p class="section-sub">Set a date range to automatically pause every active subscriber's billing, e.g. for a break you're taking. Nobody's personal pause allowance is touched by this. Every active subscriber is emailed as soon as you set it, well before it actually starts.</p>
+
+    <div id="currentClosureBox" class="booking-form" style="display:none;margin-bottom:1.2rem;">
+      <div class="form-label">Currently set</div>
+      <div id="currentClosureText" style="color:var(--cream);font-size:0.9rem;margin-bottom:1rem;"></div>
+      <div class="form-group">
+        <label class="form-label">Admin password</label>
+        <input type="password" id="clearPassword" class="form-input" placeholder="Password">
+      </div>
+      <button type="button" class="btn-outline" onclick="clearClosure()" id="clearBtn" style="width:100%;text-align:center;">Clear this closure</button>
+    </div>
+
+    <div id="setClosureBox" class="booking-form">
+      <div class="form-label">Set a new closure</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start date</label>
+          <input type="date" id="closureStart" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End date</label>
+          <input type="date" id="closureEnd" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin password</label>
+        <input type="password" id="setPassword" class="form-input" placeholder="Password">
+      </div>
+      <div id="adminError" style="color:#f87171;font-size:0.85rem;margin-bottom:0.8rem;min-height:1.2em;"></div>
+      <button type="button" class="btn-primary" onclick="setClosure()" id="setBtn" style="width:100%;text-align:center;">Set Closure</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  function formatFriendly(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  async function loadCurrentClosure() {
+    try {
+      const resp = await fetch('/.netlify/functions/admin-closure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get' })
+      });
+      const result = await resp.json();
+      if (result.success && result.closure) {
+        document.getElementById('currentClosureBox').style.display = 'block';
+        document.getElementById('setClosureBox').style.display = 'none';
+        const c = result.closure;
+        document.getElementById('currentClosureText').textContent =
+          formatFriendly(c.startDate) + ' to ' + formatFriendly(c.endDate) +
+          (c.applied ? ' (currently in effect)' : ' (scheduled, not started yet)');
+      } else {
+        document.getElementById('currentClosureBox').style.display = 'none';
+        document.getElementById('setClosureBox').style.display = 'block';
+      }
+    } catch (e) {
+      document.getElementById('adminError').textContent = 'Could not reach the server.';
+    }
+  }
+
+  async function setClosure() {
+    const startDate = document.getElementById('closureStart').value;
+    const endDate = document.getElementById('closureEnd').value;
+    const password = document.getElementById('setPassword').value;
+    const errEl = document.getElementById('adminError');
+    errEl.textContent = '';
+    if (!startDate || !endDate) {
+      errEl.textContent = 'Please choose both a start and end date.';
+      return;
+    }
+    if (!password) {
+      errEl.textContent = 'Please enter the admin password.';
+      return;
+    }
+    const btn = document.getElementById('setBtn');
+    btn.textContent = 'Setting...'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/admin-closure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set', startDate: startDate, endDate: endDate, password: password })
+      });
+      const result = await resp.json();
+      btn.textContent = 'Set Closure'; btn.disabled = false;
+      if (result.success) {
+        loadCurrentClosure();
+      } else {
+        errEl.textContent = result.error || 'Could not set closure.';
+      }
+    } catch (e) {
+      btn.textContent = 'Set Closure'; btn.disabled = false;
+      errEl.textContent = 'Could not reach the server.';
+    }
+  }
+
+  async function clearClosure() {
+    const password = document.getElementById('clearPassword').value;
+    if (!password) {
+      alert('Please enter the admin password.');
+      return;
+    }
+    if (!confirm('Clear the current closure? If it has already started, every affected subscriber will resume immediately.')) return;
+    const btn = document.getElementById('clearBtn');
+    btn.textContent = 'Clearing...'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/admin-closure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear', password: password })
+      });
+      const result = await resp.json();
+      btn.textContent = 'Clear this closure'; btn.disabled = false;
+      if (result.success) {
+        loadCurrentClosure();
+      } else {
+        alert(result.error || 'Could not clear closure.');
+      }
+    } catch (e) {
+      btn.textContent = 'Clear this closure'; btn.disabled = false;
+      alert('Could not reach the server.');
+    }
+  }
+
+  loadCurrentClosure();
+</script>
+</body>
+</html>
