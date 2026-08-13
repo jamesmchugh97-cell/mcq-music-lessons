@@ -169,7 +169,7 @@ exports.handler = async function (event) {
   }
   const {
     slots, name, email, duration,
-    instrument, song_requests, genre_focus, theory_interest, lesson_goals_notes
+    instrument, guitar_type, song_requests, genre_focus, theory_interest, lesson_goals_notes
   } = body;
   if (!Array.isArray(slots) || slots.length === 0) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'No lesson dates provided.' }) };
@@ -180,12 +180,19 @@ exports.handler = async function (event) {
     }
   }
   const durationMinutes = parseInt(duration, 10) || 45;
+  // "Electric"/"Acoustic" only means anything when guitar is actually
+  // involved, and "Either / Both" isn't worth stating since it doesn't
+  // narrow anything down - James still needs to have both options
+  // ready either way, same as if nothing had been specified at all.
+  const displayInstrument = (guitar_type && guitar_type !== 'Either' && instrument !== 'Piano')
+    ? instrument + ' (' + guitar_type + ')'
+    : instrument;
   // Same info applies to every lesson in this booking (song requests,
   // genre, theory interest, and notes are entered once for the whole
   // booking, not per lesson), so this is built once and reused for each
   // calendar event created below.
   const calendarNotes = buildCalendarNotes({
-    instrument: instrument,
+    instrument: displayInstrument,
     email: email,
     songRequests: song_requests,
     genreFocus: genre_focus,
@@ -293,17 +300,38 @@ exports.handler = async function (event) {
       }
     }
 
+    // Hard advance-booking limit: nothing can be booked more than 30
+    // days out at all. Checked here server-side, not just relied on as
+    // a client-side date-picker max (booking.html's getMaxBookingDate),
+    // since this is a public API endpoint anyone could call directly -
+    // without this, the client-side limit would be purely cosmetic.
+    const MAX_ADVANCE_BOOKING_DAYS = 30;
+    {
+      const todayStr = todayDateKey();
+      for (const s of slots) {
+        if (daysBetweenDates(todayStr, s.date) > MAX_ADVANCE_BOOKING_DAYS) {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ success: false, error: s.date + ' is more than 30 days away. One-off lessons can only be booked up to a month ahead - for anything more ongoing, set up a subscription from the Subscribe section instead.' })
+          };
+        }
+      }
+    }
+
     // Booking-pattern policy: a multi-lesson booking whose dates stay
     // within the next 30 days can be picked however the student likes
-    // (that's normal flexible use). But once any date in the SAME
-    // booking reaches further out than that, EACH day of the week used
-    // must form a strict, evenly-spaced weekly or fortnightly series on
-    // its own, not a scattered handful of individually-picked dates.
-    // Without this, a student can hold a popular slot on far-future
-    // dates while only actually attending sporadically (e.g. three
-    // consecutive Tuesdays, then a lone date two months later, then
-    // another a month after that), which blocks that slot from students
-    // or subscribers who'd actually use it every week.
+    // (that's normal flexible use). Beyond that, the code below used to
+    // require each weekday to form a strict, evenly-spaced pattern
+    // instead of scattered dates - but the hard 30-day cap just above
+    // now rejects anything past 30 days outright, before it can ever
+    // reach this point, so everything from here through the fortnightly
+    // cap check is currently dormant, not deleted in case the overall
+    // window is ever extended again later, but never actually reachable
+    // as things stand. Was written when the site allowed booking up to
+    // a year ahead - a multi-lesson request could then be a scattered,
+    // slot-squatting set of far-future dates while only attending
+    // occasionally, which blocked a slot from students or subscribers
+    // who'd actually use it every week.
     //
     // Checked PER WEEKDAY rather than across the whole date list at
     // once, since the site explicitly offers "twice a week" bookings
@@ -421,6 +449,7 @@ exports.handler = async function (event) {
         name: name || '',
         email: email || '',
         instrument: instrument || '',
+        guitarType: (guitar_type && instrument !== 'Piano') ? guitar_type : '',
         bookedAt: new Date().toISOString(),
         pendingPayment: true,
         reservedAt: new Date().toISOString()
@@ -460,7 +489,7 @@ exports.handler = async function (event) {
           startDateTime: startDateTime,
           endDateTime: endDateTime,
           notes: calendarNotes,
-          instrument: instrument
+          instrument: displayInstrument
         });
         if (eventId) {
           record.eventId = eventId;

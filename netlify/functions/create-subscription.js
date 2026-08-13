@@ -95,7 +95,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
 
-  const { studentName, studentEmail, instrument, dayOfWeek: dow, time, durationMinutes, frequency } = body;
+  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency } = body;
 
   if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required subscription details.' }) };
@@ -219,6 +219,7 @@ exports.handler = async function (event) {
           studentName: studentName,
           studentEmail: studentEmail,
           instrument: instrument,
+          guitarType: (guitarType && instrument !== 'Piano') ? guitarType : '',
           dayOfWeek: String(dow),
           time: time,
           durationMinutes: String(durationMinutes),

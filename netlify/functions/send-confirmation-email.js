@@ -44,13 +44,19 @@ exports.handler = async function (event) {
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
-  const { name, email, instrument, date, time, duration, lessons_count, total, slots } = body;
+  const { name, email, instrument, guitar_type, date, time, duration, lessons_count, total, slots } = body;
   // Escaped once here, used everywhere below - name and instrument are
   // free-text fields a student fills in, and get embedded directly into
   // HTML emails to both the student and James.
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safeInstrument = escapeHtml(instrument);
+  const safeGuitarType = escapeHtml(guitar_type);
+  // "Either / Both" isn't worth stating in the email, same reasoning as
+  // the calendar event title - it doesn't narrow anything down.
+  const displayInstrument = (safeGuitarType && safeGuitarType !== 'Either' && instrument !== 'Piano')
+    ? safeInstrument + ' (' + safeGuitarType + ')'
+    : safeInstrument;
   if (!email || !name) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing name or email.' }) };
   }
@@ -153,7 +159,7 @@ exports.handler = async function (event) {
       <h2 style="color: #1a1a1a; text-align: center; font-family: Georgia, serif; font-weight: normal;">Booking Confirmed</h2>
       <p>Hi ${safeName}, thanks for booking with MCQ Music Lessons. Here are your details:</p>
       <ul>
-        <li><strong>Instrument:</strong> ${safeInstrument || 'N/A'}</li>
+        <li><strong>Instrument:</strong> ${displayInstrument || 'N/A'}</li>
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
@@ -180,7 +186,7 @@ exports.handler = async function (event) {
       <h3>New booking</h3>
       <p><strong>${safeName}</strong> (${safeEmail}) booked ${isMulti ? lessonsCountNum + ' lessons' : 'a trial lesson'}.</p>
       <ul>
-        <li><strong>Instrument:</strong> ${safeInstrument || 'N/A'}</li>
+        <li><strong>Instrument:</strong> ${displayInstrument || 'N/A'}</li>
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>

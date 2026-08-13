@@ -159,12 +159,18 @@ async function createLessonOccurrence(dateStr, record) {
     const endMinutes = startMinutes + parseInt(record.durationMinutes, 10);
     const startDateTime = dateStr + 'T' + minutesToIsoClock(startMinutes);
     const endDateTime = dateStr + 'T' + minutesToIsoClock(endMinutes);
+    // Same "only show it if it actually narrows something down" rule
+    // as the one-off booking flow - "Either / Both" isn't worth stating
+    // since James needs both options ready regardless.
+    const displayInstrument = (record.guitarType && record.guitarType !== 'Either' && record.instrument !== 'Piano')
+      ? record.instrument + ' (' + record.guitarType + ')'
+      : record.instrument;
     const eventId = await createCalendarEvent({
       studentName: record.studentName,
       startDateTime: startDateTime,
       endDateTime: endDateTime,
       notes: 'Weekly subscription lesson (' + record.frequency + '), ' + record.studentEmail,
-      instrument: record.instrument
+      instrument: displayInstrument
     });
     if (eventId) {
       bookingRecord.eventId = eventId;
@@ -316,6 +322,7 @@ exports.handler = async function (event) {
           studentName: meta.studentName,
           studentEmail: meta.studentEmail,
           instrument: meta.instrument,
+          guitarType: meta.guitarType || '',
           dayOfWeek: meta.dayOfWeek,
           time: meta.time,
           durationMinutes: meta.durationMinutes,
@@ -334,17 +341,22 @@ exports.handler = async function (event) {
         }
 
         const price = PRICE_BY_DURATION[String(meta.durationMinutes)];
+        const safeMetaInstrument = escapeHtml(meta.instrument);
+        const safeMetaGuitarType = escapeHtml(meta.guitarType);
+        const displayInstrument = (safeMetaGuitarType && safeMetaGuitarType !== 'Either' && meta.instrument !== 'Piano')
+          ? safeMetaInstrument + ' (' + safeMetaGuitarType + ')'
+          : safeMetaInstrument;
         const gcalLink = lessonDate ? buildGoogleCalendarLink((meta.instrument || 'Music') + ' Lesson - MCQ Music', lessonDate, meta.time, meta.durationMinutes, meta.frequency) : null;
         const gcalLinkHtml = gcalLink ? '<p><a href="' + gcalLink + '">Add to Google Calendar</a> (repeats automatically)</p>' : '';
         await sendEmail(
           meta.studentEmail,
           'MCQ Music Lessons: your ' + meta.frequency + ' subscription is confirmed',
-          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 4 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 4 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
           'New subscription: ' + meta.studentName,
-          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just subscribed: ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>'
+          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just subscribed: ' + displayInstrument + ', ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>'
         );
       } else if (record) {
         // Renewal invoice, advance to the next lesson occurrence and
