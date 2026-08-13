@@ -10,6 +10,8 @@ const {
   saveSubscriptionRecord,
   canPauseWeeks,
   totalPausedWeeksForEmail,
+  acquireEmailPauseLock,
+  releaseEmailPauseLock,
   MAX_PAUSE_WEEKS_PER_YEAR,
   pausedWeeksThisYear,
   currentYear,
@@ -131,38 +133,52 @@ exports.handler = async function (event) {
       if (record.status === 'paused') {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription is already paused.' }) };
       }
-      // Weeks already used on any OTHER subscription under this same
-      // email this year - whether still active/paused right now, or
-      // since cancelled - count against this same shared allowance too.
-      // Two different students, each with their own email, are
-      // correctly unaffected by each other here.
-      const otherWeeksUsed = await totalPausedWeeksForEmail(record.studentEmail, subscriptionId);
-      if (!canPauseWeeks(record, weeks, otherWeeksUsed)) {
-        const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - otherWeeksUsed);
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' pause week(s) left this year.' }) };
+      // Acquired right before the cross-subscription read, held only
+      // through the write just below - not through the slower Stripe
+      // and email calls that follow, since those aren't part of the
+      // actual race window and holding the lock through them would
+      // just make a genuinely sequential second request wait longer
+      // than necessary.
+      const lockAcquired = await acquireEmailPauseLock(record.studentEmail);
+      if (!lockAcquired) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please wait a moment and try again - another pause request for this email is still being processed.' }) };
       }
+      let otherWeeksUsed;
+      try {
+        // Weeks already used on any OTHER subscription under this same
+        // email this year - whether still active/paused right now, or
+        // since cancelled - count against this same shared allowance too.
+        // Two different students, each with their own email, are
+        // correctly unaffected by each other here.
+        otherWeeksUsed = await totalPausedWeeksForEmail(record.studentEmail, subscriptionId);
+        if (!canPauseWeeks(record, weeks, otherWeeksUsed)) {
+          const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - otherWeeksUsed);
+          return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' pause week(s) left this year.' }) };
+        }
 
-      const resumeDate = new Date();
-      resumeDate.setDate(resumeDate.getDate() + weeks * 7);
-      const resumesAtEpoch = Math.floor(resumeDate.getTime() / 1000);
+        const resumeDateCheck = new Date();
+        resumeDateCheck.setDate(resumeDateCheck.getDate() + weeks * 7);
 
-      await stripe.subscriptions.update(subscriptionId, {
-        pause_collection: { behavior: 'void', resumes_at: resumesAtEpoch }
-      });
+        await stripe.subscriptions.update(subscriptionId, {
+          pause_collection: { behavior: 'void', resumes_at: Math.floor(resumeDateCheck.getTime() / 1000) }
+        });
 
-      const usedBefore = pausedWeeksThisYear(record);
-      record.status = 'paused';
-      record.pausedUntil = resumeDate.toISOString().slice(0, 10);
-      record.pausedWeeksThisYear = usedBefore + weeks;
-      record.pauseYear = currentYear();
-      // Pausing is a deliberate choice to stop billing, which makes any
-      // in-progress payment-failure grace period moot. Clearing it here
-      // stops a resume from accidentally inheriting a stale, unrelated
-      // failure timestamp from before the pause and getting cancelled
-      // by subscription-payment-grace-check.js almost immediately after.
-      record.paymentFailedAt = null;
-      record.paymentFailureReminderSent = false;
-      await saveSubscriptionRecord(subscriptionId, record);
+        const usedBefore = pausedWeeksThisYear(record);
+        record.status = 'paused';
+        record.pausedUntil = resumeDateCheck.toISOString().slice(0, 10);
+        record.pausedWeeksThisYear = usedBefore + weeks;
+        record.pauseYear = currentYear();
+        // Pausing is a deliberate choice to stop billing, which makes any
+        // in-progress payment-failure grace period moot. Clearing it here
+        // stops a resume from accidentally inheriting a stale, unrelated
+        // failure timestamp from before the pause and getting cancelled
+        // by subscription-payment-grace-check.js almost immediately after.
+        record.paymentFailedAt = null;
+        record.paymentFailureReminderSent = false;
+        await saveSubscriptionRecord(subscriptionId, record);
+      } finally {
+        await releaseEmailPauseLock(record.studentEmail);
+      }
 
       // Also persisted at the email level (not just on this one
       // subscription record) so this usage survives even if this
@@ -211,38 +227,47 @@ exports.handler = async function (event) {
       if (record.status === 'paused' || record.summerPausePending) {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription already has a pause in place.' }) };
       }
-      const otherSummerWeeksUsed = await totalSummerWeeksForEmail(record.studentEmail, subscriptionId);
-      if (!canUseSummerWeeks(record, weeks, otherSummerWeeksUsed)) {
-        const remaining = Math.max(0, MAX_SUMMER_PAUSE_WEEKS - summerWeeksUsed(record) - otherSummerWeeksUsed);
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' summer week(s) left for this break.' }) };
+      const lockAcquiredSummer = await acquireEmailPauseLock(record.studentEmail);
+      if (!lockAcquiredSummer) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please wait a moment and try again - another pause request for this email is still being processed.' }) };
       }
+      let otherSummerWeeksUsed;
+      try {
+        otherSummerWeeksUsed = await totalSummerWeeksForEmail(record.studentEmail, subscriptionId);
+        if (!canUseSummerWeeks(record, weeks, otherSummerWeeksUsed)) {
+          const remaining = Math.max(0, MAX_SUMMER_PAUSE_WEEKS - summerWeeksUsed(record) - otherSummerWeeksUsed);
+          return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' summer week(s) left for this break.' }) };
+        }
 
-      // Stripe's pause_collection takes effect the moment it's called,
-      // there's no way to schedule it for a future start date. So this
-      // just records the request now (which can happen any time in
-      // advance) and a daily check (summer-closure-start-check.js)
-      // actually applies the Stripe pause once SUMMER_PAUSE_START
-      // arrives, exactly like a subscription that's still 'active' in
-      // every other respect right up until then.
-      const proposedEnd = new Date(SUMMER_PAUSE_START + 'T00:00:00');
-      proposedEnd.setDate(proposedEnd.getDate() + weeks * 7);
-      const windowEnd = new Date(SUMMER_PAUSE_END + 'T00:00:00');
-      const summerPauseEndDate = (proposedEnd < windowEnd ? proposedEnd : windowEnd).toISOString().slice(0, 10);
+        // Stripe's pause_collection takes effect the moment it's called,
+        // there's no way to schedule it for a future start date. So this
+        // just records the request now (which can happen any time in
+        // advance) and a daily check (summer-closure-start-check.js)
+        // actually applies the Stripe pause once SUMMER_PAUSE_START
+        // arrives, exactly like a subscription that's still 'active' in
+        // every other respect right up until then.
+        const proposedEndCheck = new Date(SUMMER_PAUSE_START + 'T00:00:00');
+        proposedEndCheck.setDate(proposedEndCheck.getDate() + weeks * 7);
+        const windowEndCheck = new Date(SUMMER_PAUSE_END + 'T00:00:00');
+        const summerPauseEndDateCheck = (proposedEndCheck < windowEndCheck ? proposedEndCheck : windowEndCheck).toISOString().slice(0, 10);
 
-      record.summerPausePending = true;
-      record.summerPauseEndDate = summerPauseEndDate;
-      record.summerWeeksUsed = summerWeeksUsed(record) + weeks;
-      await saveSubscriptionRecord(subscriptionId, record);
+        record.summerPausePending = true;
+        record.summerPauseEndDate = summerPauseEndDateCheck;
+        record.summerWeeksUsed = summerWeeksUsed(record) + weeks;
+        await saveSubscriptionRecord(subscriptionId, record);
+      } finally {
+        await releaseEmailPauseLock(record.studentEmail);
+      }
 
       if (record.studentEmail) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your summer break is booked in',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(record.summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
         );
       }
 
-      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: summerPauseEndDate, summerWeeksRemaining: MAX_SUMMER_PAUSE_WEEKS - record.summerWeeksUsed }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: record.summerPauseEndDate, summerWeeksRemaining: MAX_SUMMER_PAUSE_WEEKS - record.summerWeeksUsed }) };
     }
 
     if (action === 'changeFrequency') {

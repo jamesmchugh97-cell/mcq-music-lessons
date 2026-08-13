@@ -16,6 +16,7 @@ const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 const {
   timeToMinutes,
+  createLessonOccurrence,
   getSubscriptionRecord,
   saveSubscriptionRecord,
   deleteSubscriptionRecord,
@@ -43,12 +44,6 @@ const PRICE_BY_DURATION = { '30': 50, '45': 70, '60': 85, '75': 100, '90': 130 }
 
 function bookingsStore() {
   return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
-}
-
-function minutesToIsoClock(totalMinutes) {
-  const h = Math.floor(totalMinutes / 60) % 24;
-  const m = totalMinutes % 60;
-  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
 }
 
 // Formats a 'YYYY-MM-DD' date string into something readable in an
@@ -123,66 +118,6 @@ async function slotStillFree(dow, time, durationMinutes, excludeSubscriptionId) 
   return !conflictsWithSubscriptions(blocking, startMinutes, endMinutes);
 }
 
-// Creates the booking record + Google Calendar event for one specific
-// lesson occurrence (one billing cycle = one lesson), same shape as a
-// normal one-off booking so it shows up correctly everywhere else in
-// the system (Manage Booking, calendar, etc). Tags it with
-// subscriptionId so it's identifiable as subscription-generated.
-async function createLessonOccurrence(dateStr, record) {
-  const store = bookingsStore();
-  const key = dateStr + '_' + record.time;
-  const bookingRecord = {
-    date: dateStr,
-    time: record.time,
-    duration: parseInt(record.durationMinutes, 10),
-    name: record.studentName,
-    email: record.studentEmail,
-    subscriptionId: record.subscriptionId,
-    bookedAt: new Date().toISOString()
-  };
-  try {
-    const result = await store.set(key, JSON.stringify(bookingRecord), { onlyIfNew: true });
-    if (result && result.modified === false) {
-      // Extremely rare: a one-off booking already exists on this exact
-      // slot. Don't silently overwrite it, log loudly so James can
-      // manually check, since automated slot checks should have
-      // prevented this happening in the first place.
-      console.error('[stripe-webhook] CONFLICT: lesson occurrence ' + key + ' already exists as a booking. Manual check needed.');
-      return null;
-    }
-  } catch (e) {
-    console.error('[stripe-webhook] failed to write lesson occurrence:', e && e.message ? e.message : e);
-    return null;
-  }
-
-  try {
-    const startMinutes = timeToMinutes(record.time);
-    const endMinutes = startMinutes + parseInt(record.durationMinutes, 10);
-    const startDateTime = dateStr + 'T' + minutesToIsoClock(startMinutes);
-    const endDateTime = dateStr + 'T' + minutesToIsoClock(endMinutes);
-    // Same "only show it if it actually narrows something down" rule
-    // as the one-off booking flow - "Either / Both" isn't worth stating
-    // since James needs both options ready regardless.
-    const displayInstrument = (record.guitarType && record.guitarType !== 'Either' && record.instrument !== 'Piano')
-      ? record.instrument + ' (' + record.guitarType + ')'
-      : record.instrument;
-    const eventId = await createCalendarEvent({
-      studentName: record.studentName,
-      startDateTime: startDateTime,
-      endDateTime: endDateTime,
-      notes: 'Weekly subscription lesson (' + record.frequency + '), ' + record.studentEmail,
-      instrument: displayInstrument
-    });
-    if (eventId) {
-      bookingRecord.eventId = eventId;
-      await store.set(key, JSON.stringify(bookingRecord));
-    }
-  } catch (calErr) {
-    console.error('[stripe-webhook] calendar event failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
-  }
-
-  return dateStr;
-}
 
 // Checks a specific date/time against the one-off "bookings" store, the
 // counterpart to slotStillFree() above which only checks OTHER

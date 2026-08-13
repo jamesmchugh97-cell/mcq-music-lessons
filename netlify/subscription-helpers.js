@@ -8,7 +8,7 @@
 // old hardcoded RECURRING_STUDENTS roster used for James's existing
 // manually-managed students.
 const { getStore } = require('@netlify/blobs');
-const { deleteCalendarEvent } = require('./google-calendar-helper');
+const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 
 const MAX_PAUSE_WEEKS_PER_YEAR = 4;
 const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
@@ -164,6 +164,76 @@ function timeToMinutes(t) {
   if (ap === 'pm' && h !== 12) h += 12;
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
+}
+
+function minutesToIsoClock(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
+}
+
+// Creates one subscription lesson's booking record and calendar event
+// for a single specific date. Originally lived only in stripe-webhook.js,
+// called once per successful renewal invoice - moved here so
+// pause-expiry-check.js can call the exact same logic directly when a
+// subscription resumes from a pause, instead of relying on the next
+// Stripe renewal to create it (which would either skip the wrong date
+// entirely, or show a misleadingly stale "next lesson" date to the
+// student in the meantime - see the resume logic in
+// pause-expiry-check.js for the full reasoning).
+async function createLessonOccurrence(dateStr, record) {
+  const store = bookingsStore();
+  const key = dateStr + '_' + record.time;
+  const bookingRecord = {
+    date: dateStr,
+    time: record.time,
+    duration: parseInt(record.durationMinutes, 10),
+    name: record.studentName,
+    email: record.studentEmail,
+    subscriptionId: record.subscriptionId,
+    bookedAt: new Date().toISOString()
+  };
+  try {
+    const result = await store.set(key, JSON.stringify(bookingRecord), { onlyIfNew: true });
+    if (result && result.modified === false) {
+      // Extremely rare: a one-off booking already exists on this exact
+      // slot. Don't silently overwrite it, log loudly so James can
+      // manually check, since automated slot checks should have
+      // prevented this happening in the first place.
+      console.error('[subscription-helpers] CONFLICT: lesson occurrence ' + key + ' already exists as a booking. Manual check needed.');
+      return null;
+    }
+  } catch (e) {
+    console.error('[subscription-helpers] failed to write lesson occurrence:', e && e.message ? e.message : e);
+    return null;
+  }
+
+  try {
+    const startMinutes = timeToMinutes(record.time);
+    const endMinutes = startMinutes + parseInt(record.durationMinutes, 10);
+    const startDateTime = dateStr + 'T' + minutesToIsoClock(startMinutes);
+    const endDateTime = dateStr + 'T' + minutesToIsoClock(endMinutes);
+    // Same "only show it if it actually narrows something down" rule
+    // as the one-off booking flow - "Either / Both" isn't worth stating
+    // since James needs both options ready regardless.
+    const displayInstrument = (record.guitarType && record.guitarType !== 'Either' && record.instrument !== 'Piano')
+      ? record.instrument + ' (' + record.guitarType + ')'
+      : record.instrument;
+    const eventId = await createCalendarEvent({
+      studentName: record.studentName,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      notes: 'Weekly subscription lesson (' + record.frequency + '), ' + record.studentEmail,
+      instrument: displayInstrument
+    });
+    if (eventId) {
+      bookingRecord.eventId = eventId;
+      await store.set(key, JSON.stringify(bookingRecord));
+    }
+  } catch (calErr) {
+    console.error('[subscription-helpers] calendar event failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
+  }
+  return bookingRecord.eventId || null;
 }
 
 function dayOfWeek(dateStr) {
@@ -352,6 +422,56 @@ function canPauseWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
 // of the intended 4. Two genuinely different people, each with their
 // own email, are correctly unaffected by this at all, since neither
 // would ever show up in the other's lookup.
+// totalPausedWeeksForEmail/totalSummerWeeksForEmail below are a
+// read-check pattern, not atomic on their own - if the same email
+// submits two pause requests for two different subscriptions close
+// enough together, both could read the "before" state before either
+// has written its own update back, and both get allowed even though
+// together they'd exceed the shared cap. Genuinely plausible: someone
+// pausing both of their subscriptions at once for a trip might click
+// both pause buttons in quick succession. This lock closes that
+// specific window - whoever's request actually claims the lock first
+// proceeds; the other is asked to retry a moment later, not silently
+// allowed to slip through. Stale-lock handling covers a request that
+// crashed mid-way without releasing it.
+const PAUSE_LOCK_STALE_MS = 10000;
+function pauseLockStore() {
+  return getStore({ name: 'pause-request-locks', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+async function acquireEmailPauseLock(email) {
+  if (!email) return true; // nothing meaningful to lock without an email
+  const key = email.trim().toLowerCase();
+  const store = pauseLockStore();
+  const now = Date.now();
+  try {
+    const result = await store.set(key, JSON.stringify({ claimedAt: now }), { onlyIfNew: true });
+    if (result && result.modified === false) {
+      const existing = await store.get(key, { type: 'json' });
+      const isStale = !existing || !existing.claimedAt || (now - existing.claimedAt) > PAUSE_LOCK_STALE_MS;
+      if (!isStale) return false;
+      await store.set(key, JSON.stringify({ claimedAt: now }));
+    }
+    return true;
+  } catch (e) {
+    // If the lock store itself is having trouble, fail open rather than
+    // blocking every pause request site-wide over an infrastructure
+    // hiccup unrelated to the pause policy itself.
+    console.error('[subscription-helpers] pause lock acquire failed:', e && e.message ? e.message : e);
+    return true;
+  }
+}
+async function releaseEmailPauseLock(email) {
+  if (!email) return;
+  try {
+    const store = pauseLockStore();
+    await store.delete(email.trim().toLowerCase());
+  } catch (e) {
+    // Not releasing promptly just means the next request waits out the
+    // staleness window instead of retrying immediately - safe, if
+    // slightly slower, so this failure is swallowed rather than thrown.
+  }
+}
+
 async function totalPausedWeeksForEmail(email, excludeSubscriptionId) {
   if (!email) return 0;
   const history = await getEmailHistory(email);
@@ -439,6 +559,8 @@ module.exports = {
   SUMMER_PAUSE_END,
   MAX_SUMMER_PAUSE_WEEKS,
   timeToMinutes,
+  minutesToIsoClock,
+  createLessonOccurrence,
   dayOfWeek,
   currentYear,
   getSubscriptionRecord,
@@ -453,6 +575,8 @@ module.exports = {
   pausedWeeksThisYear,
   canPauseWeeks,
   totalPausedWeeksForEmail,
+  acquireEmailPauseLock,
+  releaseEmailPauseLock,
   summerWeeksUsed,
   canUseSummerWeeks,
   totalSummerWeeksForEmail,
