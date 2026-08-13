@@ -167,6 +167,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <input type="hidden" name="lessons" id="hiddenLessons" value="1">
       <input type="hidden" name="total" id="hiddenTotal" value="">
       <input type="hidden" name="note" value="">
+      <input type="hidden" name="group_ongoing_interest" value="">
       <p style="display:none;"><input name="bot-field"></p>
       <div class="form-row">
         <div class="form-group">
@@ -194,6 +195,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
           <button class="instrument-btn active" onclick="selectInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
           <button class="instrument-btn" onclick="selectInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="guitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectGuitarType(this,'Either')" type="button">Either / Both</button>
         </div>
       </div>
       <div id="durationGroup" class="form-group">
@@ -318,6 +327,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <button class="instrument-btn" onclick="selectSubscribeInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
         </div>
       </div>
+      <div class="form-group" id="subGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectSubGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectSubGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectSubGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lessons per week</label>
+        <select class="form-input" id="subLessonsPerWeek" onchange="handleSubLessonsPerWeekChange()">
+          <option value="1" selected>1 (a single weekly slot)</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Day of the week</label>
@@ -345,6 +370,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <option>9:00 pm</option>
           </select>
         </div>
+      </div>
+      <div id="subExtraSlotsGroup" style="display:none;">
+        <p style="font-size:0.72rem;color:var(--muted);margin:-0.3rem 0 0.6rem;">Choose a day and time for each additional lesson. These become their own separate weekly subscriptions, billed and managed independently, so you're never locked into all of them together.</p>
+        <div id="subExtraSlotsContainer"></div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -407,8 +436,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
       <div class="group-desc">Register your interest below to learn alongside another student. Once two people select the same instrument and time slot, the class is confirmed. A great, low-cost way to learn.</div>
       <div class="group-details">
-        <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 Minutes</div></div>
-        <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$40 per person</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 or 60 Minutes</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$45 or $55 per person</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Instruments</div><div class="group-detail-value">Guitar & Piano</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Minimum</div><div class="group-detail-value">2 people, same slot</div></div>
       </div>
@@ -441,6 +470,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </div>
         </div>
         <div class="form-group">
+          <label class="form-label">Duration</label>
+          <select class="form-input" id="groupDuration">
+            <option value="45|45" selected>45 minutes · $45 per person</option>
+            <option value="60|55">60 minutes · $55 per person</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">Preferred Time</label>
           <select class="form-input" id="groupTime">
             <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
@@ -455,8 +491,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <option>9:00 pm</option>
           </select>
         </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);cursor:pointer;">
+            <input type="checkbox" id="groupOngoingInterest" style="width:auto;">
+            I'd be interested in this becoming an ongoing weekly or fortnightly class, if it works out
+          </label>
+        </div>
         <button class="btn-primary" id="groupSubmitBtn" type="submit" style="width:100%;text-align:center;">Register Interest →</button>
-        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Your time is held pending. You're only charged $40 once a second person books the same instrument and slot.</p>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Your time is held pending. You're only charged once a second person books the same instrument, time, and duration.</p>
       </form>
     </div>
   </div>
@@ -560,16 +602,29 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 <script>
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
   function toggleFaq(btn) { btn.parentElement.classList.toggle('open'); }
-  function closeModal() { document.getElementById('successModal').classList.remove('open'); }
+  function closeModal() {
+    document.getElementById('successModal').classList.remove('open');
+    const doneBtn = document.querySelector('#successModal .modal-close');
+    if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.onclick = function () { closeModal(); }; }
+  }
 
   // INSTRUMENT
   let selectedInstrument = 'Guitar';
+  let selectedGuitarType = 'Acoustic';
   function selectInstrument(btn, name) {
-    document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    const grid = btn.closest('.instrument-grid');
+    grid.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedInstrument = name;
     document.getElementById('hiddenInstrument').value = name;
+    const guitarGroup = document.getElementById('guitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
     updateTotal();
+  }
+  function selectGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGuitarType = type;
   }
 
   // Used by the "Book 5 lessons" / "Book 10 lessons" shortcut buttons so
@@ -609,13 +664,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // it rejected at the very end. Also surfaces a short reminder for
   // custom mode, since that's the option most likely to drift into the
   // sporadic pattern the rule exists to prevent.
+  // Everything must now fit within the 30-day booking window, full
+  // stop - there's no longer a "beyond 30 days, use a consistent
+  // pattern instead" middle ground the way there was when the site
+  // allowed booking up to a year ahead. A weekly pattern can fit at
+  // most 5 lessons within 30 days (days 0, 7, 14, 21, 28), fortnightly
+  // at most 3 (days 0, 14, 28) - both far below the old 5-lesson
+  // fortnightly cap, since that only ever applied beyond 30 days, which
+  // no longer exists as an option at all.
   function updateBookingPatternGuidance(lessons) {
     const modeSelect = document.getElementById('bookingMode');
     const fortnightlyOption = document.getElementById('fortnightlyOption');
     const note = document.getElementById('bookingPatternNote');
     if (!modeSelect || !fortnightlyOption || !note) return;
-    const MAX_FORTNIGHTLY_LESSONS = 5;
-    const tooManyForFortnightly = lessons > MAX_FORTNIGHTLY_LESSONS;
+    const MAX_WEEKLY_IN_WINDOW = 5;
+    const MAX_FORTNIGHTLY_IN_WINDOW = 3;
+    const tooManyForFortnightly = lessons > MAX_FORTNIGHTLY_IN_WINDOW;
     fortnightlyOption.disabled = tooManyForFortnightly;
     let switched = false;
     if (tooManyForFortnightly && modeSelect.value === 'fortnightly') {
@@ -624,22 +688,25 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     if (switched) {
       note.style.display = 'block';
-      note.textContent = 'Switched to weekly, fortnightly bookings past 30 days out are limited to 5 lessons at a time.';
-    } else if (tooManyForFortnightly && modeSelect.value === 'custom') {
+      note.textContent = 'Switched to weekly - fortnightly can only fit ' + MAX_FORTNIGHTLY_IN_WINDOW + ' lessons within the 30-day booking window. For an ongoing fortnightly slot, subscribe instead.';
+    } else if (modeSelect.value === 'weekly' && lessons > MAX_WEEKLY_IN_WINDOW) {
       note.style.display = 'block';
-      note.textContent = 'Custom dates reaching more than 30 days out need to form a consistent weekly pattern (fortnightly is limited to 5 lessons). Keep everything within 30 days, or switch to weekly above.';
+      note.textContent = 'Only the first ' + MAX_WEEKLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below for you to fill in once that time comes closer, or subscribe for an ongoing weekly slot instead.';
+    } else if (modeSelect.value === 'fortnightly' && lessons > MAX_FORTNIGHTLY_IN_WINDOW) {
+      note.style.display = 'block';
+      note.textContent = 'Only the first ' + MAX_FORTNIGHTLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below, or subscribe for an ongoing fortnightly slot instead.';
     } else if (modeSelect.value === 'custom') {
       note.style.display = 'block';
-      note.textContent = 'Custom dates are fine within the next 30 days. Reaching further out than that needs a consistent weekly or fortnightly pattern instead.';
+      note.textContent = 'Every date must fall within the next 30 days.';
     } else {
       note.style.display = 'none';
     }
   }
 
-  // Returns the furthest date anyone can book, one year from today.
+  // Returns the furthest date anyone can book, 30 days from today.
   function getMaxBookingDate() {
     const d = new Date(TODAY);
-    d.setDate(d.getDate() + 365);
+    d.setDate(d.getDate() + 30);
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
@@ -654,6 +721,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // filling in the whole form and only finding out at the very end. The
   // server re-checks this regardless, this is purely for a faster,
   // friendlier response, never the actual enforcement.
+  //
+  // Written when the site allowed booking up to a year ahead - the
+  // "farthestDaysOut <= 30 return null" line just below means this
+  // function's own body can now never actually run, since nothing can
+  // reach past 30 days at all anymore (see getMaxBookingDate). Left in
+  // place rather than deleted, in case the window is ever widened
+  // again later, matching the same choice made server-side.
   //
   // Checked PER WEEKDAY rather than across the whole date list at once,
   // since the site explicitly offers "twice a week" bookings (see
@@ -705,13 +779,25 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const maxDateStr = getMaxBookingDate();
 
     let autoDates = [];
+    let trimmedByWindow = false;
     if ((mode === 'weekly' || mode === 'fortnightly') && primaryDate) {
       const intervalDays = mode === 'fortnightly' ? 14 : 7;
       const start = new Date(primaryDate + 'T00:00:00');
       for (let i = 1; i <= needed; i++) {
         const d = new Date(start);
         d.setDate(d.getDate() + intervalDays * i);
-        autoDates.push(dKey(d.getFullYear(), d.getMonth(), d.getDate()));
+        const dateStr = dKey(d.getFullYear(), d.getMonth(), d.getDate());
+        // Never silently pre-fill a date beyond the booking window - a
+        // student choosing "10 weekly lessons" would otherwise only
+        // discover most of those dates are invalid after filling in
+        // their name, email, and card details and clicking submit.
+        // Leaving the row empty instead makes the gap visible right
+        // away, paired with the message below explaining why.
+        if (dateStr > maxDateStr) {
+          trimmedByWindow = true;
+          break;
+        }
+        autoDates.push(dateStr);
       }
     }
 
@@ -1402,12 +1488,71 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   (function() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('subscribed') !== '1') return;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+    const doneBtn = document.querySelector('#successModal .modal-close');
+
+    // Multi-lesson queue (2 or 3 lessons/week) takes priority over the
+    // single-slot path below, since only one of the two sessionStorage
+    // keys will ever be set at a time.
+    let queue = null;
+    try {
+      const rawQueue = sessionStorage.getItem('mcqMultiSubscribeQueue');
+      if (rawQueue) queue = JSON.parse(rawQueue);
+    } catch (e) {}
+
+    if (queue) {
+      const justConfirmed = queue.slots[queue.currentIndex];
+      queue.completedSlots.push(justConfirmed);
+      const nextIndex = queue.currentIndex + 1;
+      const calTitle = (queue.instrument || 'Music') + ' Lesson - MCQ Music';
+      const rrule = 'RRULE:FREQ=WEEKLY' + (queue.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
+
+      if (nextIndex < queue.slots.length) {
+        // More lessons left to set up - this one's genuinely confirmed
+        // already (it's a real, separate subscription from this point
+        // on, not provisional), the rest just haven't been started yet.
+        document.getElementById('modalTitle').textContent = 'Lesson ' + (nextIndex) + ' of ' + queue.slots.length + ' confirmed!';
+        const next = queue.slots[nextIndex];
+        document.getElementById('modalBody').innerHTML = 'Your ' + queue.frequency + ' ' + queue.instrument + ' lesson on ' + justConfirmed.dayName + 's at ' + justConfirmed.time + ' is locked in, a confirmation email is on its way for that one. Now let\'s set up lesson ' + (nextIndex + 1) + ' of ' + queue.slots.length + ': ' + next.dayName + 's at ' + next.time + '. You\'ll be redirected to Stripe again to pay for this one separately.' +
+          calendarLinksHtml(calTitle, getNextDateForDow(justConfirmed.dow), justConfirmed.time, queue.durationMinutes || 45, rrule);
+        try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
+        if (doneBtn) {
+          doneBtn.textContent = 'Continue to lesson ' + (nextIndex + 1) + ' \u2192';
+          doneBtn.onclick = function () {
+            document.getElementById('successModal').classList.remove('open');
+            startSubscribeQueueSlot(queue, nextIndex);
+          };
+        }
+      } else {
+        // All lessons in the queue are now confirmed.
+        document.getElementById('modalTitle').textContent = "You're All Set!";
+        let bodyHtml = 'All ' + queue.slots.length + ' of your ' + queue.frequency + ' ' + queue.instrument + ' lessons are locked in, as ' + queue.slots.length + ' separate subscriptions you can each manage independently below:<ul style="margin:0.6rem 0 0 1.1rem;padding:0;">' +
+          queue.completedSlots.map(function (s) { return '<li>' + s.dayName + 's at ' + s.time + '</li>'; }).join('') +
+          '</ul>A confirmation email is on its way for each one.';
+        queue.completedSlots.forEach(function (s) {
+          bodyHtml += calendarLinksHtml(calTitle, getNextDateForDow(s.dow), s.time, queue.durationMinutes || 45, rrule);
+        });
+        document.getElementById('modalBody').innerHTML = bodyHtml;
+        try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e) {}
+        if (doneBtn) {
+          doneBtn.textContent = 'Done';
+          doneBtn.onclick = function () { closeModal(); };
+        }
+      }
+      document.getElementById('successModal').classList.add('open');
+      return;
+    }
+
+    // Single-slot path, unchanged from before this feature existed.
     let details = null;
     try {
       const raw = sessionStorage.getItem('mcqSubscribePending');
       if (raw) details = JSON.parse(raw);
       sessionStorage.removeItem('mcqSubscribePending');
     } catch (e) {}
+    if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.onclick = function () { closeModal(); }; }
     document.getElementById('modalTitle').textContent = "You're Subscribed!";
     if (details) {
       const rrule = 'RRULE:FREQ=WEEKLY' + (details.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
@@ -1419,11 +1564,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('modalBody').textContent = 'Your subscription is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.';
     }
     document.getElementById('successModal').classList.add('open');
-    // Strips the ?subscribed=1 param so refreshing the page afterwards
-    // doesn't show this same confirmation again.
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
-    }
   })();
 
   // STRIPE
@@ -1455,6 +1595,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const phone = document.getElementById('groupPhone').value.trim();
     const date = document.getElementById('groupDate').value;
     const time = document.getElementById('groupTime').value;
+    const durationVal = document.getElementById('groupDuration').value.split('|');
+    const durationMinutes = durationVal[0];
+    const price = durationVal[1];
+    const ongoingInterest = document.getElementById('groupOngoingInterest').checked;
     if (!name || !email || !date) { alert('Please fill in your name, email, and preferred date.'); return false; }
     const btn = document.getElementById('groupSubmitBtn');
     btn.textContent = 'Sending…'; btn.disabled = true;
@@ -1466,13 +1610,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     formData.append('instrument', 'Group Class, ' + selectedGroupInstrument);
     formData.append('date', date);
     formData.append('time', time);
-    formData.append('total', '$40 (pending confirmation)');
+    formData.append('duration', durationMinutes);
+    formData.append('total', '$' + price + ' (pending confirmation)');
+    formData.append('group_ongoing_interest', ongoingInterest ? 'Yes - interested in an ongoing weekly/fortnightly group class if this works out.' : '');
     fetch('/', { method: 'POST', body: formData }).catch(() => {});
     setTimeout(() => {
       btn.textContent = 'Register Interest →'; btn.disabled = false;
       document.getElementById('groupClassForm').reset();
       document.getElementById('modalTitle').textContent = 'Interest Registered!';
-      document.getElementById('modalBody').textContent = 'Your interest in a ' + selectedGroupInstrument + ' group class on ' + date + ' at ' + time + ' has been recorded. James will be in touch once a second person books the same instrument and slot.';
+      document.getElementById('modalBody').textContent = 'Your interest in a ' + durationMinutes + '-minute ' + selectedGroupInstrument + ' group class on ' + date + ' at ' + time + ' has been recorded ($' + price + ' per person once confirmed). James will be in touch once a second person books the same instrument, time, and duration.' + (ongoingInterest ? ' He\'ll also follow up about setting this up as an ongoing class once it\'s confirmed.' : '');
       document.getElementById('successModal').classList.add('open');
     }, 1000);
     return false;
@@ -1761,7 +1907,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
-    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance.'; return; }
+    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. For anything more ongoing, set up a subscription instead.'; return; }
     const primaryDow = dayOfWeek(date);
     if (primaryDow === 0) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on Sundays.'; return; }
     if (hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
@@ -1794,7 +1940,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           return;
         }
         if (dInput.value > getMaxBookingDate()) {
-          document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a year in advance. Please check each date.';
+          document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. Please check each date.';
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
@@ -1836,6 +1982,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           email: email,
           duration: primaryDurationMinutes,
           instrument: selectedInstrument,
+          guitar_type: (selectedInstrument === 'Piano') ? '' : selectedGuitarType,
           song_requests: document.getElementById('bookSongRequests').value.trim(),
           genre_focus: document.getElementById('bookGenreFocus').value,
           theory_interest: document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No',
@@ -1925,6 +2072,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     formData.append('email', email);
     formData.append('phone', phone);
     formData.append('instrument', selectedInstrument);
+    formData.append('guitar_type', (selectedInstrument === 'Piano') ? '' : selectedGuitarType);
     formData.append('date', date);
     formData.append('time', time);
     formData.append('duration', duration);
@@ -1945,6 +2093,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         name: name,
         email: email,
         instrument: selectedInstrument,
+        guitar_type: (selectedInstrument === 'Piano') ? '' : selectedGuitarType,
         date: date,
         time: time,
         slots: reservedSlots,
@@ -1973,10 +2122,18 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   // ===== SUBSCRIPTIONS =====
   let selectedSubscribeInstrument = 'Guitar';
+  let selectedSubscribeGuitarType = 'Acoustic';
   function selectSubscribeInstrument(btn, name) {
     btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedSubscribeInstrument = name;
+    const guitarGroup = document.getElementById('subGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectSubGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSubscribeGuitarType = type;
   }
 
   // Returns the nearest future date (starting tomorrow) that falls on the
@@ -2054,15 +2211,115 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
+  // Builds one day+time picker per additional lesson (lessonsPerWeek - 1
+  // of them), mirroring renderExtraDateRows for the one-off booking form
+  // - but day-of-week based, not a specific date, since these become
+  // their own recurring weekly (or fortnightly) subscriptions, not
+  // one-off dates.
+  function renderSubExtraSlotRows(count) {
+    const container = document.getElementById('subExtraSlotsContainer');
+    const group = document.getElementById('subExtraSlotsGroup');
+    const needed = Math.max(0, count - 1);
+    group.style.display = needed > 0 ? 'block' : 'none';
+    const existing = Array.from(container.querySelectorAll('.sub-extra-slot-row')).map(row => ({
+      dow: row.querySelector('.sub-extra-dow').value,
+      time: row.querySelector('.sub-extra-time').value
+    }));
+    container.innerHTML = '';
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    for (let i = 0; i < needed; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'sub-extra-slot-row';
+      wrap.style.cssText = 'margin-bottom:0.8rem;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;';
+      label.textContent = 'Lesson ' + (i + 2);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;';
+      const dowSelect = document.createElement('select');
+      dowSelect.className = 'form-input sub-extra-dow';
+      for (let d = 1; d <= 6; d++) {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = dayNames[d];
+        dowSelect.appendChild(opt);
+      }
+      const timeSelect = document.createElement('select');
+      timeSelect.className = 'form-input sub-extra-time';
+      ALL_TIMES.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (existing[i]) {
+        dowSelect.value = existing[i].dow;
+        timeSelect.value = existing[i].time;
+      }
+      dowSelect.addEventListener('change', refreshSubExtraSlotTimeOptions.bind(null, wrap));
+      timeSelect.addEventListener('change', updateSubscribeTotal);
+      row.appendChild(dowSelect);
+      row.appendChild(timeSelect);
+      wrap.appendChild(label);
+      wrap.appendChild(row);
+      container.appendChild(wrap);
+      refreshSubExtraSlotTimeOptions(wrap);
+    }
+    updateSubscribeTotal();
+  }
+
+  // Filters an extra slot row's own time options to what's actually
+  // free for its chosen day, same underlying getAvailableTimes logic
+  // used everywhere else - each extra lesson gets the exact same
+  // graying-out protection the primary slot already has, not a
+  // simplified version of it.
+  function refreshSubExtraSlotTimeOptions(wrap) {
+    const dowSelect = wrap.querySelector('.sub-extra-dow');
+    const timeSelect = wrap.querySelector('.sub-extra-time');
+    const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10) || 45;
+    const dow = parseInt(dowSelect.value, 10);
+    const previewDate = getNextDateForDow(dow);
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(previewDate, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No times currently free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+
+  function handleSubLessonsPerWeekChange() {
+    const count = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    renderSubExtraSlotRows(count);
+  }
+
   function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); refreshSubscribeDurationOptions(); }
-  function handleSubscribeDurationChange() { refreshSubscribeTimeOptions(); updateSubscribeTotal(); }
+  function handleSubscribeDurationChange() {
+    refreshSubscribeTimeOptions();
+    refreshSubscribeDurationOptions();
+    document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row').forEach(refreshSubExtraSlotTimeOptions);
+    updateSubscribeTotal();
+  }
   function handleSubscribeTimeChange() { refreshSubscribeDurationOptions(); }
 
   function updateSubscribeTotal() {
     const price = parseInt(document.getElementById('subDuration').value.split('|')[1], 10);
     const freq = document.getElementById('subFrequency').value;
     const freqLabel = freq === 'fortnightly' ? 'every fortnight' : 'every week';
-    document.getElementById('subTotalAmt').textContent = '$' + price + ' ' + freqLabel;
+    const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    if (lessonsPerWeek > 1) {
+      document.getElementById('subTotalAmt').textContent = '$' + (price * lessonsPerWeek) + ' ' + freqLabel + ' ($' + price + ' × ' + lessonsPerWeek + ' lessons, as ' + lessonsPerWeek + ' separate subscriptions)';
+    } else {
+      document.getElementById('subTotalAmt').textContent = '$' + price + ' ' + freqLabel;
+    }
   }
 
   refreshSubscribeTimeOptions();
@@ -2072,6 +2329,28 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // every existing subscriber and one-off booking server-side, then
   // returns a Stripe Checkout URL to redirect to. Nothing is charged
   // until the student completes checkout on Stripe's own page.
+  // Shared by both the single-slot and multi-slot paths - posts one
+  // slot to create-subscription.js and returns its result, without
+  // redirecting itself, so the caller decides what happens next.
+  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType) {
+    const resp = await fetch('/.netlify/functions/create-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentName: name,
+        studentEmail: email,
+        phone: phone,
+        instrument: instrument,
+        guitarType: (instrument === 'Piano') ? '' : guitarType,
+        dayOfWeek: dow,
+        time: time,
+        durationMinutes: durationMinutes,
+        frequency: frequency
+      })
+    });
+    return await resp.json();
+  }
+
   async function handleSubscribe(event) {
     if (event) event.preventDefault();
     const name = document.getElementById('subName').value.trim();
@@ -2081,6 +2360,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const time = document.getElementById('subTime').value;
     const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10);
     const frequency = document.getElementById('subFrequency').value;
+    const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
     const errEl = document.getElementById('subError');
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
@@ -2090,56 +2370,129 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       errEl.textContent = 'That lesson length is not available at this time. Please choose a different duration or time.';
       return false;
     }
+
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const slots = [{ dow: dow, time: time, dayName: dayNames[dow] }];
+
+    if (lessonsPerWeek > 1) {
+      const extraRows = Array.from(document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row'));
+      for (const row of extraRows) {
+        const rDow = parseInt(row.querySelector('.sub-extra-dow').value, 10);
+        const rTime = row.querySelector('.sub-extra-time').value;
+        if (!rTime) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Please choose a time for every additional lesson, or no times are currently free on one of those days.';
+          return false;
+        }
+        if (isSlotTaken(getNextDateForDow(rDow), rTime, durationMinutes)) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'One of your additional lesson times is no longer available. Please double-check each day and time.';
+          return false;
+        }
+        // Two lessons can't legitimately land on the exact same day and
+        // overlapping time as each other within this same submission -
+        // each is checked against everyone else's bookings above, but
+        // not yet against each other.
+        const newStart = timeToMinutes(rTime);
+        const newEnd = newStart + durationMinutes;
+        const clashesWithAnother = slots.some(s => {
+          if (s.dow !== rDow) return false;
+          const sStart = timeToMinutes(s.time);
+          const sEnd = sStart + durationMinutes;
+          return newStart < sEnd && sStart < newEnd;
+        });
+        if (clashesWithAnother) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Two of your chosen lessons overlap with each other. Please choose different times.';
+          return false;
+        }
+        slots.push({ dow: rDow, time: rTime, dayName: dayNames[rDow] });
+      }
+    }
+
     const btn = document.getElementById('subSubmitBtn');
     btn.textContent = 'Redirecting to checkout…'; btn.disabled = true;
+
+    if (slots.length === 1) {
+      // Unchanged single-slot path, exactly as it worked before this
+      // feature existed.
+      try {
+        const result = await submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, selectedSubscribeInstrument, selectedSubscribeGuitarType);
+        if (result.success && result.url) {
+          try {
+            sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
+              instrument: selectedSubscribeInstrument, dow: dow, dayName: dayNames[dow], time: time,
+              frequency: frequency, durationMinutes: durationMinutes
+            }));
+          } catch (e) {}
+          window.location.href = result.url;
+        } else {
+          errEl.style.display = 'block';
+          errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
+          btn.textContent = 'Subscribe →'; btn.disabled = false;
+          refreshSubscribeTimeOptions();
+          refreshSubscribeDurationOptions();
+        }
+      } catch (e) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+        btn.textContent = 'Subscribe →'; btn.disabled = false;
+      }
+      return false;
+    }
+
+    // Multi-slot path: each lesson becomes its own separate
+    // subscription (see the design note above submitOneSubscriptionSlot
+    // for why - this preserves every pause/resume/conflict function
+    // already tested tonight completely untouched, rather than
+    // rebuilding all of it to understand a subscription with multiple
+    // slots). Starts the first one now; the rest are triggered one at a
+    // time as each Stripe Checkout completes and redirects back here,
+    // via startSubscribeQueueSlot below.
+    const queue = {
+      studentName: name, studentEmail: email, phone: phone,
+      instrument: selectedSubscribeInstrument, guitarType: selectedSubscribeGuitarType, frequency: frequency, durationMinutes: durationMinutes,
+      slots: slots, completedSlots: [], currentIndex: 0
+    };
+    await startSubscribeQueueSlot(queue, 0);
+    return false;
+  }
+
+  // Submits ONE slot from a multi-lesson queue and redirects to its
+  // Checkout session, saving the queue's progress first so the
+  // ?subscribed=1 handler on return knows exactly where things stand.
+  async function startSubscribeQueueSlot(queue, index) {
+    const errEl = document.getElementById('subError');
+    const btn = document.getElementById('subSubmitBtn');
+    const s = queue.slots[index];
     try {
-      const resp = await fetch('/.netlify/functions/create-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentName: name,
-          studentEmail: email,
-          phone: phone,
-          instrument: selectedSubscribeInstrument,
-          dayOfWeek: dow,
-          time: time,
-          durationMinutes: durationMinutes,
-          frequency: frequency
-        })
-      });
-      const result = await resp.json();
+      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType);
       if (result.success && result.url) {
-        // Saved so the confirmation shown on return from Stripe (see the
-        // ?subscribed=1 handler near the bottom of this script) can
-        // state the actual day/time/frequency, not just a generic
-        // "you're subscribed". sessionStorage survives the round trip
-        // to Stripe's own domain and back since it's scoped to this
-        // browser tab, not this origin alone.
-        try {
-          const dayName = document.getElementById('subDay').options[document.getElementById('subDay').selectedIndex].text;
-          sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
-            instrument: selectedSubscribeInstrument,
-            dow: dow,
-            dayName: dayName,
-            time: time,
-            frequency: frequency,
-            durationMinutes: durationMinutes
-          }));
-        } catch (e) {}
+        queue.currentIndex = index;
+        try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
         window.location.href = result.url;
       } else {
-        errEl.style.display = 'block';
-        errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
-        btn.textContent = 'Subscribe →'; btn.disabled = false;
-        refreshSubscribeTimeOptions();
-        refreshSubscribeDurationOptions();
+        // This specific lesson failed - anything earlier in the queue
+        // is already a confirmed, real subscription and stays that way,
+        // so this needs to say exactly that, not read like the whole
+        // signup failed.
+        try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e) {}
+        if (errEl) {
+          errEl.style.display = 'block';
+          errEl.textContent = (index === 0 ? '' : (index) + ' of ' + queue.slots.length + ' lesson(s) already confirmed. ') +
+            'Lesson ' + (index + 1) + ' (' + s.dayName + ' ' + s.time + ') could not be booked: ' + (result.error || 'that time is no longer available.') +
+            (index === 0 ? '' : ' The rest were not attempted - you can subscribe to a replacement time separately whenever you\'re ready.');
+        }
+        if (btn) { btn.textContent = 'Subscribe →'; btn.disabled = false; }
       }
     } catch (e) {
-      errEl.style.display = 'block';
-      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
-      btn.textContent = 'Subscribe →'; btn.disabled = false;
+      try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e2) {}
+      if (errEl) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not reach the server for lesson ' + (index + 1) + '. Please try again or contact James directly.';
+      }
+      if (btn) { btn.textContent = 'Subscribe →'; btn.disabled = false; }
     }
-    return false;
   }
 
   // MANAGE SUBSCRIPTION, self-service lookup, pause, reschedule, cancel
