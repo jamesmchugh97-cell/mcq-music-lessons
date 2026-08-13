@@ -10,7 +10,7 @@
 // step, matching how the rest of the subscription system works.
 const { schedule } = require('@netlify/functions');
 const { getStore } = require('@netlify/blobs');
-const { listAllSubscriptions } = require('./subscription-helpers');
+const { listAllSubscriptions, escapeHtml } = require('./subscription-helpers');
 
 const LOOKBACK_DAYS = 4; // scan the last few days of bookings so a missed run still catches up
 const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
@@ -146,8 +146,8 @@ exports.handler = schedule('@daily', async (event) => {
           '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
           '</div>' +
           '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">How was your lesson?</h2>' +
-          '<p>Hi ' + studentName + ',</p>' +
-          '<p>Hope you enjoyed your' + (record.instrument ? ' ' + record.instrument.toLowerCase() : '') + ' lesson. If you\'d like to keep going, you can lock in the same time every week or fortnight and skip paying lesson by lesson.</p>' +
+          '<p>Hi ' + escapeHtml(studentName) + ',</p>' +
+          '<p>Hope you enjoyed your' + (record.instrument ? ' ' + escapeHtml(record.instrument.toLowerCase()) : '') + ' lesson. If you\'d like to keep going, you can lock in the same time every week or fortnight and skip paying lesson by lesson.</p>' +
           '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/booking.html#subscribe" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Set up a weekly slot &rarr;</a></p>' +
           '<p style="font-size:0.85em;color:#666;">No pressure, this is just here if you\'d like it. You can keep booking one lesson at a time instead, any time from the booking page. Questions? Reply to this email or call 0499 232 898.</p>' +
           '</div>';
@@ -156,7 +156,7 @@ exports.handler = schedule('@daily', async (event) => {
         await sendEmail(
           JAMES_EMAIL,
           'Subscribe nudge sent: ' + studentName,
-          '<p>A "want a weekly slot?" nudge was just sent to <strong>' + studentName + '</strong> (' + record.email + ') after their lesson on ' + dateStr + ' at ' + record.time + '.</p>'
+          '<p>A "want a weekly slot?" nudge was just sent to <strong>' + escapeHtml(studentName) + '</strong> (' + escapeHtml(record.email) + ') after their lesson on ' + dateStr + ' at ' + record.time + '.</p>'
         );
       }
     }

@@ -22,7 +22,8 @@ const {
   getClosureSettings,
   saveClosureSettings,
   deleteClosureSettings,
-  nextOccurrenceDate
+  nextOccurrenceDate,
+  escapeHtml
 } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -152,7 +153,7 @@ exports.handler = async function (event) {
         await sendEmail(
           s.studentEmail,
           'MCQ Music Lessons: closed ' + formatFriendlyDate(startDate) + ' - ' + formatFriendlyDate(endDate),
-          '<p>Hi ' + s.studentName + ',</p><p>Just a heads up, MCQ Music will be closed from ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. Your subscription will automatically pause for that period, no charge, and pick back up right after with no need to do anything yourself.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(s.studentName) + ',</p><p>Just a heads up, MCQ Music will be closed from ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. Your subscription will automatically pause for that period, no charge, and pick back up right after with no need to do anything yourself.</p><p>James</p>'
         );
         notified++;
       }
@@ -196,7 +197,7 @@ exports.handler = async function (event) {
             await sendEmail(
               record.studentEmail,
               'MCQ Music Lessons: the closure has been lifted',
-              '<p>Hi ' + record.studentName + ',</p><p>Good news, the closure has ended early and your subscription has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p>James</p>'
+              '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Good news, the closure has ended early and your subscription has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p>James</p>'
             );
           }
           resumed++;

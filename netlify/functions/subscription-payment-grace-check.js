@@ -23,7 +23,8 @@ const {
   listAllSubscriptions,
   saveSubscriptionRecord,
   PAYMENT_GRACE_PERIOD_DAYS,
-  PAYMENT_REMINDER_AFTER_DAYS
+  PAYMENT_REMINDER_AFTER_DAYS,
+  escapeHtml
 } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -78,12 +79,12 @@ exports.handler = schedule('@daily', async (event) => {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: action needed on your subscription payment',
-          '<p>Hi ' + record.studentName + ',</p><p>Your subscription payment still hasn\'t gone through. Please update your card details as soon as you can. If this isn\'t resolved within the next ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ', your slot will be automatically released. You can check or update your subscription from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription payment still hasn\'t gone through. Please update your card details as soon as you can. If this isn\'t resolved within the next ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ', your slot will be automatically released. You can check or update your subscription from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
           'Payment reminder sent: ' + record.studentName,
-          '<p>' + record.studentName + '\'s payment is still unresolved after ' + Math.floor(daysElapsed) + ' days. A reminder email was just sent to them. Their slot will be automatically released in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' if it\'s still unresolved.</p>'
+          '<p>' + escapeHtml(record.studentName) + '\'s payment is still unresolved after ' + Math.floor(daysElapsed) + ' days. A reminder email was just sent to them. Their slot will be automatically released in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' if it\'s still unresolved.</p>'
         );
         record.paymentFailureReminderSent = true;
         await saveSubscriptionRecord(record.subscriptionId, record);

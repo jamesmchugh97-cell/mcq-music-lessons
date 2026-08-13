@@ -9,7 +9,7 @@
 // subscription and never writes a booking record itself.
 const Stripe = require('stripe');
 const { getStore } = require('@netlify/blobs');
-const { getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR, PRICE_IDS, listBlockingSubscriptionsForDay } = require('./subscription-helpers');
+const { getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR, PRICE_IDS, listBlockingSubscriptionsForDay, isStalePendingHold } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -186,7 +186,7 @@ exports.handler = async function (event) {
       const d = new Date(dateStr + 'T00:00:00');
       if (isNaN(d.getTime()) || d.getDay() !== dow) continue;
       const record = await store.get(blob.key, { type: 'json' });
-      if (!record || !record.time) continue;
+      if (!record || !record.time || isStalePendingHold(record)) continue;
       const exStart = timeToMinutes(record.time);
       const exEnd = exStart + (record.duration || 45);
       const overlap = startMinutes < exEnd && exStart < endMinutes;

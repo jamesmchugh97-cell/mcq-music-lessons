@@ -14,6 +14,28 @@ const MAX_PAUSE_WEEKS_PER_YEAR = 4;
 const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
 const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails before sending a warning email (2-day heads up before release)
 
+// A slot is locked in via reserve-multi-slots.js BEFORE the card is
+// actually charged (so two people can never both pay for the same
+// time), marked pendingPayment: true with a reservedAt timestamp until
+// confirm-reservation.js clears it on a successful payment. Any code
+// that treats an existing booking record as a real, blocking conflict
+// needs to know about this - otherwise an abandoned or failed checkout
+// would wrongly keep blocking that slot from everyone else (a new
+// one-off booking, a new subscriber, a reschedule target, or even just
+// what the calendar displays) long after the person who reserved it
+// ever came back. Shared here since this same check is genuinely
+// needed in reserve-multi-slots.js, get-bookings.js,
+// create-subscription.js, stripe-webhook.js, and
+// redeem-reschedule-credit.js - five places is exactly the point where
+// one copy stops being convenient duplication and starts being a real
+// risk of drifting out of sync with each other.
+const RESERVATION_HOLD_MINUTES = 20;
+function isStalePendingHold(record) {
+  if (!record || record.pendingPayment !== true || !record.reservedAt) return false;
+  const ageMs = Date.now() - new Date(record.reservedAt).getTime();
+  return ageMs > RESERVATION_HOLD_MINUTES * 60 * 1000;
+}
+
 // Victorian government school summer holidays, 2026-2027. A separate
 // allowance from the normal 4-week pause budget, specifically for this
 // window, so families whose kids are off school for a genuinely long
@@ -111,6 +133,26 @@ async function saveClosureSettings(record) {
 async function deleteClosureSettings() {
   const store = settingsStore();
   await store.delete('closure');
+}
+
+// Every email built anywhere in this codebase interpolates user-
+// supplied text (name, instrument, notes, etc.) directly into HTML,
+// with nothing escaping it anywhere. That means a name field crafted
+// with real HTML - a fake link, a misleading "click here", hidden
+// text - would render as actual formatted content in an email sent
+// from this site's own trusted domain, to either a student or James
+// himself. Most email clients block real script execution, but HTML
+// structure injection for phishing or social engineering doesn't need
+// script to work. Shared here so every file that builds an email can
+// wrap user-supplied fields with it consistently.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function timeToMinutes(t) {
@@ -369,5 +411,8 @@ module.exports = {
   saveClosureSettings,
   deleteClosureSettings,
   clearImminentLessonIfWithinPause,
-  PRICE_IDS
+  PRICE_IDS,
+  RESERVATION_HOLD_MINUTES,
+  isStalePendingHold,
+  escapeHtml
 };

@@ -9,6 +9,20 @@ const { getStore } = require('@netlify/blobs');
 const crypto = require('crypto');
 const { deleteCalendarEvent } = require('./google-calendar-helper');
 
+// Nothing here escaped user-supplied text before embedding it in HTML
+// emails - a crafted name could inject a fake link or misleading
+// content into an email sent from this site's own trusted domain, to
+// either the student or James.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
   if (!m) return null;
@@ -213,13 +227,15 @@ exports.handler = async function (event) {
       : '';
 
     const studentName = record.name || 'there';
+    const safeStudentName = escapeHtml(studentName);
+    const safeEmail = escapeHtml(email);
     const studentHtml =
       '<div style="font-family:-apple-system,sans-serif;max-width:480px;margin:0 auto;color:#1a1a1a;">' +
       '<div style="text-align:center;margin-bottom:24px;">' +
       '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Cancelled</h2>' +
-      '<p>Hi ' + studentName + ',</p>' +
+      '<p>Hi ' + safeStudentName + ',</p>' +
       '<p>Your lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
@@ -242,7 +258,7 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
-      '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.</p>' +
+      '<p><strong>' + safeStudentName + '</strong> (' + safeEmail + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.</p>' +
       '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule, no further rebooking, full fee applies' : 'within 24 hours, no rebooking, full fee applies')) + ').</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);

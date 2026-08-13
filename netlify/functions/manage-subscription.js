@@ -19,7 +19,8 @@ const {
   SUMMER_PAUSE_END,
   MAX_SUMMER_PAUSE_WEEKS,
   clearImminentLessonIfWithinPause,
-  PRICE_IDS
+  PRICE_IDS,
+  escapeHtml
 } = require('./subscription-helpers');
 const { getStore } = require('@netlify/blobs');
 
@@ -179,13 +180,13 @@ exports.handler = async function (event) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your subscription is paused',
-          '<p>Hi ' + record.studentName + ',</p><p>Your subscription is paused' + (clearedLessonDate ? ', including your lesson on ' + formatFriendlyDate(clearedLessonDate) : '') + '. No charge while paused. It resumes automatically on ' + formatFriendlyDate(record.pausedUntil) + ', nothing further to do.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription is paused' + (clearedLessonDate ? ', including your lesson on ' + formatFriendlyDate(clearedLessonDate) : '') + '. No charge while paused. It resumes automatically on ' + formatFriendlyDate(record.pausedUntil) + ', nothing further to do.</p><p>James</p>'
         );
       }
       await sendEmail(
         JAMES_EMAIL,
         'Subscription paused: ' + record.studentName,
-        '<p>' + record.studentName + ' (' + record.studentEmail + ') has paused for ' + weeks + ' week(s), resuming ' + formatFriendlyDate(record.pausedUntil) + '.' + (clearedLessonDate ? ' Their lesson on ' + formatFriendlyDate(clearedLessonDate) + ' has been cleared from the calendar as part of this.' : '') + '</p>'
+        '<p>' + escapeHtml(record.studentName) + ' (' + escapeHtml(record.studentEmail) + ') has paused for ' + weeks + ' week(s), resuming ' + formatFriendlyDate(record.pausedUntil) + '.' + (clearedLessonDate ? ' Their lesson on ' + formatFriendlyDate(clearedLessonDate) + ' has been cleared from the calendar as part of this.' : '') + '</p>'
       );
 
       return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: 4 - record.pausedWeeksThisYear }) };
@@ -225,7 +226,7 @@ exports.handler = async function (event) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your summer break is booked in',
-          '<p>Hi ' + record.studentName + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
         );
       }
 
@@ -273,13 +274,13 @@ exports.handler = async function (event) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your subscription is now ' + newFrequency,
-          '<p>Hi ' + record.studentName + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p>James</p>'
         );
       }
       await sendEmail(
         JAMES_EMAIL,
         'Frequency changed: ' + record.studentName,
-        '<p>' + record.studentName + ' switched from ' + oldFrequency + ' to ' + newFrequency + '.</p>'
+        '<p>' + escapeHtml(record.studentName) + ' switched from ' + oldFrequency + ' to ' + newFrequency + '.</p>'
       );
 
       return { statusCode: 200, body: JSON.stringify({ success: true, frequency: newFrequency }) };

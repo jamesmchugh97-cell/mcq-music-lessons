@@ -3,30 +3,50 @@
 // Netlify site settings (Site configuration -> Environment variables).
 // Use your Stripe SECRET key here (starts with sk_live_ or sk_test_),
 // never the publishable key (pk_...) that's already in the HTML.
-
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// CRITICAL: this is the actual charge amount, computed here from
+// values the server itself controls, never trusted from the request.
+// The previous version took `amount` directly from the request body -
+// meaning anyone with their browser's network tab open could rewrite
+// that single number to 1 cent (or anything else) before it reached
+// Stripe, and this function would have charged exactly that and
+// confirmed success, with the booking then proceeding as if full price
+// had been paid. The fix: the client only ever gets to say WHICH
+// duration it wants, never WHAT IT COSTS - the price for that duration
+// is looked up here, from a table only this server can change. Prices
+// match what's shown throughout the site (pricing.html, the booking
+// form's own duration dropdown, etc.) - update here if those ever
+// change, since this is now the one place that actually decides what
+// gets charged.
+const DURATION_PRICES_CENTS = {
+  30: 5000,
+  45: 7000,
+  60: 8500,
+  75: 10000,
+  90: 13000
+};
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }
-
   let body;
   try {
     body = JSON.parse(event.body);
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
-
-  const { amount, payment_method_id, email, description } = body;
-
-  if (!amount || !payment_method_id || amount <= 0) {
-    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing amount or payment method.' }) };
+  const { durationMinutes, lessonCount, payment_method_id, email, description } = body;
+  const pricePerLesson = DURATION_PRICES_CENTS[parseInt(durationMinutes, 10)];
+  if (!pricePerLesson || !payment_method_id) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing or invalid lesson duration, or missing payment method.' }) };
   }
-
+  const count = Math.max(1, parseInt(lessonCount, 10) || 1);
+  const amount = pricePerLesson * count;
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount), // amount in cents (smallest currency unit)
+      amount: amount, // amount in cents (smallest currency unit), computed above - never taken from the request
       currency: 'aud',
       payment_method: payment_method_id,
       confirm: true,
@@ -34,13 +54,13 @@ exports.handler = async function (event) {
       description: description || 'MCQ Music Lessons booking',
       automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
     });
-
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
         status: paymentIntent.status,
-        client_secret: paymentIntent.client_secret
+        client_secret: paymentIntent.client_secret,
+        payment_intent_id: paymentIntent.id
       })
     };
   } catch (err) {

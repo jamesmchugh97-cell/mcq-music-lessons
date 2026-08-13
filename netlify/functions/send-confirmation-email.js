@@ -3,6 +3,37 @@
 // Netlify site settings (Site configuration -> Environment variables).
 // Sends from a mcqmusiclessons.com.au address, since that domain is
 // verified in Resend.
+//
+// SECURITY: this is a public endpoint - it's called by the booking
+// page's own JavaScript, but nothing stops anyone else from calling it
+// directly with fabricated details, since it used to trust everything
+// in the request body outright. It doesn't create a booking (that
+// already happened earlier, via reserve-multi-slots.js and payment),
+// it only notifies about one - so this now checks a real, confirmed
+// (non-pending) booking record genuinely exists for every claimed slot
+// before sending anything. Otherwise this could be used to send fake
+// "booking confirmed" emails to any address, or worse, flood James's
+// own inbox with fabricated "New booking" notifications carrying
+// invented names, dates, and amounts - which risks him becoming numb
+// to real ones over time.
+const { getStore } = require('@netlify/blobs');
+function bookingsStore() {
+  return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+// Nothing here escaped user-supplied text before embedding it in HTML
+// emails - a crafted name field could inject a fake link or misleading
+// content into an email sent from this site's own trusted domain.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
@@ -14,10 +45,32 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
   const { name, email, instrument, date, time, duration, lessons_count, total, slots } = body;
+  // Escaped once here, used everywhere below - name and instrument are
+  // free-text fields a student fills in, and get embedded directly into
+  // HTML emails to both the student and James.
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeInstrument = escapeHtml(instrument);
   if (!email || !name) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing name or email.' }) };
   }
   const slotList = Array.isArray(slots) && slots.length > 0 ? slots : [{ date: date, time: time }];
+
+  // Every claimed slot must be a real, confirmed booking under this
+  // same email before any email goes out.
+  const store = bookingsStore();
+  const emailLower = email.trim().toLowerCase();
+  for (const s of slotList) {
+    if (!s || !s.date || !s.time) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Could not verify this booking.' }) };
+    }
+    const record = await store.get(s.date + '_' + s.time, { type: 'json' });
+    const recordEmail = (record && record.email || '').trim().toLowerCase();
+    if (!record || record.pendingPayment === true || recordEmail !== emailLower) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Could not verify this booking.' }) };
+    }
+  }
+
   const lessonsCountNum = parseInt(lessons_count, 10) || slotList.length;
   const isMulti = lessonsCountNum > 1;
   const durationMinutes = duration ? String(duration).split('|')[0] : '';
@@ -98,9 +151,9 @@ exports.handler = async function (event) {
         </p>
       </div>
       <h2 style="color: #1a1a1a; text-align: center; font-family: Georgia, serif; font-weight: normal;">Booking Confirmed</h2>
-      <p>Hi ${name}, thanks for booking with MCQ Music Lessons. Here are your details:</p>
+      <p>Hi ${safeName}, thanks for booking with MCQ Music Lessons. Here are your details:</p>
       <ul>
-        <li><strong>Instrument:</strong> ${instrument || 'N/A'}</li>
+        <li><strong>Instrument:</strong> ${safeInstrument || 'N/A'}</li>
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
@@ -125,9 +178,9 @@ exports.handler = async function (event) {
   const jamesHtml = `
     <div style="font-family: -apple-system, sans-serif;">
       <h3>New booking</h3>
-      <p><strong>${name}</strong> (${email}) booked ${isMulti ? lessonsCountNum + ' lessons' : 'a trial lesson'}.</p>
+      <p><strong>${safeName}</strong> (${safeEmail}) booked ${isMulti ? lessonsCountNum + ' lessons' : 'a trial lesson'}.</p>
       <ul>
-        <li><strong>Instrument:</strong> ${instrument || 'N/A'}</li>
+        <li><strong>Instrument:</strong> ${safeInstrument || 'N/A'}</li>
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>

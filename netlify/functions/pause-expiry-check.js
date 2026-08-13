@@ -15,7 +15,8 @@ const {
   nextOccurrenceDate,
   listBlockingSubscriptionsForDay,
   conflictsWithSubscriptions,
-  timeToMinutes
+  timeToMinutes,
+  escapeHtml
 } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -136,13 +137,13 @@ async function run() {
           await sendEmail(
             record.studentEmail,
             'MCQ Music Lessons: your old time slot is no longer available',
-            '<p>Hi ' + record.studentName + ',</p><p>Your pause has ended, but your usual time has since been taken by another student. No charge will happen while this gets sorted out, your subscription stays paused for now. James will be in touch to arrange a new time, or you\'re welcome to <a href="https://mcqmusiclessons.com.au/booking.html#subscribe">subscribe to a different available time</a> yourself.</p><p>James</p>'
+            '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your pause has ended, but your usual time has since been taken by another student. No charge will happen while this gets sorted out, your subscription stays paused for now. James will be in touch to arrange a new time, or you\'re welcome to <a href="https://mcqmusiclessons.com.au/booking.html#subscribe">subscribe to a different available time</a> yourself.</p><p>James</p>'
           );
         }
         await sendEmail(
           JAMES_EMAIL,
           'Action needed: ' + record.studentName + '\'s old slot is taken',
-          '<p>' + record.studentName + '\'s (' + record.studentEmail + ') pause just ended, but their old slot (' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + ' ' + record.time + ') has since been taken by someone else. Their subscription stays paused, no charge, until this is sorted out, either manually here or by them subscribing to a new time themselves.</p>'
+          '<p>' + escapeHtml(record.studentName) + '\'s (' + escapeHtml(record.studentEmail) + ') pause just ended, but their old slot (' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + ' ' + record.time + ') has since been taken by someone else. Their subscription stays paused, no charge, until this is sorted out, either manually here or by them subscribing to a new time themselves.</p>'
         );
         continue;
       }
@@ -161,13 +162,13 @@ async function run() {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your subscription has resumed',
-          '<p>Hi ' + record.studentName + ',</p><p>Your ' + record.frequency + ' subscription has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your ' + record.frequency + ' subscription has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
         );
       }
       await sendEmail(
         JAMES_EMAIL,
         'Subscription resumed: ' + record.studentName,
-        '<p>' + record.studentName + '\'s subscription has automatically resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '.</p>'
+        '<p>' + escapeHtml(record.studentName) + '\'s subscription has automatically resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '.</p>'
       );
     }
   }

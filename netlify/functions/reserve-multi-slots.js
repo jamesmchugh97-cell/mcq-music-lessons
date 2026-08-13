@@ -8,7 +8,7 @@
 // its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
-const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
+const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes, isStalePendingHold } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
 const MIN_NOTICE_HOURS = 24;
@@ -375,17 +375,13 @@ exports.handler = async function (event) {
     // That's correct, but it means an abandoned or failed checkout would
     // otherwise leave the slot permanently blocked forever, with nobody
     // able to book it again, since nothing ever un-reserves it. Fixed by
-    // treating a pending hold older than RESERVATION_HOLD_MINUTES as
-    // stale and safe to release, checked right here whenever someone
-    // else wants that same slot, rather than needing a separate cleanup
-    // job. confirm-reservation.js clears this flag once payment actually
+    // treating a pending hold older than RESERVATION_HOLD_MINUTES (see
+    // subscription-helpers.js, shared from there since this same check
+    // is now needed in five different files) as stale and safe to
+    // release, checked right here whenever someone else wants that same
+    // slot, rather than needing a separate cleanup job.
+    // confirm-reservation.js clears this flag once payment actually
     // succeeds, turning it into a permanent, real booking.
-    const RESERVATION_HOLD_MINUTES = 20;
-    function isStaleHold(existing) {
-      if (!existing || existing.pendingPayment !== true || !existing.reservedAt) return false;
-      const ageMs = Date.now() - new Date(existing.reservedAt).getTime();
-      return ageMs > RESERVATION_HOLD_MINUTES * 60 * 1000;
-    }
 
     const written = [];
     for (const s of slots) {
@@ -407,7 +403,7 @@ exports.handler = async function (event) {
       try {
         const existing = await store.get(key, { type: 'json' });
         const sameOwnerRetry = !!(existing && existing.pendingPayment === true && email && existing.email && existing.email.trim().toLowerCase() === email.trim().toLowerCase());
-        if (isStaleHold(existing) || sameOwnerRetry) {
+        if (isStalePendingHold(existing) || sameOwnerRetry) {
           await store.delete(key);
           if (existing.eventId) {
             try { await deleteCalendarEvent(existing.eventId); } catch (e) {}
