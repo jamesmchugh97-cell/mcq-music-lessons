@@ -13,11 +13,11 @@
 <meta property="og:url" content="https://mcqmusiclessons.com.au/booking.html">
 <meta property="og:title" content="Book a Lesson · MCQ Music Lessons">
 <meta property="og:description" content="Book your guitar or piano lesson online at MCQ Music Lessons. Check live availability, book instantly, or manage an existing booking.">
-<meta property="og:image" content="https://mcqmusiclessons.com.au/james-mchugh.jpg">
+<meta property="og:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Book a Lesson · MCQ Music Lessons">
 <meta name="twitter:description" content="Book your guitar or piano lesson online at MCQ Music Lessons. Check live availability, book instantly, or manage an existing booking.">
-<meta name="twitter:image" content="https://mcqmusiclessons.com.au/james-mchugh.jpg">
+<meta name="twitter:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -105,6 +105,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div id="rescheduleContent">
         <div class="reschedule-badge"><span>&#10003;</span> No charge, rescheduling your existing lesson</div>
         <h2 class="section-title">Hi <span id="rescheduleName">there</span>, pick a new time</h2>
+        <p id="rescheduleOriginalLesson" style="color:var(--muted);font-size:0.85rem;margin:-0.6rem 0 0.8rem;display:none;"></p>
         <p class="section-sub" id="rescheduleSub">Choose any available time between <strong id="rescheduleWeekRange"></strong>. This moves the lesson you already paid for. No card, no payment, nothing to fill in.</p>
         <div id="rescheduleDaysWrap"></div>
         <div id="rescheduleTimesWrap" style="margin-top:1rem;"></div>
@@ -331,7 +332,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
         <div class="form-group">
           <label class="form-label">Time</label>
-          <select class="form-input" id="subTime">
+          <select class="form-input" id="subTime" onchange="handleSubscribeTimeChange()">
             <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
             <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
             <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
@@ -587,6 +588,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     updateBookingPatternGuidance(lessons);
     renderExtraDateRows(lessons);
     refreshTimeOptions();
+    updateDurationAvailability();
     document.getElementById('subtotalAmt').textContent = '$' + price;
     document.getElementById('totalAmt').textContent = '$' + (price * lessons);
     if (lessons > 1) {
@@ -743,6 +745,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           rowWarning.style.display = 'none';
         }
         refreshTimeOptions();
+        updateDurationAvailability();
       });
       const timeSelect = document.createElement('select');
       timeSelect.className = 'form-input extra-time-input';
@@ -750,6 +753,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const opt = document.createElement('option');
         opt.value = t; opt.textContent = t;
         timeSelect.appendChild(opt);
+      });
+      // Had no change listener at all before - picking a specific time
+      // for an extra lesson never re-checked whether the shared duration
+      // still fit every slot.
+      timeSelect.addEventListener('change', () => {
+        updateDurationAvailability();
       });
       if (mode === 'weekly' || mode === 'fortnightly') {
         if (autoDates[i]) dateInput.value = autoDates[i];
@@ -1047,7 +1056,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateDiv.textContent = d;
       cell.appendChild(dateDiv);
 
-      // Lesson hours: Monday to Friday, 12pm to 9pm. Saturday & Sunday closed.
+      // Business hours: Mon-Thu 12pm-9pm, Fri & Sat 12pm-4:30pm (shorter
+      // closing time, handled in isWithinBusinessHours), Sunday closed.
       // Availability shown here checks every offered lesson length, a
       // time shows Available if ANY duration could actually be booked
       // there, since a longer lesson sometimes fits when a shorter one
@@ -1194,6 +1204,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         weekEnd: result.weekEnd
       };
       document.getElementById('rescheduleName').textContent = result.name || 'there';
+      const origEl = document.getElementById('rescheduleOriginalLesson');
+      if (result.originalDate && result.originalTime) {
+        const origDate = new Date(result.originalDate + 'T00:00:00');
+        const origFormatted = origDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+        origEl.textContent = 'Rescheduling your lesson originally on ' + origFormatted + ' at ' + result.originalTime + '.';
+        origEl.style.display = 'block';
+      } else {
+        origEl.style.display = 'none';
+      }
       document.getElementById('rescheduleWeekRange').textContent = formatDateRange(result.weekStart, result.weekEnd);
       renderRescheduleDays();
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -1330,6 +1349,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         refreshTimeOptions();
         updateDurationAvailability();
         refreshSubscribeTimeOptions();
+        refreshSubscribeDurationOptions();
       }
     } catch (e) {}
   }
@@ -1643,24 +1663,34 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     updateDurationAvailability();
   }
 
-  // Disables any Lesson Duration option that would not actually fit the
-  // currently selected date + time (overlaps another lesson, runs past
-  // closing, etc.), rather than letting every duration always appear
-  // pickable and only failing at submit time. If the currently selected
-  // duration becomes invalid for the newly chosen time, auto-switches to
-  // the first duration that does fit.
+  // Disables any Lesson Duration option that would not actually fit ANY
+  // of the currently selected lesson slots - the primary one, plus
+  // every additional lesson row in a multi-lesson booking - rather than
+  // only checking the primary slot and letting a conflict on lesson 3
+  // silently exist until submission. A duration only stays selectable
+  // if it works for every slot that currently has both a date and a
+  // time chosen; slots missing either are skipped, not treated as a
+  // failure, since they're simply not filled in yet.
   function updateDurationAvailability() {
-    const date = document.getElementById('bookDate').value;
-    const time = document.getElementById('bookTime').value;
     const durationSelect = document.getElementById('bookDuration');
-    if (!date || !time) {
-      Array.from(durationSelect.options).forEach(opt => { opt.disabled = false; });
+    const primaryDate = document.getElementById('bookDate').value;
+    const primaryTime = document.getElementById('bookTime').value;
+    const extraRows = Array.from(document.querySelectorAll('#extraDatesContainer .extra-date-row')).map(row => ({
+      date: row.querySelector('.extra-date-input').value,
+      time: row.querySelector('.extra-time-input').value
+    }));
+    const allSlots = [{ date: primaryDate, time: primaryTime }].concat(extraRows).filter(s => s.date && s.time);
+    if (allSlots.length === 0) {
+      Array.from(durationSelect.options).forEach(opt => {
+        opt.disabled = false;
+        opt.textContent = opt.textContent.replace(' (unavailable at this time)', '');
+      });
       return;
     }
     let currentStillValid = false;
     Array.from(durationSelect.options).forEach(opt => {
       const minutes = parseInt(opt.value.split('|')[0], 10);
-      const valid = getAvailableTimes(date, minutes).includes(time);
+      const valid = allSlots.every(s => getAvailableTimes(s.date, minutes).includes(s.time));
       opt.disabled = !valid;
       opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
       if (opt.value === durationSelect.value && valid) currentStillValid = true;
@@ -1778,6 +1808,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
+        if (isSlotTaken(dInput.value, tInput.value, primaryDurationMinutes)) {
+          document.getElementById('stripe-error').textContent = 'One of your lesson times (' + dInput.value + ' at ' + tInput.value + ') is already booked, overlaps another lesson, or is too close to one. Please check each date and time.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
         allSlots.push({ date: dInput.value, time: tInput.value });
       }
     }
@@ -1822,16 +1857,19 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
     if (error) { document.getElementById('stripe-error').textContent = error.message; btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
 
-    // Charge the card via our serverless function (client-side alone cannot actually charge a card)
-    const totalText = document.getElementById('totalAmt').textContent;
-    const amountCents = Math.round(parseFloat(totalText.replace(/[^0-9.]/g, '')) * 100);
+    // Charge the card via our serverless function (client-side alone cannot actually charge a card).
+    // Sends the duration and lesson count, not a dollar amount - the
+    // server looks up the actual price itself from those, rather than
+    // trusting whatever number this page happens to send. See the
+    // security note in create-payment-intent.js for why that matters.
     let chargeResult;
     try {
       const resp = await fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: amountCents,
+          durationMinutes: primaryDurationMinutes,
+          lessonCount: reservedSlots.length,
           payment_method_id: paymentMethod.id,
           email: email,
           description: selectedInstrument + ' lesson (' + date + ' ' + time + ')'
@@ -1858,14 +1896,23 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     // Payment succeeded - clear the pending-hold flag on every slot just
     // reserved, so it's now a permanent booking rather than something
-    // that could later be treated as an abandoned, stale hold. Fire-and-
-    // forget: the payment has already gone through at this point, so a
-    // failure here shouldn't block the confirmation the student is
-    // about to see.
-    fetch('/.netlify/functions/confirm-reservation', {
+    // that could later be treated as an abandoned, stale hold. Genuinely
+    // awaited now, not fire-and-forget: send-confirmation-email.js
+    // verifies a real, confirmed booking exists before it sends
+    // anything, so this needs to have actually finished clearing the
+    // pending flag first, or that check would wrongly reject a
+    // completely legitimate, already-paid booking. Errors are still
+    // swallowed - a failure here shouldn't block the confirmation the
+    // student is about to see, it just means this step didn't win the
+    // race, not that anything is actually wrong.
+    await fetch('/.netlify/functions/confirm-reservation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slots: reservedSlots.map(s => ({ date: s.date, time: s.time })) })
+      body: JSON.stringify({
+        slots: reservedSlots.map(s => ({ date: s.date, time: s.time })),
+        payment_intent_id: chargeResult.payment_intent_id,
+        durationMinutes: primaryDurationMinutes
+      })
     }).catch(() => {});
     // Payment succeeded, submit booking details to Netlify Forms
     const lessons = lessonsForReserve;
@@ -1945,6 +1992,38 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
+  // Mirrors updateDurationAvailability() below, which already does
+  // exactly this for the one-off booking form - reuses getAvailableTimes
+  // directly rather than a second parallel conflict-checking
+  // implementation, so the two can never drift out of sync with each
+  // other. Grays out (rather than removes) any duration that wouldn't
+  // fit at the currently selected day/time, so it's visible but
+  // unselectable - the student can see 90 minutes exists as an option
+  // in general, just not right here.
+  function refreshSubscribeDurationOptions() {
+    const daySelect = document.getElementById('subDay');
+    const timeSelect = document.getElementById('subTime');
+    const durationSelect = document.getElementById('subDuration');
+    if (!daySelect || !timeSelect || !durationSelect) return;
+    const dow = parseInt(daySelect.value, 10);
+    const previewDate = getNextDateForDow(dow);
+    const timeVal = timeSelect.value;
+    if (!timeVal) return;
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = getAvailableTimes(previewDate, minutes).includes(timeVal);
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updateSubscribeTotal();
+  }
+
   function refreshSubscribeTimeOptions() {
     const daySelect = document.getElementById('subDay');
     const timeSelect = document.getElementById('subTime');
@@ -1975,8 +2054,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
-  function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); }
+  function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); refreshSubscribeDurationOptions(); }
   function handleSubscribeDurationChange() { refreshSubscribeTimeOptions(); updateSubscribeTotal(); }
+  function handleSubscribeTimeChange() { refreshSubscribeDurationOptions(); }
 
   function updateSubscribeTotal() {
     const price = parseInt(document.getElementById('subDuration').value.split('|')[1], 10);
@@ -1986,6 +2066,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   refreshSubscribeTimeOptions();
+  refreshSubscribeDurationOptions();
 
   // Posts to create-subscription.js, which validates the slot against
   // every existing subscriber and one-off booking server-side, then
@@ -2004,6 +2085,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
     if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
+    if (isSlotTaken(getNextDateForDow(dow), time, durationMinutes)) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'That lesson length is not available at this time. Please choose a different duration or time.';
+      return false;
+    }
     const btn = document.getElementById('subSubmitBtn');
     btn.textContent = 'Redirecting to checkout…'; btn.disabled = true;
     try {
@@ -2046,6 +2132,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
         btn.textContent = 'Subscribe →'; btn.disabled = false;
         refreshSubscribeTimeOptions();
+        refreshSubscribeDurationOptions();
       }
     } catch (e) {
       errEl.style.display = 'block';
