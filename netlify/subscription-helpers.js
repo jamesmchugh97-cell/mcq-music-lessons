@@ -8,13 +8,151 @@
 // old hardcoded RECURRING_STUDENTS roster used for James's existing
 // manually-managed students.
 const { getStore } = require('@netlify/blobs');
+const { deleteCalendarEvent } = require('./google-calendar-helper');
 
 const MAX_PAUSE_WEEKS_PER_YEAR = 4;
 const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
 const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails before sending a warning email (2-day heads up before release)
 
+// A slot is locked in via reserve-multi-slots.js BEFORE the card is
+// actually charged (so two people can never both pay for the same
+// time), marked pendingPayment: true with a reservedAt timestamp until
+// confirm-reservation.js clears it on a successful payment. Any code
+// that treats an existing booking record as a real, blocking conflict
+// needs to know about this - otherwise an abandoned or failed checkout
+// would wrongly keep blocking that slot from everyone else (a new
+// one-off booking, a new subscriber, a reschedule target, or even just
+// what the calendar displays) long after the person who reserved it
+// ever came back. Shared here since this same check is genuinely
+// needed in reserve-multi-slots.js, get-bookings.js,
+// create-subscription.js, stripe-webhook.js, and
+// redeem-reschedule-credit.js - five places is exactly the point where
+// one copy stops being convenient duplication and starts being a real
+// risk of drifting out of sync with each other.
+const RESERVATION_HOLD_MINUTES = 20;
+function isStalePendingHold(record) {
+  if (!record || record.pendingPayment !== true || !record.reservedAt) return false;
+  const ageMs = Date.now() - new Date(record.reservedAt).getTime();
+  return ageMs > RESERVATION_HOLD_MINUTES * 60 * 1000;
+}
+
+// Victorian government school summer holidays, 2026-2027. A separate
+// allowance from the normal 4-week pause budget, specifically for this
+// window, so families whose kids are off school for a genuinely long
+// stretch aren't forced to either burn their whole yearly allowance on
+// one break or cancel outright and risk losing their slot. These dates
+// need updating by hand each year - school holiday dates aren't on a
+// fixed formula, so there's no safe way to calculate them automatically.
+const SUMMER_PAUSE_START = '2026-12-19';
+const SUMMER_PAUSE_END = '2027-01-26';
+const MAX_SUMMER_PAUSE_WEEKS = 6;
+
+// Shared with create-subscription.js and manage-subscription.js (for
+// the changeFrequency action), so there's exactly one source of truth
+// for these instead of two copies that could drift out of sync.
+const PRICE_IDS = {
+  '30_weekly': 'price_1U2PyCAOM8tPKKgkdcq71eaP',
+  '30_fortnightly': 'price_1U2Q23AOM8tPKKgkzEozmG31',
+  '45_weekly': 'price_1U2Q64AOM8tPKKgkxAsei52J',
+  '45_fortnightly': 'price_1U2Q7LAOM8tPKKgkQovjrxBD',
+  '60_weekly': 'price_1U2Q8jAOM8tPKKgkd1rMpX1A',
+  '60_fortnightly': 'price_1U2Q9AAOM8tPKKgk3VG8itQN',
+  '75_weekly': 'price_1U2QBIAOM8tPKKgkrNFPjDhZ',
+  '75_fortnightly': 'price_1U2QBkAOM8tPKKgkMnVMuT2O',
+  '90_weekly': 'price_1U2QCNAOM8tPKKgkJUtWzyEL',
+  '90_fortnightly': 'price_1U2QCqAOM8tPKKgknCBOj1VG'
+};
+
 function subsStore() {
   return getStore({ name: 'subscriptions', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+function bookingsStore() {
+  return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+// Shared by every path that can pause a subscription (a student's own
+// last-minute pause, a scheduled summer break starting, or an admin
+// closure starting). If an already-booked, already-paid-for upcoming
+// lesson now falls inside the pause window, it's cleared off the
+// calendar and booking system as part of processing the pause, rather
+// than left dangling (which would mean James still expects them, with
+// zero warning, for a lesson they're not coming to). No reschedule
+// credit is issued for it, since the student is taking a broader break,
+// not asking to move one specific lesson - their normal schedule simply
+// resumes after the pause ends. This costs James nothing: that lesson
+// was already invoiced and paid for before the pause was requested,
+// pausing only ever affects FUTURE billing, never refunds something
+// already collected.
+async function clearImminentLessonIfWithinPause(record, pausedUntilStr) {
+  if (!record.nextLessonDate) return null;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (record.nextLessonDate < todayStr || record.nextLessonDate >= pausedUntilStr) return null;
+  const store = bookingsStore();
+  const key = record.nextLessonDate + '_' + record.time;
+  const booking = await store.get(key, { type: 'json' });
+  if (!booking) return null;
+  // Ownership check: the record at this key must actually belong to the
+  // pausing subscriber. record.nextLessonDate can go stale - if the
+  // subscriber cancelled that specific lesson via Manage Booking and a
+  // DIFFERENT student then booked a one-off in the freed slot, the key
+  // now holds that other student's paid booking, which must never be
+  // deleted as a side effect of this subscriber pausing.
+  const bookingEmail = (booking.email || '').trim().toLowerCase();
+  const subscriberEmail = (record.studentEmail || '').trim().toLowerCase();
+  if (!bookingEmail || !subscriberEmail || bookingEmail !== subscriberEmail) return null;
+  await store.delete(key);
+  if (booking.eventId) {
+    try {
+      await deleteCalendarEvent(booking.eventId);
+    } catch (e) {
+      console.error('[subscription-helpers] calendar delete failed for', key, ':', e && e.message ? e.message : e);
+    }
+  }
+  return record.nextLessonDate;
+}
+
+// A single small store for site-wide settings, currently just the
+// admin-set studio closure window (see admin-closure.js). Deliberately
+// separate from the per-subscription "subscriptions" store since this
+// is one shared setting, not per-student data.
+function settingsStore() {
+  return getStore({ name: 'studio-settings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+async function getClosureSettings() {
+  const store = settingsStore();
+  return await store.get('closure', { type: 'json' });
+}
+
+async function saveClosureSettings(record) {
+  const store = settingsStore();
+  await store.set('closure', JSON.stringify(record));
+}
+
+async function deleteClosureSettings() {
+  const store = settingsStore();
+  await store.delete('closure');
+}
+
+// Every email built anywhere in this codebase interpolates user-
+// supplied text (name, instrument, notes, etc.) directly into HTML,
+// with nothing escaping it anywhere. That means a name field crafted
+// with real HTML - a fake link, a misleading "click here", hidden
+// text - would render as actual formatted content in an email sent
+// from this site's own trusted domain, to either a student or James
+// himself. Most email clients block real script execution, but HTML
+// structure injection for phishing or social engineering doesn't need
+// script to work. Shared here so every file that builds an email can
+// wrap user-supplied fields with it consistently.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function timeToMinutes(t) {
@@ -55,7 +193,16 @@ async function deleteSubscriptionRecord(subscriptionId) {
 // day of week and is currently blocking that slot (status 'active'; a
 // 'paused' subscription does NOT block, since the whole point of pausing
 // is to free the slot up for that window).
-async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId) {
+// includeStatuses defaults to active-only, matching the original
+// behavior every existing caller relies on (a paused slot is free for
+// one-off bookings and reschedules - that's the whole point of
+// pausing). Callers deciding whether a NEW SUBSCRIPTION can start here
+// pass ['active', 'paused'] instead, since letting a new subscriber
+// claim a slot that's only temporarily free would collide with the
+// paused student's own return - see create-subscription.js and
+// stripe-webhook.js's slotStillFree.
+async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId, includeStatuses) {
+  const statuses = includeStatuses || ['active'];
   const store = subsStore();
   const { blobs } = await store.list({ prefix: 'sub_' });
   const results = [];
@@ -63,7 +210,7 @@ async function listBlockingSubscriptionsForDay(dow, excludeSubscriptionId) {
     const record = await store.get(blob.key, { type: 'json' });
     if (!record) continue;
     if (record.subscriptionId === excludeSubscriptionId) continue;
-    if (record.status !== 'active') continue;
+    if (!statuses.includes(record.status)) continue;
     if (parseInt(record.dayOfWeek, 10) !== dow) continue;
     results.push(record);
   }
@@ -92,6 +239,18 @@ async function listAllSubscriptions() {
     if (record) results.push(record);
   }
   return results;
+}
+
+// Was previously a local copy inside manage-subscription.js - moved
+// here so the cross-subscription pause-allowance check below can reuse
+// the exact same lookup, rather than keeping two separate
+// implementations of "find every subscription under this email" that
+// could quietly drift apart.
+async function listSubscriptionsByEmail(email) {
+  if (!email) return [];
+  const emailLower = email.trim().toLowerCase();
+  const all = await listAllSubscriptions();
+  return all.filter(record => (record.studentEmail || '').trim().toLowerCase() === emailLower);
 }
 
 // Finds the next date matching the given day-of-week/time that is at
@@ -165,15 +324,120 @@ function pausedWeeksThisYear(record) {
   return record.pausedWeeksThisYear || 0;
 }
 
-function canPauseWeeks(record, requestedWeeks) {
-  const used = pausedWeeksThisYear(record);
+// Separate from pausedWeeksThisYear on purpose - the summer allowance is
+// its own budget, tied to SUMMER_PAUSE_START/END above, not the rolling
+// calendar year, and never touches or is touched by the regular 4-week
+// pause tracking.
+function summerWeeksUsed(record) {
+  return record.summerWeeksUsed || 0;
+}
+function canUseSummerWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
+  return (summerWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_SUMMER_PAUSE_WEEKS;
+}
+
+function canPauseWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
+  const used = pausedWeeksThisYear(record) + (otherWeeksUsedElsewhere || 0);
   return (used + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
+}
+
+// Sums pause-week usage across every OTHER active or paused
+// subscription under the same email (excludeSubscriptionId is the one
+// currently being checked, kept out to avoid counting it twice - the
+// caller already adds its own pausedWeeksThisYear separately), plus
+// whatever this email has already used on subscriptions that have
+// SINCE been cancelled this year (tracked in the email-history store).
+// Without this, two subscriptions under the same email - the same
+// person coming twice a week - would each independently think they
+// had their own fresh 4-week allowance, giving 8 weeks total instead
+// of the intended 4. Two genuinely different people, each with their
+// own email, are correctly unaffected by this at all, since neither
+// would ever show up in the other's lookup.
+async function totalPausedWeeksForEmail(email, excludeSubscriptionId) {
+  if (!email) return 0;
+  const history = await getEmailHistory(email);
+  let total = emailPausedWeeksThisYear(history);
+  const otherSubs = await listSubscriptionsByEmail(email);
+  for (const sub of otherSubs) {
+    if (sub.subscriptionId === excludeSubscriptionId) continue;
+    total += pausedWeeksThisYear(sub);
+  }
+  return total;
+}
+
+// Same pattern as totalPausedWeeksForEmail, for the separate summer
+// allowance.
+async function totalSummerWeeksForEmail(email, excludeSubscriptionId) {
+  if (!email) return 0;
+  const history = await getEmailHistory(email);
+  let total = (history && history.summerWeeksUsed) || 0;
+  const otherSubs = await listSubscriptionsByEmail(email);
+  for (const sub of otherSubs) {
+    if (sub.subscriptionId === excludeSubscriptionId) continue;
+    total += summerWeeksUsed(sub);
+  }
+  return total;
+}
+
+// If someone cancels a subscription and starts a new one again within
+// this many days, the gap counts against the same annual pause-week
+// allowance pausing already uses, instead of resetting to a clean
+// slate. Pausing itself maxes out at 4 weeks in a single go, so a
+// threshold a little past that catches "skip a few weeks by cancelling
+// and resubscribing" without penalizing someone who's genuinely been
+// away much longer and is legitimately starting fresh.
+const RESUBSCRIBE_GAP_DAYS = 35;
+
+function historyStore() {
+  return getStore({ name: 'subscriber-history', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
+
+async function getEmailHistory(email) {
+  if (!email) return null;
+  const store = historyStore();
+  return await store.get('email_' + email.trim().toLowerCase(), { type: 'json' });
+}
+
+async function saveEmailHistory(email, record) {
+  if (!email) return;
+  const store = historyStore();
+  await store.set('email_' + email.trim().toLowerCase(), JSON.stringify(record));
+}
+
+// Same year-rollover reset logic as pausedWeeksThisYear above, just
+// scoped to the student (persists across subscription IDs) rather than
+// one specific subscription record.
+function emailPausedWeeksThisYear(historyRecord) {
+  if (!historyRecord || !historyRecord.pauseYear || historyRecord.pauseYear !== currentYear()) return 0;
+  return historyRecord.pausedWeeksThisYear || 0;
+}
+
+// Called when a brand new subscription's first payment succeeds, before
+// its own pausedWeeksThisYear is set. Returns how many weeks should be
+// inherited as already "used" this year: whatever pause weeks this
+// email has already used (on any earlier subscription), plus - if their
+// last subscription ended within RESUBSCRIBE_GAP_DAYS - the gap itself,
+// treated as an unlogged pause. Not capped at MAX_PAUSE_WEEKS_PER_YEAR
+// here; canPauseWeeks() already blocks further pausing correctly once
+// the inherited total meets or exceeds the cap on its own.
+function inheritedPauseWeeksForNewSubscription(historyRecord) {
+  let weeks = emailPausedWeeksThisYear(historyRecord);
+  if (historyRecord && historyRecord.lastEndedAt) {
+    const daysSinceEnded = Math.floor((Date.now() - new Date(historyRecord.lastEndedAt + 'T00:00:00').getTime()) / 86400000);
+    if (daysSinceEnded >= 0 && daysSinceEnded <= RESUBSCRIBE_GAP_DAYS) {
+      weeks += Math.max(1, Math.round(daysSinceEnded / 7));
+    }
+  }
+  return weeks;
 }
 
 module.exports = {
   MAX_PAUSE_WEEKS_PER_YEAR,
   PAYMENT_GRACE_PERIOD_DAYS,
   PAYMENT_REMINDER_AFTER_DAYS,
+  RESUBSCRIBE_GAP_DAYS,
+  SUMMER_PAUSE_START,
+  SUMMER_PAUSE_END,
+  MAX_SUMMER_PAUSE_WEEKS,
   timeToMinutes,
   dayOfWeek,
   currentYear,
@@ -182,9 +446,26 @@ module.exports = {
   deleteSubscriptionRecord,
   listBlockingSubscriptionsForDay,
   listAllSubscriptions,
+  listSubscriptionsByEmail,
   conflictsWithSubscriptions,
   nextOccurrenceDate,
   nextRenewalDate,
   pausedWeeksThisYear,
-  canPauseWeeks
+  canPauseWeeks,
+  totalPausedWeeksForEmail,
+  summerWeeksUsed,
+  canUseSummerWeeks,
+  totalSummerWeeksForEmail,
+  getEmailHistory,
+  saveEmailHistory,
+  emailPausedWeeksThisYear,
+  inheritedPauseWeeksForNewSubscription,
+  getClosureSettings,
+  saveClosureSettings,
+  deleteClosureSettings,
+  clearImminentLessonIfWithinPause,
+  PRICE_IDS,
+  RESERVATION_HOLD_MINUTES,
+  isStalePendingHold,
+  escapeHtml
 };
