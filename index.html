@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MCQ Music Lessons · Guitar & Piano in South Melbourne</title>
-<meta name="description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Book a trial lesson online today.">
+<meta name="description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Subscribe online today.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -12,11 +12,11 @@
 <meta property="og:site_name" content="MCQ Music Lessons">
 <meta property="og:url" content="https://mcqmusiclessons.com.au/">
 <meta property="og:title" content="MCQ Music Lessons · Guitar & Piano in South Melbourne">
-<meta property="og:description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Book a trial lesson online today.">
+<meta property="og:description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Subscribe online today.">
 <meta property="og:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MCQ Music Lessons · Guitar & Piano in South Melbourne">
-<meta name="twitter:description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Book a trial lesson online today.">
+<meta name="twitter:description" content="Guitar and piano lessons in South Melbourne with James McHugh, a working musician with 15+ years of experience. Subscribe online today.">
 <meta name="twitter:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -97,7 +97,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="booking.html#calendar">Availability</a></li>
       <li><a href="faq.html">FAQ</a></li>
       <li><a href="booking.html#manage">Manage Booking</a></li>
-      <li><a href="booking.html#book" class="nav-cta">Book Now</a></li>
+      <li><a href="booking.html#subscribe" class="nav-cta">Subscribe</a></li>
     </ul>
     <div class="nav-social">
       <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -123,7 +123,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="booking.html#calendar" onclick="toggleMenu()">Availability</a>
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
   <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
-  <a href="booking.html#book" onclick="toggleMenu()">Book Now</a>
+  <a href="booking.html#subscribe" onclick="toggleMenu()">Subscribe</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -156,9 +156,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </a>
       </div>
       <div class="hero-buttons" style="flex-direction:column;gap:0.7rem;">
-        <button type="button" class="btn-primary" onclick="openBookChoiceModal()" style="cursor:pointer;white-space:nowrap;text-align:center;">Book a Lesson</button>
-        <a href="booking.html?frequency=weekly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Weekly</a>
-        <a href="booking.html?frequency=fortnightly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Fortnightly</a>
+        <a href="booking.html?frequency=weekly#subscribe" class="btn-primary" style="text-align:center;">Book a Weekly Lesson</a>
+        <a href="booking.html?frequency=fortnightly#subscribe" class="btn-outline" style="text-align:center;">Book a Fortnightly Lesson</a>
         <a href="booking.html#group" class="btn-outline" style="text-align:center;">Book a Group Lesson</a>
       </div>
     </div>
@@ -211,22 +210,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="privacy.html">Privacy Policy</a></p>
 </footer>
 
-<div class="modal-overlay" id="bookChoiceModal">
-  <div class="modal">
-    <div class="modal-title">How would you like to book?</div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:0.6rem;margin-top:0.8rem;">
-      <a href="booking.html#book" class="btn-primary" style="text-align:center;">Book One Lesson</a>
-      <a href="booking.html?frequency=weekly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Weekly</a>
-      <a href="booking.html?frequency=fortnightly#subscribe" class="btn-outline" style="text-align:center;">Subscribe Fortnightly</a>
-    </div>
-    <button class="btn-outline" type="button" onclick="closeBookChoiceModal()" style="margin-top:1rem;width:100%;">Cancel</button>
-  </div>
-</div>
-
 <script>
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
-  function openBookChoiceModal() { document.getElementById('bookChoiceModal').classList.add('open'); }
-  function closeBookChoiceModal() { document.getElementById('bookChoiceModal').classList.remove('open'); }
 </script>
 </body>
 </html>

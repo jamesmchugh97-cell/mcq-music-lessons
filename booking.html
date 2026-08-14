@@ -57,7 +57,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="faq.html">FAQ</a></li>
       <li><a href="booking.html#manage">Manage Booking</a></li>
       <li><a href="booking.html#subscribe">Subscribe</a></li>
-      <li><a href="booking.html#book" class="nav-cta">Book Now</a></li>
+      <li><a href="booking.html#subscribe" class="nav-cta">Subscribe</a></li>
     </ul>
     <div class="nav-social">
       <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -84,7 +84,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
   <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
   <a href="booking.html#subscribe" onclick="toggleMenu()">Subscribe</a>
-  <a href="booking.html#book" onclick="toggleMenu()">Book Now</a>
+  <a href="booking.html#subscribe" onclick="toggleMenu()">Subscribe</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -147,152 +147,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the booking form below.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the subscribe form below.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<section id="book" class="booking-section">
-  <div class="section-inner">
-    <p class="section-eyebrow">Book Now</p>
-    <h2 class="section-title">Ready to <em>get started?</em></h2>
-    <p class="section-sub">Fill in your details below and pay securely via Stripe. James will be in touch within 24 hours. Bookings need at least 24 hours' notice. First time here? Your first lesson is a one-off trial, a chance to make sure it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved for them every week, no re-booking required. <a href="booking.html#subscribe" style="color:var(--gold);">See how that works</a>.</p>
-
-    <form class="booking-form" name="booking" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="return handleBooking(event)">
-      <input type="hidden" name="form-name" value="booking">
-      <input type="hidden" name="instrument" id="hiddenInstrument" value="Guitar">
-      <input type="hidden" name="lessons" id="hiddenLessons" value="1">
-      <input type="hidden" name="total" id="hiddenTotal" value="">
-      <input type="hidden" name="note" value="">
-      <input type="hidden" name="group_ongoing_interest" value="">
-      <p style="display:none;"><input name="bot-field"></p>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Name</label>
-          <input class="form-input" type="text" id="bookName" name="name" placeholder="Your full name">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input class="form-input" type="email" id="bookEmail" name="email" placeholder="your@email.com" onchange="refreshTimeOptions()">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Phone (optional)</label>
-          <input class="form-input" type="tel" id="bookPhone" name="phone" placeholder="04xx xxx xxx">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Preferred Date</label>
-          <input class="form-input" type="date" id="bookDate" name="date" onchange="handleDateFieldChange(this)">
-          <p id="bookDateWarning" style="display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;">James is closed on Sundays. Please choose a different day.</p>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Instrument</label>
-        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
-          <button class="instrument-btn active" onclick="selectInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
-          <button class="instrument-btn" onclick="selectInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
-        </div>
-      </div>
-      <div class="form-group" id="guitarTypeGroup">
-        <label class="form-label">Guitar type</label>
-        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
-          <button class="instrument-btn active" onclick="selectGuitarType(this,'Acoustic')" type="button">Acoustic</button>
-          <button class="instrument-btn" onclick="selectGuitarType(this,'Electric')" type="button">Electric</button>
-          <button class="instrument-btn" onclick="selectGuitarType(this,'Either')" type="button">Either / Both</button>
-        </div>
-      </div>
-      <div id="durationGroup" class="form-group">
-        <label class="form-label">Lesson Duration</label>
-        <select class="form-input" id="bookDuration" name="duration" onchange="updateTotal()">
-          <option value="30|50">30 minutes · $50</option>
-          <option value="45|70" selected>45 minutes · $70</option>
-          <option value="60|85">60 minutes · $85</option>
-          <option value="75|100">75 minutes · $100</option>
-          <option value="90|130">90 minutes · $130</option>
-        </select>
-      </div>
-      <div id="lessonsGroup" class="form-group">
-        <label class="form-label">Number of Lessons</label>
-        <input class="form-input" type="number" id="bookLessons" name="lessons_count" min="1" value="1" oninput="updateTotal()">
-        <p style="font-size:0.76rem;color:var(--muted);margin-top:0.4rem;line-height:1.5;">Booking more than one? Choose how below. No limit on how many.</p>
-        <p id="largeBookingNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin-top:0.4rem;line-height:1.5;">That's a big booking! For 20+ lessons, it might be quicker to reach out to James directly at <a href="mailto:jamesmcqmusic@gmail.com" style="color:var(--gold);">jamesmcqmusic@gmail.com</a> or <a href="tel:0499232898" style="color:var(--gold);">0499 232 898</a> to arrange it, but you're welcome to book here too.</p>
-      </div>
-      <div id="extraDatesGroup" class="form-group" style="display:none;">
-        <label class="form-label">How would you like to book these lessons?</label>
-        <select class="form-input" id="bookingMode" onchange="updateTotal()">
-          <option value="weekly">Same time, every week</option>
-          <option value="fortnightly" id="fortnightlyOption">Same time, every fortnight</option>
-          <option value="custom">Choose a different date & time for each lesson</option>
-        </select>
-        <p style="font-size:0.76rem;color:var(--muted);margin:0.5rem 0;">Your first lesson uses the date & time set above. You can still adjust any individual date below if needed.</p>
-        <p id="bookingPatternNote" style="display:none;font-size:0.76rem;color:var(--gold-pale);margin:0.5rem 0;line-height:1.5;"></p>
-        <div id="extraDatesContainer"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Preferred Time</label>
-        <select class="form-input" id="bookTime" onchange="updateDurationAvailability()">
-          <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
-          <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
-          <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
-          <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
-          <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
-          <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
-          <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
-          <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
-          <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
-          <option>9:00 pm</option>
-        </select>
-      </div>
-      <div class="form-group" style="border-top:1px solid var(--navy-border);padding-top:1rem;margin-top:0.5rem;">
-        <label class="form-label" style="color:var(--cream);">Tell James what you'd like to work on (optional)</label>
-        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.8rem;line-height:1.5;">None of this is required, but the more James knows ahead of time, the better he can plan your first lesson.</p>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Songs or artists you'd like to learn</label>
-        <input class="form-input" type="text" id="bookSongRequests" name="song_requests" placeholder="Pick an artist or song you love">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Genre you're most interested in</label>
-        <select class="form-input" id="bookGenreFocus" name="genre_focus">
-          <option value="">No preference</option>
-          <option value="Rock">Rock</option>
-          <option value="Country">Country</option>
-          <option value="Blues">Blues</option>
-          <option value="Pop">Pop</option>
-          <option value="Classical">Classical</option>
-          <option value="Fingerpicking">Fingerpicking</option>
-          <option value="Folk/Americana">Folk/Americana</option>
-          <option value="Jazz">Jazz</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);cursor:pointer;">
-          <input type="checkbox" id="bookTheoryInterest" name="theory_interest" value="Yes" style="width:16px;height:16px;">
-          I'd like to include music theory in my lessons
-        </label>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Anything else James should know</label>
-        <textarea class="form-input" id="bookGoalsNotes" name="lesson_goals_notes" rows="3" placeholder="e.g. I'm a complete beginner, I want to prep for a wedding song, I have a specific technique I'm stuck on..." style="resize:vertical;font-family:var(--font-body);"></textarea>
-      </div>
-      <div class="subtotal-box">
-        <div class="subtotal-row"><span>Price per lesson</span><span id="subtotalAmt">$70</span></div>
-        <div class="subtotal-row" id="lessonsRow" style="display:none;"><span id="lessonsLabel"></span><span id="lessonsAmt"></span></div>
-        <div class="subtotal-total"><span>Total</span><span id="totalAmt">$70</span></div>
-      </div>
-      <div class="form-group" id="stripeSection">
-        <label class="form-label">Card Details</label>
-        <div id="stripe-card-element"></div>
-        <div id="stripe-error"></div>
-      </div>
-      <button class="btn-primary" id="submitBtn" onclick="handleBooking()" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;" type="button">Proceed to Payment</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px;margin-right:3px;"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Secure payment via Stripe · Card details never stored</p>
-    </form>
   </div>
 </section>
 
@@ -302,8 +159,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Weekly Subscription</p>
     <h2 class="section-title">Reserve your <em>own time slot</em></h2>
-    <p class="section-sub">Already had a lesson with James? Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
-    <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">New here? We'd recommend <a href="booking.html#book" style="color:var(--gold);">booking a trial lesson</a> first, so we can make sure it's the right fit. You're welcome to subscribe any time after.</p>
+    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
       <div class="form-row">
@@ -338,7 +194,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group">
         <label class="form-label">Lessons per week</label>
         <select class="form-input" id="subLessonsPerWeek" onchange="handleSubLessonsPerWeekChange()">
-          <option value="1" selected>1 (a single weekly slot)</option>
+          <option value="1" selected>1 (a single recurring slot)</option>
           <option value="2">2</option>
           <option value="3">3</option>
         </select>
@@ -399,7 +255,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
       <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Subscribe →</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? <a href="booking.html#book" style="color:var(--gold);">Book a single lesson</a> first, then come back to subscribe. Need to pause, reschedule, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
     </form>
   </div>
 </section>
@@ -1226,12 +1082,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       btn.className = 'time-slot-btn free';
       btn.textContent = t + '  ·  Available';
       btn.onclick = () => {
-        document.getElementById('bookDate').value = key;
-        document.getElementById('bookDuration').value = tier.value; // the actual duration proven to fit this exact time
-        document.getElementById('book').scrollIntoView({behavior:'smooth'});
-        updateTotal();
-        document.getElementById('bookTime').value = t;
-        updateDurationAvailability();
+        const dow = new Date(key + 'T00:00:00').getDay();
+        const subDaySelect = document.getElementById('subDay');
+        subDaySelect.value = dow;
+        handleSubscribeDayChange();
+        document.getElementById('subDuration').value = tier.value; // the actual duration proven to fit this exact time
+        document.getElementById('subscribe').scrollIntoView({behavior:'smooth'});
+        document.getElementById('subTime').value = t;
+        handleSubscribeDurationChange();
       };
       grid.appendChild(btn);
     });
@@ -1432,8 +1290,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           });
         }
         renderCal();
-        refreshTimeOptions();
-        updateDurationAvailability();
         refreshSubscribeTimeOptions();
         refreshSubscribeDurationOptions();
       }
@@ -1441,38 +1297,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
   loadLiveBookings().then(initRescheduleFlow).then(initManageFromLink);
 
-  // Pricing page can link here with ?lessons=5 or ?lessons=10 to preset
-  // the lesson count on the booking form (since presetLessonCount only
-  // exists on this page's JS, the cross-page link uses a query param).
-  (function() {
-    const presetLessons = new URLSearchParams(window.location.search).get('lessons');
-    if (presetLessons && document.getElementById('bookLessons')) {
-      presetLessonCount(parseInt(presetLessons));
-    }
-  })();
-
-  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" links (and
-  // the book-a-lesson choice popup) use ?frequency=weekly or
-  // ?frequency=fortnightly#subscribe, so the Subscribe form opens with the
-  // right frequency already chosen rather than making them pick it again.
+  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" buttons
+  // link here with ?frequency=weekly or ?frequency=fortnightly, so the
+  // Subscribe form opens with the right frequency already chosen rather
+  // than making them pick it again.
   (function() {
     const presetFrequency = new URLSearchParams(window.location.search).get('frequency');
     const freqSelect = document.getElementById('subFrequency');
     if ((presetFrequency === 'weekly' || presetFrequency === 'fortnightly') && freqSelect) {
       freqSelect.value = presetFrequency;
-      updateSubscribeTotal();
-    }
-  })();
-
-  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" buttons
-  // link here with ?frequency=weekly or ?frequency=fortnightly, so the
-  // Subscribe form arrives with the right frequency already selected
-  // instead of defaulting to weekly regardless of which button was
-  // actually clicked.
-  (function() {
-    const presetFrequency = new URLSearchParams(window.location.search).get('frequency');
-    if ((presetFrequency === 'weekly' || presetFrequency === 'fortnightly') && document.getElementById('subFrequency')) {
-      document.getElementById('subFrequency').value = presetFrequency;
       updateSubscribeTotal();
     }
   })();
@@ -1565,20 +1398,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     document.getElementById('successModal').classList.add('open');
   })();
-
-  // STRIPE
-  const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
-  let stripe, cardElement;
-  try {
-    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-    const elements = stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#c9942a', colorBackground: '#152033', colorText: '#e8e0d0', colorDanger: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } });
-    cardElement = elements.create('card');
-    cardElement.mount('#stripe-card-element');
-    cardElement.on('focus', () => document.getElementById('stripe-card-element').classList.add('focused'));
-    cardElement.on('blur', () => document.getElementById('stripe-card-element').classList.remove('focused'));
-  } catch(e) {
-    document.getElementById('stripeSection').innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
-  }
 
   // GROUP CLASSES, a fully separate registration flow from private lessons
   let selectedGroupInstrument = 'Guitar';
@@ -2115,8 +1934,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
 
-  document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
-  document.getElementById('bookDate').max = getMaxBookingDate();
   document.getElementById('groupDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('groupDate').max = getMaxBookingDate();
 
