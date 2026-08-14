@@ -16,6 +16,7 @@ const {
   listBlockingSubscriptionsForDay,
   conflictsWithSubscriptions,
   timeToMinutes,
+  createLessonOccurrence,
   escapeHtml
 } = require('./subscription-helpers');
 
@@ -157,6 +158,25 @@ async function run() {
       await store.set(blob.key, JSON.stringify(record));
       resumedCount++;
       console.log('[pause-expiry-check] resumed subscription ' + record.subscriptionId + ' for ' + record.studentName + ', next lesson ' + record.nextLessonDate);
+
+      // Creates this first post-resume lesson's booking record and
+      // calendar event directly, right now - the next Stripe renewal
+      // invoice would otherwise be the only thing that ever creates it,
+      // but that renewal always advances one full interval from
+      // whatever record.nextLessonDate already holds. Since it's set to
+      // the correct resume date just above, waiting for that renewal
+      // would skip straight past this lesson and create the calendar
+      // event for the WRONG, later date instead - this lesson would
+      // never appear on the calendar at all. Saved to the record first,
+      // above, so the subscription is correctly active and unblocking
+      // its slot regardless of whether this calendar step succeeds.
+      if (recomputedLessonDate) {
+        try {
+          await createLessonOccurrence(recomputedLessonDate, record);
+        } catch (occErr) {
+          console.error('[pause-expiry-check] failed to create lesson occurrence for resumed subscription ' + record.subscriptionId + ':', occErr && occErr.message ? occErr.message : occErr);
+        }
+      }
 
       if (record.studentEmail) {
         await sendEmail(
