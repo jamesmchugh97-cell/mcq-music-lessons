@@ -7,8 +7,8 @@
 // via isWithinBusinessHours), the old Friday-makeup-only restriction and
 // its saturday-credits gate have been retired.
 const { getStore } = require('@netlify/blobs');
-const { createCalendarEvent } = require('./google-calendar-helper');
-const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
+const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
+const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes, isStalePendingHold } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
 const MIN_NOTICE_HOURS = 24;
@@ -158,6 +158,15 @@ function buildCalendarNotes({ instrument, email, songRequests, genreFocus, theor
 }
 
 exports.handler = async function (event) {
+  // One-off booking has been fully retired - every lesson now goes
+  // through a subscription instead. The site's own UI stopped linking
+  // here a while ago, but this endpoint itself is what actually
+  // enforces that, since it's a public URL anyone could otherwise still
+  // call directly regardless of what the UI offers. Everything below
+  // this guard is left intact rather than deleted, in case one-off
+  // booking is ever brought back.
+  return { statusCode: 200, body: JSON.stringify({ success: false, error: 'One-off bookings are no longer available. Please subscribe instead.' }) };
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }
@@ -169,7 +178,7 @@ exports.handler = async function (event) {
   }
   const {
     slots, name, email, duration,
-    instrument, song_requests, genre_focus, theory_interest, lesson_goals_notes
+    instrument, guitar_type, song_requests, genre_focus, theory_interest, lesson_goals_notes
   } = body;
   if (!Array.isArray(slots) || slots.length === 0) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'No lesson dates provided.' }) };
@@ -180,12 +189,19 @@ exports.handler = async function (event) {
     }
   }
   const durationMinutes = parseInt(duration, 10) || 45;
+  // "Electric"/"Acoustic" only means anything when guitar is actually
+  // involved, and "Either / Both" isn't worth stating since it doesn't
+  // narrow anything down - James still needs to have both options
+  // ready either way, same as if nothing had been specified at all.
+  const displayInstrument = (guitar_type && guitar_type !== 'Either' && instrument !== 'Piano')
+    ? instrument + ' (' + guitar_type + ')'
+    : instrument;
   // Same info applies to every lesson in this booking (song requests,
   // genre, theory interest, and notes are entered once for the whole
   // booking, not per lesson), so this is built once and reused for each
   // calendar event created below.
   const calendarNotes = buildCalendarNotes({
-    instrument: instrument,
+    instrument: displayInstrument,
     email: email,
     songRequests: song_requests,
     genreFocus: genre_focus,
@@ -293,49 +309,92 @@ exports.handler = async function (event) {
       }
     }
 
+    // Hard advance-booking limit: nothing can be booked more than 30
+    // days out at all. Checked here server-side, not just relied on as
+    // a client-side date-picker max (booking.html's getMaxBookingDate),
+    // since this is a public API endpoint anyone could call directly -
+    // without this, the client-side limit would be purely cosmetic.
+    const MAX_ADVANCE_BOOKING_DAYS = 30;
+    {
+      const todayStr = todayDateKey();
+      for (const s of slots) {
+        if (daysBetweenDates(todayStr, s.date) > MAX_ADVANCE_BOOKING_DAYS) {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ success: false, error: s.date + ' is more than 30 days away. One-off lessons can only be booked up to a month ahead - for anything more ongoing, set up a subscription from the Subscribe section instead.' })
+          };
+        }
+      }
+    }
+
     // Booking-pattern policy: a multi-lesson booking whose dates stay
     // within the next 30 days can be picked however the student likes
-    // (that's normal flexible use). But once any date in the SAME
-    // booking reaches further out than that, the whole set of dates must
-    // form a strict, evenly-spaced weekly or fortnightly series, not a
-    // scattered handful of individually-picked dates. Without this, a
-    // student can hold a popular slot on far-future dates while only
-    // actually attending sporadically (e.g. three consecutive Tuesdays,
-    // then a lone date two months later, then another a month after
-    // that), which blocks that slot from students or subscribers who'd
-    // actually use it every week. This is checked directly against the
-    // submitted dates themselves (not a client-supplied "mode" flag), so
-    // it can't be bypassed by hand-crafting a request.
+    // (that's normal flexible use). Beyond that, the code below used to
+    // require each weekday to form a strict, evenly-spaced pattern
+    // instead of scattered dates - but the hard 30-day cap just above
+    // now rejects anything past 30 days outright, before it can ever
+    // reach this point, so everything from here through the fortnightly
+    // cap check is currently dormant, not deleted in case the overall
+    // window is ever extended again later, but never actually reachable
+    // as things stand. Was written when the site allowed booking up to
+    // a year ahead - a multi-lesson request could then be a scattered,
+    // slot-squatting set of far-future dates while only attending
+    // occasionally, which blocked a slot from students or subscribers
+    // who'd actually use it every week.
     //
-    // Fortnightly series are additionally capped at 5 lessons: a
-    // fortnightly series of 10 would hold a slot for nearly 5 months on
-    // a once-a-fortnight basis, the same low-commitment-long-hold pattern
-    // this check exists to prevent. Weekly series have no extra cap here
-    // beyond whatever the existing large-booking note already suggests.
+    // Checked PER WEEKDAY rather than across the whole date list at
+    // once, since the site explicitly offers "twice a week" bookings
+    // (see pricing.html/faq.html) - e.g. every Monday AND every
+    // Thursday. Checked as one combined sequence, those two legitimate
+    // weekly patterns interleave into gaps of 3 and 4 days, not a
+    // consistent 7, and would be wrongly rejected. Grouped by weekday,
+    // each day's own dates are checked for their own consistent
+    // spacing, which correctly allows any number of consistent
+    // once/twice/thrice-a-week patterns while still catching the actual
+    // sporadic-squatting case (same weekday, inconsistent spacing).
+    // This is checked directly against the submitted dates themselves
+    // (not a client-supplied "mode" flag), so it can't be bypassed by
+    // hand-crafting a request.
+    //
+    // Fortnightly is additionally capped at 5 lessons on any one
+    // weekday: a fortnightly series of 10 on the same day would hold
+    // that slot for nearly 5 months on a once-a-fortnight basis, the
+    // same low-commitment-long-hold pattern this check exists to
+    // prevent. Weekly has no extra cap here beyond whatever the
+    // existing large-booking note already suggests.
     const MAX_SPORADIC_DAYS_OUT = 30;
     const MAX_FORTNIGHTLY_LESSONS = 5;
     if (slots.length > 1) {
       const todayStr = todayDateKey();
       const farthestDaysOut = Math.max(...slots.map(s => daysBetweenDates(todayStr, s.date)));
       if (farthestDaysOut > MAX_SPORADIC_DAYS_OUT) {
-        const sortedDates = slots.map(s => s.date).slice().sort();
-        const gaps = [];
-        for (let i = 1; i < sortedDates.length; i++) {
-          gaps.push(daysBetweenDates(sortedDates[i - 1], sortedDates[i]));
-        }
-        const isWeeklySeries = gaps.every(g => g === 7);
-        const isFortnightlySeries = gaps.every(g => g === 14);
-        if (isFortnightlySeries && slots.length > MAX_FORTNIGHTLY_LESSONS) {
-          return {
-            statusCode: 200,
-            body: JSON.stringify({ success: false, error: 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons at a time. Please reduce to 5 lessons, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.' })
-          };
-        }
-        if (!isWeeklySeries && !isFortnightlySeries) {
-          return {
-            statusCode: 200,
-            body: JSON.stringify({ success: false, error: 'Bookings reaching more than 30 days out need to be an evenly-spaced weekly or fortnightly series, not individually chosen dates. Please keep all dates within the next 30 days, pick a consistent weekly or fortnightly pattern, or set up an ongoing subscription from the Subscribe section instead.' })
-          };
+        const byWeekday = {};
+        slots.forEach(s => {
+          const dw = dayOfWeek(s.date);
+          if (!byWeekday[dw]) byWeekday[dw] = [];
+          byWeekday[dw].push(s.date);
+        });
+        for (const dw in byWeekday) {
+          const datesOnThisDay = byWeekday[dw].slice().sort();
+          if (datesOnThisDay.length === 1) continue; // one lone future date on this weekday needs no pattern check
+          const gaps = [];
+          for (let i = 1; i < datesOnThisDay.length; i++) {
+            gaps.push(daysBetweenDates(datesOnThisDay[i - 1], datesOnThisDay[i]));
+          }
+          const isWeeklySeries = gaps.every(g => g === 7);
+          const isFortnightlySeries = gaps.every(g => g === 14);
+          if (!isWeeklySeries && !isFortnightlySeries) {
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: false, error: 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing subscription from the Subscribe section instead.' })
+            };
+          }
+          if (isFortnightlySeries && datesOnThisDay.length > MAX_FORTNIGHTLY_LESSONS) {
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: false, error: 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.' })
+            };
+          }
         }
       }
     }
@@ -346,9 +405,52 @@ exports.handler = async function (event) {
     // instead of silently overwriting the first booking. If any slot in
     // this request loses that race, roll back everything already written
     // so the booking never ends up half-confirmed.
+    //
+    // Every slot is marked pendingPayment: true here, since the slot is
+    // deliberately locked in BEFORE the card is actually charged (see
+    // booking.html), so two people can never both pay for the same time.
+    // That's correct, but it means an abandoned or failed checkout would
+    // otherwise leave the slot permanently blocked forever, with nobody
+    // able to book it again, since nothing ever un-reserves it. Fixed by
+    // treating a pending hold older than RESERVATION_HOLD_MINUTES (see
+    // subscription-helpers.js, shared from there since this same check
+    // is now needed in five different files) as stale and safe to
+    // release, checked right here whenever someone else wants that same
+    // slot, rather than needing a separate cleanup job.
+    // confirm-reservation.js clears this flag once payment actually
+    // succeeds, turning it into a permanent, real booking.
+
     const written = [];
     for (const s of slots) {
       const key = s.date + '_' + s.time;
+
+      // If the existing record at this key is just a stale, unpaid hold
+      // from an earlier abandoned checkout, release it first so this
+      // request gets a fair shot at the slot via the same atomic write
+      // used for everyone else, rather than being blocked by a booking
+      // that was never actually completed. Separately: if the existing
+      // hold is unpaid AND belongs to this same email, release it
+      // regardless of age. That's the person whose payment just failed
+      // retrying with fixed card details; without this, their own
+      // first attempt's hold would block their retry with a baffling
+      // "just booked by someone else" for the full hold window. Only a
+      // pendingPayment record can ever be released this way - a
+      // confirmed, paid booking is never touched, even for the same
+      // email.
+      try {
+        const existing = await store.get(key, { type: 'json' });
+        const sameOwnerRetry = !!(existing && existing.pendingPayment === true && email && existing.email && existing.email.trim().toLowerCase() === email.trim().toLowerCase());
+        if (isStalePendingHold(existing) || sameOwnerRetry) {
+          await store.delete(key);
+          if (existing.eventId) {
+            try { await deleteCalendarEvent(existing.eventId); } catch (e) {}
+          }
+          console.log('[reserve-multi-slots] released ' + (sameOwnerRetry ? 'same-owner retry' : 'stale') + ' pending hold at', key, 'reserved at', existing.reservedAt);
+        }
+      } catch (staleCheckErr) {
+        console.error('[reserve-multi-slots] stale-hold check failed for', key, ':', staleCheckErr && staleCheckErr.message ? staleCheckErr.message : staleCheckErr);
+      }
+
       const record = {
         date: s.date,
         time: s.time,
@@ -356,7 +458,10 @@ exports.handler = async function (event) {
         name: name || '',
         email: email || '',
         instrument: instrument || '',
-        bookedAt: new Date().toISOString()
+        guitarType: (guitar_type && instrument !== 'Piano') ? guitar_type : '',
+        bookedAt: new Date().toISOString(),
+        pendingPayment: true,
+        reservedAt: new Date().toISOString()
       };
       let claimed = true;
       try {
@@ -393,7 +498,7 @@ exports.handler = async function (event) {
           startDateTime: startDateTime,
           endDateTime: endDateTime,
           notes: calendarNotes,
-          instrument: instrument
+          instrument: displayInstrument
         });
         if (eventId) {
           record.eventId = eventId;
