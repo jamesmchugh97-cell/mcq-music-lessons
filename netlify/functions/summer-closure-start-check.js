@@ -2,15 +2,24 @@
 // Netlify SCHEDULED function (runs once daily). Two independent checks
 // in one file, both answering "does a scheduled future pause need to
 // actually start today":
-// 1. Individual students who booked their summer break in advance
-//    (manage-subscription.js's pauseSummer action) - once
-//    SUMMER_PAUSE_START arrives, their Stripe billing is actually
+// 1. Individual students who booked their summer break in advance,
+//    back when manage-subscription.js's pauseSummer action still
+//    existed as a separate, student-facing option - that action has
+//    since been removed (there's now just one regular pause, usable
+//    any time of year), so this branch only ever processes a
+//    summerPausePending record from BEFORE that removal, never a new
+//    one. Left fully intact rather than gutted, so anyone who already
+//    booked a summer break under the old system still has it honored
+//    exactly as promised - once every such pre-existing booking has
+//    been processed, this branch naturally becomes a permanent no-op.
+//    Once SUMMER_PAUSE_START arrives, their Stripe billing is actually
 //    paused now, since pause_collection can't be scheduled for a
 //    future start date directly, only called the moment it should
 //    take effect.
 // 2. A studio-wide closure set by James via admin-closure.js - once its
 //    start date arrives, every currently-active subscription is paused
-//    the same way, tagged so it's clear why.
+//    the same way, tagged so it's clear why. Unaffected by the removal
+//    above, a completely separate feature.
 // Both resume automatically later via the EXISTING pause-expiry-check.js
 // job, which only cares about a record's status/pausedUntil fields, not
 // why it was paused in the first place, so nothing new was needed there.

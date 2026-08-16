@@ -45,7 +45,6 @@ function isStalePendingHold(record) {
 // fixed formula, so there's no safe way to calculate them automatically.
 const SUMMER_PAUSE_START = '2026-12-19';
 const SUMMER_PAUSE_END = '2027-01-26';
-const MAX_SUMMER_PAUSE_WEEKS = 6;
 
 // Shared with create-subscription.js and manage-subscription.js (for
 // the changeFrequency action), so there's exactly one source of truth
@@ -423,9 +422,6 @@ function summerWeeksUsed(record) {
 function combinedPauseWeeksUsed(record) {
   return pausedWeeksThisYear(record) + summerWeeksUsed(record);
 }
-function canUseSummerWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
-  return (combinedPauseWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
-}
 
 function canPauseWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
   return (combinedPauseWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
@@ -439,11 +435,11 @@ function canPauseWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
 // SINCE been cancelled this year (tracked in the email-history store).
 // Without this, two subscriptions under the same email - the same
 // person coming twice a week - would each independently think they
-// had their own fresh 4-week allowance, giving 8 weeks total instead
-// of the intended 4. Two genuinely different people, each with their
+// had their own fresh 8-week allowance, giving 16 weeks total instead
+// of the intended 8. Two genuinely different people, each with their
 // own email, are correctly unaffected by this at all, since neither
 // would ever show up in the other's lookup.
-// totalPausedWeeksForEmail/totalSummerWeeksForEmail below are a
+// totalPausedWeeksForEmail below is a
 // read-check pattern, not atomic on their own - if the same email
 // submits two pause requests for two different subscriptions close
 // enough together, both could read the "before" state before either
@@ -510,21 +506,16 @@ async function totalPausedWeeksForEmail(email, excludeSubscriptionId) {
   return total;
 }
 
-// Same combined total as totalPausedWeeksForEmail above - kept as a
-// separate name since callers ask about "summer weeks used elsewhere"
-// specifically, but both now need the same full picture to be correct.
-async function totalSummerWeeksForEmail(email, excludeSubscriptionId) {
-  return totalPausedWeeksForEmail(email, excludeSubscriptionId);
-}
-
 // If someone cancels a subscription and starts a new one again within
 // this many days, the gap counts against the same annual pause-week
 // allowance pausing already uses, instead of resetting to a clean
-// slate. Pausing itself maxes out at 4 weeks in a single go, so a
-// threshold a little past that catches "skip a few weeks by cancelling
-// and resubscribing" without penalizing someone who's genuinely been
-// away much longer and is legitimately starting fresh.
-const RESUBSCRIBE_GAP_DAYS = 35;
+// slate. Pausing itself maxes out at 8 weeks in a single go (the
+// whole annual pool, since the regular and summer pause budgets were
+// merged into one), so a threshold a little past that catches "skip a
+// few weeks by cancelling and resubscribing" without penalizing
+// someone who's genuinely been away much longer and is legitimately
+// starting fresh.
+const RESUBSCRIBE_GAP_DAYS = 63;
 
 function historyStore() {
   return getStore({ name: 'subscriber-history', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
@@ -584,7 +575,6 @@ module.exports = {
   RESUBSCRIBE_GAP_DAYS,
   SUMMER_PAUSE_START,
   SUMMER_PAUSE_END,
-  MAX_SUMMER_PAUSE_WEEKS,
   timeToMinutes,
   minutesToIsoClock,
   createLessonOccurrence,
@@ -605,8 +595,6 @@ module.exports = {
   acquireEmailPauseLock,
   releaseEmailPauseLock,
   summerWeeksUsed,
-  canUseSummerWeeks,
-  totalSummerWeeksForEmail,
   getEmailHistory,
   saveEmailHistory,
   emailPausedWeeksThisYear,

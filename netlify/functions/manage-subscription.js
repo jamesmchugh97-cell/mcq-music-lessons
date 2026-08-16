@@ -20,12 +20,9 @@ const {
   emailSummerWeeksUsedThisYear,
   saveEmailHistory,
   summerWeeksUsed,
-  canUseSummerWeeks,
-  totalSummerWeeksForEmail,
   listSubscriptionsByEmail,
   SUMMER_PAUSE_START,
   SUMMER_PAUSE_END,
-  MAX_SUMMER_PAUSE_WEEKS,
   clearImminentLessonIfWithinPause,
   PRICE_IDS,
   escapeHtml
@@ -91,12 +88,7 @@ exports.handler = async function (event) {
       const history = await getEmailHistory(email);
       const totalPausedAcrossAll = emailPausedWeeksThisYear(history) + subs.reduce((sum, s) => sum + pausedWeeksThisYear(s), 0);
       const totalSummerAcrossAll = emailSummerWeeksUsedThisYear(history) + subs.reduce((sum, s) => sum + summerWeeksUsed(s), 0);
-      // One merged pool now, not two separate budgets - "remaining" is
-      // the same shared figure either way, computed from BOTH kinds of
-      // usage combined against the one shared cap.
       const sharedWeeksRemaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - totalPausedAcrossAll - totalSummerAcrossAll);
-      const sharedPauseWeeksRemaining = sharedWeeksRemaining;
-      const sharedSummerWeeksRemaining = sharedWeeksRemaining;
       const summarized = subs.map(s => ({
         subscriptionId: s.subscriptionId,
         instrument: s.instrument,
@@ -107,12 +99,11 @@ exports.handler = async function (event) {
         status: s.status,
         pausedUntil: s.pausedUntil || null,
         pausedWeeksUsedThisYear: pausedWeeksThisYear(s),
-        pauseWeeksRemaining: sharedPauseWeeksRemaining,
+        pauseWeeksRemaining: sharedWeeksRemaining,
         nextLessonDate: s.nextLessonDate || null,
         cancelling: !!s.cancelling,
         summerPausePending: !!s.summerPausePending,
-        summerPauseEndDate: s.summerPauseEndDate || null,
-        summerWeeksRemaining: sharedSummerWeeksRemaining
+        summerPauseEndDate: s.summerPauseEndDate || null
       }));
       return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized, summerPauseStart: SUMMER_PAUSE_START, summerPauseEnd: SUMMER_PAUSE_END }) };
     }
@@ -225,55 +216,7 @@ exports.handler = async function (event) {
     }
 
     if (action === 'pauseSummer') {
-      const weeks = parseInt(body.weeks, 10);
-      if (!weeks || weeks < 1 || weeks > MAX_PAUSE_WEEKS_PER_YEAR) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose between 1 and ' + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks.' }) };
-      }
-      if (record.status === 'paused' || record.summerPausePending) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription already has a pause in place.' }) };
-      }
-      const lockAcquiredSummer = await acquireEmailPauseLock(record.studentEmail);
-      if (!lockAcquiredSummer) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please wait a moment and try again - another pause request for this email is still being processed.' }) };
-      }
-      let otherSummerWeeksUsed;
-      try {
-        otherSummerWeeksUsed = await totalSummerWeeksForEmail(record.studentEmail, subscriptionId);
-        if (!canUseSummerWeeks(record, weeks, otherSummerWeeksUsed)) {
-          const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - summerWeeksUsed(record) - otherSummerWeeksUsed);
-          return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' summer week(s) left for this break.' }) };
-        }
-
-        // Stripe's pause_collection takes effect the moment it's called,
-        // there's no way to schedule it for a future start date. So this
-        // just records the request now (which can happen any time in
-        // advance) and a daily check (summer-closure-start-check.js)
-        // actually applies the Stripe pause once SUMMER_PAUSE_START
-        // arrives, exactly like a subscription that's still 'active' in
-        // every other respect right up until then.
-        const proposedEndCheck = new Date(SUMMER_PAUSE_START + 'T00:00:00');
-        proposedEndCheck.setDate(proposedEndCheck.getDate() + weeks * 7);
-        const windowEndCheck = new Date(SUMMER_PAUSE_END + 'T00:00:00');
-        const summerPauseEndDateCheck = (proposedEndCheck < windowEndCheck ? proposedEndCheck : windowEndCheck).toISOString().slice(0, 10);
-
-        record.summerPausePending = true;
-        record.summerPauseEndDate = summerPauseEndDateCheck;
-        record.summerWeeksUsed = summerWeeksUsed(record) + weeks;
-        record.summerPauseYear = currentYear();
-        await saveSubscriptionRecord(subscriptionId, record);
-      } finally {
-        await releaseEmailPauseLock(record.studentEmail);
-      }
-
-      if (record.studentEmail) {
-        await sendEmail(
-          record.studentEmail,
-          'MCQ Music Lessons: your summer break is booked in',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your summer break is booked in. Billing and lessons will pause from ' + formatFriendlyDate(SUMMER_PAUSE_START) + ' and pick back up automatically on ' + formatFriendlyDate(record.summerPauseEndDate) + '. Nothing else to do, no charge while paused.</p><p>James</p>'
-        );
-      }
-
-      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: record.summerPauseEndDate, summerWeeksRemaining: Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - summerWeeksUsed(record)) }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Summer break is no longer a separate option - just use the regular pause for however many weeks you need, any time of year.' }) };
     }
 
     if (action === 'changeFrequency') {
@@ -317,7 +260,7 @@ exports.handler = async function (event) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your subscription is now ' + newFrequency,
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
       }
       await sendEmail(
