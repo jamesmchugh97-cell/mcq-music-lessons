@@ -183,6 +183,78 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="divider"></div>
 
+<section id="package">
+  <div class="section-inner">
+    <p class="section-eyebrow">Lesson Package</p>
+    <h2 class="section-title">Buy a <em>lesson package</em></h2>
+    <p class="section-sub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
+    <form class="booking-form" id="packageForm" onsubmit="return handlePackageBooking(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="packageName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="packageEmail" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="packagePhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectPackageInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectPackageInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="packageGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectPackageGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectPackageGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectPackageGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Package Size</label>
+          <select class="form-input" id="packageSize" onchange="handlePackageSizeChange()">
+            <option value="5">5 lessons</option>
+            <option value="10">10 lessons</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lesson Duration</label>
+          <select class="form-input" id="packageDuration" onchange="handlePackageDurationChange()">
+            <option value="30|50">30 minutes · $50</option>
+            <option value="45|70" selected>45 minutes · $70</option>
+            <option value="60|85">60 minutes · $85</option>
+            <option value="75|100">75 minutes · $100</option>
+            <option value="90|130">90 minutes · $130</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.6rem;">Pick a date and time for each lesson below. Every date must be within the next 3 months.</p>
+      <div id="packageDateRows"></div>
+      <div class="form-group">
+        <label class="form-label">Card details</label>
+        <div id="package-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
+      </div>
+      <p id="packageError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Total</span><span id="packageTotalAmt">$350</span></div>
+      </div>
+      <button class="btn-primary" id="packageSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Buy Package →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe, charged once for the full package. Need to reschedule an individual lesson later? That still works the normal way.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <section id="calendar" class="calendar-section">
   <div class="section-inner">
     <p class="section-eyebrow">Availability</p>
@@ -631,6 +703,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function getMaxBookingDate() {
     const d = new Date(TODAY);
     d.setDate(d.getDate() + 30);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  // Separate from getMaxBookingDate above - packages are specifically
+  // sold on a 3-month window, not the 30-day one everything else uses.
+  function getMaxPackageBookingDate() {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() + 90);
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
@@ -1583,6 +1662,139 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return false;
   }
 
+  // STRIPE - package card payment, separate element from the trial's.
+  let packageCardElement;
+  try {
+    const packageElements = stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#c9942a', colorBackground: '#152033', colorText: '#e8e0d0', colorDanger: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } });
+    packageCardElement = packageElements.create('card');
+    packageCardElement.mount('#package-stripe-card-element');
+    packageCardElement.on('focus', () => document.getElementById('package-stripe-card-element').classList.add('focused'));
+    packageCardElement.on('blur', () => document.getElementById('package-stripe-card-element').classList.remove('focused'));
+  } catch (e) {
+    const el = document.getElementById('package-stripe-card-element');
+    if (el) el.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
+  }
+
+  async function handlePackageBooking(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('packageName').value.trim();
+    const email = document.getElementById('packageEmail').value.trim();
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
+    const errEl = document.getElementById('packageError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+
+    const slots = [];
+    for (let i = 1; i <= size; i++) {
+      const date = document.getElementById('packageDate' + i).value;
+      const time = document.getElementById('packageTime' + i).value;
+      if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time for every lesson (lesson ' + i + ' is missing one).'; return false; }
+      if (date > getMaxPackageBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Lesson ' + i + ' is more than 3 months away. Please choose a closer date.'; return false; }
+      if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'The time chosen for lesson ' + i + ' is no longer available. Please choose a different time.'; return false; }
+      slots.push({ date: date, time: time });
+    }
+    // Two lessons in the same package can't land on the exact same
+    // date and time as each other - checked here on the full set,
+    // since the per-row availability check above only ever compares
+    // against ALREADY-BOOKED lessons elsewhere, not against the other
+    // rows in this same still-unsubmitted form.
+    const seen = new Set();
+    for (const s of slots) {
+      const key = s.date + '_' + s.time;
+      if (seen.has(key)) { errEl.style.display = 'block'; errEl.textContent = 'Two lessons in this package are set to the same date and time. Please choose different times.'; return false; }
+      seen.add(key);
+    }
+
+    if (!stripe || !packageCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
+
+    const btn = document.getElementById('packageSubmitBtn');
+    btn.textContent = 'Booking…'; btn.disabled = true;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: slots,
+          name: name, email: email, duration: durationMinutes,
+          instrument: selectedPackageInstrument,
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType
+        })
+      });
+      const reserveResult = await reserveResp.json();
+      if (!reserveResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = reserveResult.error || 'One of those times is no longer available.';
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
+        return false;
+      }
+
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: packageCardElement });
+      if (pmError) {
+        errEl.style.display = 'block';
+        errEl.textContent = pmError.message;
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        return false;
+      }
+
+      const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationMinutes: durationMinutes, lessonCount: size, payment_method_id: paymentMethod.id, email: email, description: size + '-lesson package - ' + selectedPackageInstrument })
+      });
+      const chargeResult = await chargeResp.json();
+      if (!chargeResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = chargeResult.error || 'Payment failed. Please check your card details and try again.';
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        return false;
+      }
+      if (chargeResult.status === 'requires_action') {
+        const { error: confirmError } = await stripe.confirmCardPayment(chargeResult.client_secret);
+        if (confirmError) {
+          errEl.style.display = 'block';
+          errEl.textContent = confirmError.message;
+          btn.textContent = 'Buy Package →'; btn.disabled = false;
+          return false;
+        }
+      }
+
+      await fetch('/.netlify/functions/confirm-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: slots, payment_intent_id: chargeResult.payment_intent_id, durationMinutes: durationMinutes })
+      }).catch(() => {});
+
+      const totalAmt = document.getElementById('packageTotalAmt').textContent;
+      fetch('/.netlify/functions/send-confirmation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name, email: email, instrument: selectedPackageInstrument,
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
+          duration: durationMinutes, lessons_count: size, total: totalAmt,
+          booking_type: 'package',
+          slots: slots
+        })
+      }).catch(() => {});
+
+      document.getElementById('packageForm').reset();
+      const slotsListHtml = slots.map(s => '<li>' + s.date + ' at ' + s.time + '</li>').join('');
+      document.getElementById('modalTitle').textContent = 'Package Booked!';
+      document.getElementById('modalBody').innerHTML = 'Your ' + size + '-lesson package is confirmed. A confirmation email listing every lesson is on its way.<br><br><ul style="text-align:left;max-width:320px;margin:0 auto;">' + slotsListHtml + '</ul>';
+      document.getElementById('successModal').classList.add('open');
+      btn.textContent = 'Buy Package →'; btn.disabled = false;
+      selectedPackageInstrument = 'Guitar'; selectedPackageGuitarType = 'Acoustic';
+      renderPackageDateRows(); updatePackageTotal();
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Buy Package →'; btn.disabled = false;
+    }
+    return false;
+  }
+
   // GROUP CLASSES, a fully separate registration flow from private lessons
   let selectedGroupInstrument = 'Guitar';
   function selectGroupInstrument(btn, name) {
@@ -2171,6 +2383,83 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function handleTrialDurationChange() { refreshTrialTimeOptions(); updateTrialTotal(); }
   document.getElementById('trialDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('trialDate').max = getMaxBookingDate();
+
+  // ===== LESSON PACKAGE =====
+  let selectedPackageInstrument = 'Guitar';
+  let selectedPackageGuitarType = 'Acoustic';
+  function selectPackageInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPackageInstrument = name;
+    const guitarGroup = document.getElementById('packageGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectPackageGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPackageGuitarType = type;
+  }
+  function updatePackageTotal() {
+    const price = parseInt(document.getElementById('packageDuration').value.split('|')[1], 10);
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    document.getElementById('packageTotalAmt').textContent = '$' + (price * size);
+  }
+  // Refreshes just ONE date row's time dropdown - each row picks its
+  // own date, so each needs its own independent availability check
+  // against whatever the other rows have already picked, same
+  // conflict-aware getAvailableTimes logic used everywhere else on
+  // this page, not a simplified version of it.
+  function refreshPackageRowTimeOptions(rowIndex) {
+    const dateInput = document.getElementById('packageDate' + rowIndex);
+    const timeSelect = document.getElementById('packageTime' + rowIndex);
+    const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
+    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; return; }
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(dateInput.value, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = 'No times free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+  function renderPackageDateRows() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const wrap = document.getElementById('packageDateRows');
+    wrap.innerHTML = '';
+    for (let i = 1; i <= size; i++) {
+      const row = document.createElement('div');
+      row.className = 'form-row';
+      row.innerHTML =
+        '<div class="form-group">' +
+          '<label class="form-label">Lesson ' + i + ' - Date</label>' +
+          '<input class="form-input" type="date" id="packageDate' + i + '" onchange="refreshPackageRowTimeOptions(' + i + ')" required>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Lesson ' + i + ' - Time</label>' +
+          '<select class="form-input" id="packageTime' + i + '" required><option value="">Choose a date first</option></select>' +
+        '</div>';
+      wrap.appendChild(row);
+      const dateInput = document.getElementById('packageDate' + i);
+      dateInput.min = new Date().toISOString().split('T')[0];
+      dateInput.max = getMaxPackageBookingDate();
+    }
+  }
+  function handlePackageSizeChange() { renderPackageDateRows(); updatePackageTotal(); }
+  function handlePackageDurationChange() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
+    updatePackageTotal();
+  }
+  renderPackageDateRows();
 
   // ===== SUBSCRIPTIONS =====
   let selectedSubscribeInstrument = 'Guitar';
