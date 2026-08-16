@@ -2911,7 +2911,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const btnRow = document.createElement('div');
           btnRow.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;';
           if (sub.status !== 'paused') {
-            const weeksLeft = typeof sub.pauseWeeksRemaining === 'number' ? sub.pauseWeeksRemaining : 4;
+            const weeksLeft = typeof sub.pauseWeeksRemaining === 'number' ? sub.pauseWeeksRemaining : 8;
             if (weeksLeft > 0) {
               const pauseSelect = document.createElement('select');
               pauseSelect.className = 'form-input';
@@ -2931,7 +2931,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             } else {
               const usedUp = document.createElement('span');
               usedUp.style.cssText = 'font-size:0.74rem;color:var(--muted);';
-              usedUp.textContent = "You've used all 4 pause weeks this year.";
+              usedUp.textContent = "You've used all 8 pause weeks this year.";
               btnRow.appendChild(usedUp);
             }
           }
@@ -2951,31 +2951,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           cancelBtn.onclick = () => confirmCancelSubscription(email, sub.subscriptionId, dayName + ' ' + sub.time);
           btnRow.appendChild(cancelBtn);
           row.appendChild(btnRow);
-
-          if (!sub.summerPausePending && sub.status !== 'paused' && sub.summerWeeksRemaining > 0) {
-            const summerRow = document.createElement('div');
-            summerRow.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;';
-            const summerLabel = document.createElement('span');
-            summerLabel.style.cssText = 'font-size:0.76rem;color:var(--muted);';
-            summerLabel.textContent = 'Summer break (' + result.summerPauseStart + ' - ' + result.summerPauseEnd + '):';
-            const summerSelect = document.createElement('select');
-            summerSelect.className = 'form-input';
-            summerSelect.style.cssText = 'padding:0.4rem 0.6rem;font-size:0.76rem;width:auto;';
-            for (let w = 1; w <= sub.summerWeeksRemaining; w++) {
-              const opt = document.createElement('option');
-              opt.value = w; opt.textContent = w + (w === 1 ? ' week' : ' weeks');
-              summerSelect.appendChild(opt);
-            }
-            const summerBtn = document.createElement('button');
-            summerBtn.className = 'btn-outline'; summerBtn.type = 'button';
-            summerBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
-            summerBtn.textContent = 'Book summer break';
-            summerBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pauseSummer', { weeks: parseInt(summerSelect.value, 10) });
-            summerRow.appendChild(summerLabel);
-            summerRow.appendChild(summerSelect);
-            summerRow.appendChild(summerBtn);
-            row.appendChild(summerRow);
-          }
         }
         resultsEl.appendChild(row);
       });
