@@ -112,6 +112,77 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="divider" id="rescheduleDivider" style="display:none;"></div>
 
+<section id="trial">
+  <div class="section-inner">
+    <p class="section-eyebrow">Trial Lesson</p>
+    <h2 class="section-title">Try a <em>trial lesson</em></h2>
+    <p class="section-sub">New here? Book a single lesson to see if it's the right fit, no ongoing commitment. If you'd like to continue afterwards, you can subscribe for the same time every week or fortnight.</p>
+    <form class="booking-form" id="trialForm" onsubmit="return handleTrialBooking(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="trialName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="trialEmail" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="trialPhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectTrialInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectTrialInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="trialGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectTrialGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectTrialGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectTrialGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-input" type="date" id="trialDate" onchange="handleTrialDateChange()" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <select class="form-input" id="trialTime" onchange="handleTrialTimeChange()" required></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lesson Duration</label>
+        <select class="form-input" id="trialDuration" onchange="handleTrialDurationChange()">
+          <option value="30|50">30 minutes · $50</option>
+          <option value="45|70" selected>45 minutes · $70</option>
+          <option value="60|85">60 minutes · $85</option>
+          <option value="75|100">75 minutes · $100</option>
+          <option value="90|130">90 minutes · $130</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Card details</label>
+        <div id="trial-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
+      </div>
+      <p id="trialError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Total</span><span id="trialTotalAmt">$70</span></div>
+      </div>
+      <button class="btn-primary" id="trialSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Book Trial Lesson →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe. Loved it? You can subscribe for an ongoing slot any time afterwards.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <section id="calendar" class="calendar-section">
   <div class="section-inner">
     <p class="section-eyebrow">Availability</p>
@@ -155,7 +226,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Weekly Subscription</p>
     <h2 class="section-title">Reserve your <em>own time slot</em></h2>
-    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 4 weeks a year, cancel any time, all fully self-service below.</p>
+    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 8 weeks a year, cancel any time, all fully self-service below.</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">Prefer to try it out before committing? A <a href="#trial" style="color:var(--gold);">trial lesson</a> is a completely optional way to do that, entirely up to you either way.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
       <div class="form-row">
@@ -1176,7 +1248,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     while (cursor <= end) {
       const dow = cursor.getDay();
       const key = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
-      if (dow !== 0) { // only Sunday is closed
+      if (dow !== 0 && dow !== 6) { // Sunday is closed entirely, Saturday isn't available for rescheduling specifically
         const dayIsUsable = cursor >= todayMidnight;
         const hasTimes = dayIsUsable && getAvailableTimes(key, rescheduleCredit.duration).length > 0;
         const btn = document.createElement('button');
@@ -1395,6 +1467,121 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     document.getElementById('successModal').classList.add('open');
   })();
+
+  // STRIPE - trial lesson card payment only. Subscribe uses Stripe
+  // Checkout redirect instead and never touches this.
+  const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
+  let stripe, trialCardElement;
+  try {
+    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    const elements = stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#c9942a', colorBackground: '#152033', colorText: '#e8e0d0', colorDanger: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } });
+    trialCardElement = elements.create('card');
+    trialCardElement.mount('#trial-stripe-card-element');
+    trialCardElement.on('focus', () => document.getElementById('trial-stripe-card-element').classList.add('focused'));
+    trialCardElement.on('blur', () => document.getElementById('trial-stripe-card-element').classList.remove('focused'));
+  } catch (e) {
+    const el = document.getElementById('trial-stripe-card-element');
+    if (el) el.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
+  }
+
+  async function handleTrialBooking(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('trialName').value.trim();
+    const email = document.getElementById('trialEmail').value.trim();
+    const phone = document.getElementById('trialPhone').value.trim();
+    const date = document.getElementById('trialDate').value;
+    const time = document.getElementById('trialTime').value;
+    const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
+    const errEl = document.getElementById('trialError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time.'; return false; }
+    if (date > getMaxBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to a month in advance.'; return false; }
+    if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'That time is no longer available. Please choose a different time.'; return false; }
+    if (!stripe || !trialCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
+
+    const btn = document.getElementById('trialSubmitBtn');
+    btn.textContent = 'Booking…'; btn.disabled = true;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: [{ date: date, time: time }],
+          name: name, email: email, duration: durationMinutes,
+          instrument: selectedTrialInstrument,
+          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType
+        })
+      });
+      const reserveResult = await reserveResp.json();
+      if (!reserveResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = reserveResult.error || 'That time is no longer available.';
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        refreshTrialTimeOptions();
+        return false;
+      }
+
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: trialCardElement });
+      if (pmError) {
+        errEl.style.display = 'block';
+        errEl.textContent = pmError.message;
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        return false;
+      }
+
+      const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationMinutes: durationMinutes, payment_method_id: paymentMethod.id, email: email, description: 'Trial lesson - ' + selectedTrialInstrument })
+      });
+      const chargeResult = await chargeResp.json();
+      if (!chargeResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = chargeResult.error || 'Payment failed. Please check your card details and try again.';
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        return false;
+      }
+      if (chargeResult.status === 'requires_action') {
+        const { error: confirmError } = await stripe.confirmCardPayment(chargeResult.client_secret);
+        if (confirmError) {
+          errEl.style.display = 'block';
+          errEl.textContent = confirmError.message;
+          btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+          return false;
+        }
+      }
+
+      await fetch('/.netlify/functions/confirm-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: [{ date: date, time: time }], payment_intent_id: chargeResult.payment_intent_id, durationMinutes: durationMinutes })
+      }).catch(() => {});
+
+      fetch('/.netlify/functions/send-confirmation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name, email: email, instrument: selectedTrialInstrument,
+          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType,
+          date: date, time: time, duration: durationMinutes,
+          lessons_count: 1, total: '$' + document.getElementById('trialDuration').value.split('|')[1],
+          slots: [{ date: date, time: time }]
+        })
+      }).catch(() => {});
+
+      document.getElementById('trialForm').reset();
+      document.getElementById('modalTitle').textContent = 'Trial Lesson Booked!';
+      document.getElementById('modalBody').innerHTML = 'Your trial lesson is confirmed for ' + date + ' at ' + time + '. A confirmation email is on its way.<br><br>Loved it? <a href="#calendar" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a> whenever you\'re ready, same price, no ongoing commitment either way.';
+      document.getElementById('successModal').classList.add('open');
+      btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+    }
+    return false;
+  }
 
   // GROUP CLASSES, a fully separate registration flow from private lessons
   let selectedGroupInstrument = 'Guitar';
@@ -1933,6 +2120,57 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   document.getElementById('groupDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('groupDate').max = getMaxBookingDate();
+
+  // ===== TRIAL LESSON =====
+  let selectedTrialInstrument = 'Guitar';
+  let selectedTrialGuitarType = 'Acoustic';
+  function selectTrialInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTrialInstrument = name;
+    const guitarGroup = document.getElementById('trialGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectTrialGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTrialGuitarType = type;
+  }
+  function updateTrialTotal() {
+    const price = parseInt(document.getElementById('trialDuration').value.split('|')[1], 10);
+    document.getElementById('trialTotalAmt').textContent = '$' + price;
+  }
+  // Fills the time dropdown with only genuinely free times for the
+  // chosen date and duration, same underlying getAvailableTimes logic
+  // used by the calendar and every other form on this page - not a
+  // simplified version of it.
+  function refreshTrialTimeOptions() {
+    const dateInput = document.getElementById('trialDate');
+    const timeSelect = document.getElementById('trialTime');
+    const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
+    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; return; }
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(dateInput.value, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = 'No times free that day for this duration';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+  function handleTrialDateChange() { refreshTrialTimeOptions(); }
+  function handleTrialTimeChange() {}
+  function handleTrialDurationChange() { refreshTrialTimeOptions(); updateTrialTotal(); }
+  document.getElementById('trialDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('trialDate').max = getMaxBookingDate();
 
   // ===== SUBSCRIPTIONS =====
   let selectedSubscribeInstrument = 'Guitar';
