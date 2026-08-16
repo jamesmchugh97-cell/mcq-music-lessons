@@ -174,6 +174,15 @@ exports.handler = async function (event) {
   if (!Array.isArray(slots) || slots.length === 0) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'No lesson dates provided.' }) };
   }
+  // This used to support booking many lessons at once for ongoing,
+  // casual use - that entire model is gone now, replaced by
+  // subscriptions. All that's left here is a single trial lesson for
+  // someone who hasn't tried a lesson with James before, so this is
+  // now hard-capped at exactly one slot, not just left open for
+  // whatever the frontend happens to send.
+  if (slots.length > 1) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Only a single trial lesson can be booked this way. For an ongoing slot, please subscribe instead.' }) };
+  }
   for (const s of slots) {
     if (!s || !s.date || !s.time) {
       return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Every lesson needs a date and time.' }) };

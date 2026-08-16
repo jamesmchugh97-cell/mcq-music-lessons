@@ -42,7 +42,11 @@ exports.handler = async function (event) {
   if (!pricePerLesson || !payment_method_id) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing or invalid lesson duration, or missing payment method.' }) };
   }
-  const count = Math.max(1, parseInt(lessonCount, 10) || 1);
+  // This endpoint is now trial-only - always exactly one lesson, never
+  // a batch. lessonCount from the request is intentionally ignored
+  // here, not just clamped, since anything other than 1 would mean
+  // charging for something that can no longer exist.
+  const count = 1;
   const amount = pricePerLesson * count;
   try {
     const paymentIntent = await stripe.paymentIntents.create({

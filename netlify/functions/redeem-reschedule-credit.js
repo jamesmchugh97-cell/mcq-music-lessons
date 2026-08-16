@@ -178,6 +178,9 @@ exports.handler = async function (event) {
     if (dow === 0) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'James is closed on Sundays.' }) };
     }
+    if (dow === 6) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Rescheduled lessons can\'t land on a Saturday. Please choose Monday through Friday.' }) };
+    }
     if (!isWithinBusinessHours(date, startMinutes, endMinutes)) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time runs past closing hours for that day.' }) };
     }
