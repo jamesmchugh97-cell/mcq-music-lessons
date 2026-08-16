@@ -9,7 +9,7 @@
 // atomically so it can never land on top of another lesson.
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent } = require('./google-calendar-helper');
-const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes } = require('./subscription-helpers');
+const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes, isStalePendingHold, escapeHtml } = require('./subscription-helpers');
 
 const MIN_GAP_MINUTES = 30;
 
@@ -28,6 +28,14 @@ function minutesToIsoClock(totalMinutes) {
   const h = Math.floor(totalMinutes / 60) % 24;
   const m = totalMinutes % 60;
   return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
+}
+
+// Formats a 'YYYY-MM-DD' date string into something readable in an
+// email, e.g. 'Monday, 17 August 2026', instead of showing students the
+// raw machine-format date.
+function formatFriendlyDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function melbourneEpochMs(dateStr, timeStr) {
@@ -157,7 +165,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This reschedule link has expired.' }) };
     }
     if (date < credit.weekStart || date > credit.weekEnd) {
-      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a date within your original lesson\u2019s week.' }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a date within the two weeks following your original lesson.' }) };
     }
 
     const startMinutes = timeToMinutes(time);
@@ -169,6 +177,9 @@ exports.handler = async function (event) {
     const dow = dayOfWeek(date);
     if (dow === 0) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'James is closed on Sundays.' }) };
+    }
+    if (dow === 6) {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Rescheduled lessons can\'t land on a Saturday. Please choose Monday through Friday.' }) };
     }
     if (!isWithinBusinessHours(date, startMinutes, endMinutes)) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That time runs past closing hours for that day.' }) };
@@ -184,7 +195,7 @@ exports.handler = async function (event) {
     const existing = [];
     for (const blob of blobs) {
       const record = await bookingsStore.get(blob.key, { type: 'json' });
-      if (record && record.time) {
+      if (record && record.time && !isStalePendingHold(record)) {
         const s = timeToMinutes(record.time);
         existing.push({ time: record.time, start: s, end: s + (record.duration || 45) });
       }
@@ -258,8 +269,8 @@ exports.handler = async function (event) {
       '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Rescheduled</h2>' +
-      '<p>Hi ' + (credit.name || 'there') + ',</p>' +
-      '<p>Your lesson is now booked for <strong>' + date + ' at ' + time + '</strong>. No payment was needed, this simply moves the lesson you already paid for.</p>' +
+      '<p>Hi ' + escapeHtml(credit.name || 'there') + ',</p>' +
+      '<p>Your lesson is now booked for <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>. No payment was needed, this simply moves the lesson you already paid for.</p>' +
       '<p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '<p style="text-align:center;margin-top:16px;">' +
@@ -271,7 +282,7 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson rescheduled (no charge)</h3>' +
-      '<p><strong>' + (credit.name || 'A student') + '</strong> (' + credit.email + ') moved their cancelled lesson from <strong>' + credit.originalDate + ' ' + credit.originalTime + '</strong> to <strong>' + date + ' ' + time + '</strong>, using their reschedule credit. No new payment was taken.</p>' +
+      '<p><strong>' + escapeHtml(credit.name || 'A student') + '</strong> (' + escapeHtml(credit.email) + ') moved their cancelled lesson from <strong>' + formatFriendlyDate(credit.originalDate) + ' ' + credit.originalTime + '</strong> to <strong>' + formatFriendlyDate(date) + ' ' + time + '</strong>, using their reschedule credit. No new payment was taken.</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Lesson rescheduled: ' + (credit.name || 'a student') + ', ' + date + ' ' + time, jamesHtml);
 

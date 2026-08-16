@@ -10,7 +10,7 @@
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 
-const MAX_PAUSE_WEEKS_PER_YEAR = 4;
+const MAX_PAUSE_WEEKS_PER_YEAR = 8; // one shared pool for both regular and summer pauses combined - was 4, with summer separately capped at 6 on top of it
 const PAYMENT_GRACE_PERIOD_DAYS = 5; // days after a payment first fails before the slot is automatically released
 const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails before sending a warning email (2-day heads up before release)
 
@@ -88,6 +88,13 @@ async function clearImminentLessonIfWithinPause(record, pausedUntilStr) {
   if (!record.nextLessonDate) return null;
   const todayStr = new Date().toISOString().slice(0, 10);
   if (record.nextLessonDate < todayStr || record.nextLessonDate >= pausedUntilStr) return null;
+  // If the lesson is less than 24 hours away, it's too late to pause it
+  // specifically - leave it intact, same notice window as rescheduling
+  // or cancelling elsewhere in the system. The pause itself still goes
+  // through for future lessons, this one just still happens, and the
+  // pause effectively takes effect starting from the one after it.
+  const hoursUntilLesson = (melbourneEpochMs(record.nextLessonDate, record.time) - Date.now()) / (1000 * 60 * 60);
+  if (hoursUntilLesson < 24) return null;
   const store = bookingsStore();
   const key = record.nextLessonDate + '_' + record.time;
   const booking = await store.get(key, { type: 'json' });
@@ -394,20 +401,34 @@ function pausedWeeksThisYear(record) {
   return record.pausedWeeksThisYear || 0;
 }
 
-// Separate from pausedWeeksThisYear on purpose - the summer allowance is
-// its own budget, tied to SUMMER_PAUSE_START/END above, not the rolling
-// calendar year, and never touches or is touched by the regular 4-week
-// pause tracking.
+// Regular pauses and summer pauses used to be two completely separate
+// budgets - a rolling 4-week allowance plus a separate 6-week summer
+// allowance on top of it. Now unified into one shared 8-week-a-year
+// pool: this still tracks summerWeeksUsed as its own field on the
+// record (no data migration needed for existing subscriptions), but
+// every check below now looks at BOTH fields combined against the
+// same shared cap, so using summer weeks correctly eats into the same
+// budget a regular pause would, not an additional one on top.
+// Was previously not year-aware at all, a genuine pre-existing bug -
+// once used, this field would silently keep counting against a
+// student forever, in every year after, since nothing ever reset it.
+// Now uses the same convention as pausedWeeksThisYear: the year is set
+// at the moment the pause is REQUESTED (not when it takes effect,
+// which can be months later and cross into the following year), and
+// resets to 0 once that stored year no longer matches the current one.
 function summerWeeksUsed(record) {
+  if (!record.summerPauseYear || record.summerPauseYear !== currentYear()) return 0;
   return record.summerWeeksUsed || 0;
 }
+function combinedPauseWeeksUsed(record) {
+  return pausedWeeksThisYear(record) + summerWeeksUsed(record);
+}
 function canUseSummerWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
-  return (summerWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_SUMMER_PAUSE_WEEKS;
+  return (combinedPauseWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
 }
 
 function canPauseWeeks(record, requestedWeeks, otherWeeksUsedElsewhere) {
-  const used = pausedWeeksThisYear(record) + (otherWeeksUsedElsewhere || 0);
-  return (used + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
+  return (combinedPauseWeeksUsed(record) + (otherWeeksUsedElsewhere || 0) + requestedWeeks) <= MAX_PAUSE_WEEKS_PER_YEAR;
 }
 
 // Sums pause-week usage across every OTHER active or paused
@@ -472,30 +493,28 @@ async function releaseEmailPauseLock(email) {
   }
 }
 
+// Both regular and summer pauses now draw from the same 8-week-a-year
+// pool, so both of these need to see the FULL combined picture - not
+// just their own kind of usage - otherwise someone could exceed the
+// real cap by spreading usage across a regular pause on one
+// subscription and a summer pause on another.
 async function totalPausedWeeksForEmail(email, excludeSubscriptionId) {
   if (!email) return 0;
   const history = await getEmailHistory(email);
-  let total = emailPausedWeeksThisYear(history);
+  let total = emailPausedWeeksThisYear(history) + emailSummerWeeksUsedThisYear(history);
   const otherSubs = await listSubscriptionsByEmail(email);
   for (const sub of otherSubs) {
     if (sub.subscriptionId === excludeSubscriptionId) continue;
-    total += pausedWeeksThisYear(sub);
+    total += pausedWeeksThisYear(sub) + summerWeeksUsed(sub);
   }
   return total;
 }
 
-// Same pattern as totalPausedWeeksForEmail, for the separate summer
-// allowance.
+// Same combined total as totalPausedWeeksForEmail above - kept as a
+// separate name since callers ask about "summer weeks used elsewhere"
+// specifically, but both now need the same full picture to be correct.
 async function totalSummerWeeksForEmail(email, excludeSubscriptionId) {
-  if (!email) return 0;
-  const history = await getEmailHistory(email);
-  let total = (history && history.summerWeeksUsed) || 0;
-  const otherSubs = await listSubscriptionsByEmail(email);
-  for (const sub of otherSubs) {
-    if (sub.subscriptionId === excludeSubscriptionId) continue;
-    total += summerWeeksUsed(sub);
-  }
-  return total;
+  return totalPausedWeeksForEmail(email, excludeSubscriptionId);
 }
 
 // If someone cancels a subscription and starts a new one again within
@@ -529,6 +548,14 @@ async function saveEmailHistory(email, record) {
 function emailPausedWeeksThisYear(historyRecord) {
   if (!historyRecord || !historyRecord.pauseYear || historyRecord.pauseYear !== currentYear()) return 0;
   return historyRecord.pausedWeeksThisYear || 0;
+}
+
+// Same year-reset pattern, for the summer field - shares the same
+// pauseYear stamp on the email-history record as the regular pause
+// weeks above, since both now draw from the one merged pool.
+function emailSummerWeeksUsedThisYear(historyRecord) {
+  if (!historyRecord || !historyRecord.pauseYear || historyRecord.pauseYear !== currentYear()) return 0;
+  return historyRecord.summerWeeksUsed || 0;
 }
 
 // Called when a brand new subscription's first payment succeeds, before
@@ -583,6 +610,7 @@ module.exports = {
   getEmailHistory,
   saveEmailHistory,
   emailPausedWeeksThisYear,
+  emailSummerWeeksUsedThisYear,
   inheritedPauseWeeksForNewSubscription,
   getClosureSettings,
   saveClosureSettings,

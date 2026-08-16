@@ -9,6 +9,20 @@ const { getStore } = require('@netlify/blobs');
 const crypto = require('crypto');
 const { deleteCalendarEvent } = require('./google-calendar-helper');
 
+// Nothing here escaped user-supplied text before embedding it in HTML
+// emails - a crafted name could inject a fake link or misleading
+// content into an email sent from this site's own trusted domain, to
+// either the student or James.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
   if (!m) return null;
@@ -47,6 +61,14 @@ function melbourneEpochMs(dateStr, timeStr) {
 
 function formatDateKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Formats a 'YYYY-MM-DD' date string into something readable in an
+// email, e.g. 'Monday, 17 August 2026', instead of showing students the
+// raw machine-format date.
+function formatFriendlyDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 // The reschedule credit's window is Monday of the week the cancelled
@@ -112,6 +134,27 @@ exports.handler = async function (event) {
     }
     if (!record.email || record.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That lesson is not associated with this email address.' }) };
+    }
+
+    // An unpaid pending hold (reserve-multi-slots.js locks the slot in
+    // BEFORE the card is charged; confirm-reservation.js clears this
+    // flag once payment succeeds) is not a real booking. Cancelling one
+    // must NEVER fall through to the normal path below, which issues a
+    // free reschedule credit - that would let anyone turn a deliberately
+    // failed payment into a credit for a lesson that was never paid for.
+    // Instead the hold is simply removed: record + calendar event gone,
+    // no credit, no rebook email, nothing owed in either direction.
+    if (record.pendingPayment === true) {
+      await store.delete(key);
+      if (record.eventId) {
+        try {
+          await deleteCalendarEvent(record.eventId);
+        } catch (calErr) {
+          console.error('[cancel-booking] calendar delete failed for unpaid hold ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
+        }
+      }
+      console.log('[cancel-booking] removed unpaid pending hold at', key, '- no credit issued');
+      return { statusCode: 200, body: JSON.stringify({ success: true, unpaidHold: true }) };
     }
 
     await store.delete(key);
@@ -184,14 +227,16 @@ exports.handler = async function (event) {
       : '';
 
     const studentName = record.name || 'there';
+    const safeStudentName = escapeHtml(studentName);
+    const safeEmail = escapeHtml(email);
     const studentHtml =
       '<div style="font-family:-apple-system,sans-serif;max-width:480px;margin:0 auto;color:#1a1a1a;">' +
       '<div style="text-align:center;margin-bottom:24px;">' +
       '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;color:#c9942a;margin:0;">&#9834; MCQ Music</p>' +
       '</div>' +
       '<h2 style="text-align:center;font-family:Georgia,serif;font-weight:normal;">Lesson Cancelled</h2>' +
-      '<p>Hi ' + studentName + ',</p>' +
-      '<p>Your lesson on <strong>' + date + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
+      '<p>Hi ' + safeStudentName + ',</p>' +
+      '<p>Your lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
         ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
@@ -213,12 +258,12 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
-      '<p><strong>' + studentName + '</strong> (' + email + ') cancelled their lesson on <strong>' + date + ' at ' + time + '</strong>.</p>' +
+      '<p><strong>' + safeStudentName + '</strong> (' + safeEmail + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.</p>' +
       '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule, no further rebooking, full fee applies' : 'within 24 hours, no rebooking, full fee applies')) + ').</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible, alreadyRescheduledOnce: alreadyRescheduledOnce }) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }

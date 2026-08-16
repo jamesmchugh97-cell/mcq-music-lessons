@@ -28,13 +28,6 @@ const DURATION_PRICES_CENTS = {
 };
 
 exports.handler = async function (event) {
-  // One-off booking has been fully retired - see reserve-multi-slots.js
-  // for the full reasoning. This is the endpoint that actually charges
-  // a card for a one-off booking, so of the three retired endpoints
-  // this is the most important one to have genuinely stop working, not
-  // just be unreachable from the UI.
-  return { statusCode: 200, body: JSON.stringify({ success: false, error: 'One-off bookings are no longer available. Please subscribe instead.' }) };
-
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }
@@ -49,7 +42,18 @@ exports.handler = async function (event) {
   if (!pricePerLesson || !payment_method_id) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing or invalid lesson duration, or missing payment method.' }) };
   }
-  const count = Math.max(1, parseInt(lessonCount, 10) || 1);
+  // Only three shapes are valid: a single trial lesson, or a 5 or 10
+  // lesson package paid upfront in one charge. lessonCount is checked
+  // against this exact whitelist, never trusted as an arbitrary
+  // multiplier - the same validation reserve-multi-slots.js applies
+  // independently, so a mismatch here can never happen by accident,
+  // and a deliberately hand-crafted request gets rejected outright
+  // rather than silently charging the wrong amount.
+  const VALID_LESSON_COUNTS = [1, 5, 10];
+  const count = parseInt(lessonCount, 10);
+  if (!VALID_LESSON_COUNTS.includes(count)) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid lesson count.' }) };
+  }
   const amount = pricePerLesson * count;
   try {
     const paymentIntent = await stripe.paymentIntents.create({

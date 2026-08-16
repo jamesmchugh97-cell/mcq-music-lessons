@@ -9,11 +9,11 @@
 // subscription and never writes a booking record itself.
 const Stripe = require('stripe');
 const { getStore } = require('@netlify/blobs');
+const { getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR, PRICE_IDS, listBlockingSubscriptionsForDay, isStalePendingHold } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const MIN_GAP_MINUTES = 30;
-const CONFLICT_CHECK_WEEKS = 8; // how many upcoming weeks of one-off bookings to scan for a clash
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -84,20 +84,6 @@ function conflictsWithRoster(dow, startMinutes, endMinutes) {
   });
 }
 
-// Maps duration + frequency to the correct pre-created Stripe Price ID.
-const PRICE_IDS = {
-  '30_weekly': 'price_1U2PyCAOM8tPKKgkdcq71eaP',
-  '30_fortnightly': 'price_1U2Q23AOM8tPKKgkzEozmG31',
-  '45_weekly': 'price_1U2Q64AOM8tPKKgkxAsei52J',
-  '45_fortnightly': 'price_1U2Q7LAOM8tPKKgkQovjrxBD',
-  '60_weekly': 'price_1U2Q8jAOM8tPKKgkd1rMpX1A',
-  '60_fortnightly': 'price_1U2Q9AAOM8tPKKgk3VG8itQN',
-  '75_weekly': 'price_1U2QBIAOM8tPKKgkrNFPjDhZ',
-  '75_fortnightly': 'price_1U2QBkAOM8tPKKgkMnVMuT2O',
-  '90_weekly': 'price_1U2QCNAOM8tPKKgkJUtWzyEL',
-  '90_fortnightly': 'price_1U2QCqAOM8tPKKgknCBOj1VG'
-};
-
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
@@ -109,13 +95,35 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
 
-  const { studentName, studentEmail, instrument, dayOfWeek: dow, time, durationMinutes, frequency } = body;
+  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency } = body;
 
   if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required subscription details.' }) };
   }
   if (frequency !== 'weekly' && frequency !== 'fortnightly') {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Frequency must be weekly or fortnightly.' }) };
+  }
+
+  // Only blocks the specific case of someone who has ALREADY used their
+  // full annual pause-week allowance (via pausing, cancel-then-resubscribe
+  // cycling, or a mix) trying to cycle again within the same short
+  // window - not every cancellation, which would unfairly punish anyone
+  // with a genuine one-off reason to cancel and later come back sooner
+  // than the gap window. Checked here (before Stripe Checkout even
+  // starts) so nobody's charged only to be told no afterwards.
+  const emailHistory = await getEmailHistory(studentEmail);
+  const wouldInherit = inheritedPauseWeeksForNewSubscription(emailHistory);
+  if (wouldInherit > MAX_PAUSE_WEEKS_PER_YEAR && emailHistory && emailHistory.lastEndedAt) {
+    const daysSinceEnded = Math.floor((Date.now() - new Date(emailHistory.lastEndedAt + 'T00:00:00').getTime()) / 86400000);
+    if (daysSinceEnded >= 0 && daysSinceEnded <= RESUBSCRIBE_GAP_DAYS) {
+      const availableAgainDate = new Date(emailHistory.lastEndedAt + 'T00:00:00');
+      availableAgainDate.setDate(availableAgainDate.getDate() + RESUBSCRIBE_GAP_DAYS + 1);
+      const availableAgainStr = availableAgainDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: false, error: "You've already used your " + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks of flexibility for this year. You\'re welcome to subscribe again from ' + availableAgainStr + ', or book lessons one at a time in the meantime.' })
+      };
+    }
   }
 
   const priceKey = String(durationMinutes) + '_' + frequency;
@@ -138,27 +146,52 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already taken by another regular student. Please choose a different day or time.' }) };
   }
 
-  // Also check upcoming one-off Blobs bookings on that weekday for the
-  // next few weeks, so a subscription can't be started on top of a slot
-  // someone already booked as a single lesson.
+  // Checks OTHER subscribers on this day, including paused ones - not
+  // just active. A paused subscriber's slot is deliberately left free
+  // for one-off bookings (that's the whole point of pausing), but a
+  // NEW SUBSCRIPTION is a different thing: it would try to claim that
+  // slot permanently, directly colliding with the paused student's own
+  // return. So this is the one place a paused subscription still
+  // counts as blocking. The specific wording below only applies when
+  // the conflict is with a paused subscriber, so someone gets a clear
+  // reason rather than a generic "already taken".
+  const otherSubs = await listBlockingSubscriptionsForDay(dow, null, ['active', 'paused']);
+  const conflictingSub = otherSubs.find(s => {
+    const sStart = timeToMinutes(s.time);
+    const sEnd = sStart + parseInt(s.durationMinutes, 10);
+    return startMinutes < sEnd && sStart < endMinutes;
+  });
+  if (conflictingSub) {
+    if (conflictingSub.status === 'paused') {
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: "This time is free for single lessons right now, but it's reserved for a returning subscriber, so it's not available to subscribe to. You're welcome to book a one-off lesson there, or subscribe to a different time." }) };
+    }
+    return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already taken by another subscriber. Please choose a different day or time.' }) };
+  }
+
+  // Also check upcoming one-off Blobs bookings on that weekday, however
+  // far out they go, so a subscription can't be started on top of a
+  // slot someone already booked as a single lesson. One full scan of
+  // the store rather than looping day-by-day: a multi-lesson one-off
+  // booking has no fixed cap on how far out it can legitimately reach
+  // (weekly has none at all, fortnightly's own 5-lesson cap alone
+  // reaches 56 days out), so any fixed number of weeks here would
+  // eventually miss something rather than just being slower.
   try {
     const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
-    const today = new Date();
-    for (let i = 0; i < CONFLICT_CHECK_WEEKS * 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() + i);
-      if (d.getDay() !== dow) continue;
-      const dateStr = d.toISOString().slice(0, 10);
-      const { blobs } = await store.list({ prefix: dateStr + '_' });
-      for (const blob of blobs) {
-        const record = await store.get(blob.key, { type: 'json' });
-        if (!record || !record.time) continue;
-        const exStart = timeToMinutes(record.time);
-        const exEnd = exStart + (record.duration || 45);
-        const overlap = startMinutes < exEnd && exStart < endMinutes;
-        if (overlap) {
-          return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already booked on ' + dateStr + '. Please choose a different day or time.' }) };
-        }
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const { blobs } = await store.list();
+    for (const blob of blobs) {
+      const dateStr = blob.key.split('_')[0];
+      if (!dateStr || dateStr < todayStr) continue;
+      const d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d.getTime()) || d.getDay() !== dow) continue;
+      const record = await store.get(blob.key, { type: 'json' });
+      if (!record || !record.time || isStalePendingHold(record)) continue;
+      const exStart = timeToMinutes(record.time);
+      const exEnd = exStart + (record.duration || 45);
+      const overlap = startMinutes < exEnd && exStart < endMinutes;
+      if (overlap) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already booked on ' + dateStr + '. Please choose a different day or time.' }) };
       }
     }
   } catch (checkErr) {
@@ -186,6 +219,7 @@ exports.handler = async function (event) {
           studentName: studentName,
           studentEmail: studentEmail,
           instrument: instrument,
+          guitarType: (guitarType && instrument !== 'Piano') ? guitarType : '',
           dayOfWeek: String(dow),
           time: time,
           durationMinutes: String(durationMinutes),

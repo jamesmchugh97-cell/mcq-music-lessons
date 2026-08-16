@@ -17,6 +17,7 @@ const {
   currentYear,
   getEmailHistory,
   emailPausedWeeksThisYear,
+  emailSummerWeeksUsedThisYear,
   saveEmailHistory,
   summerWeeksUsed,
   canUseSummerWeeks,
@@ -89,9 +90,13 @@ exports.handler = async function (event) {
       // would then immediately reject.
       const history = await getEmailHistory(email);
       const totalPausedAcrossAll = emailPausedWeeksThisYear(history) + subs.reduce((sum, s) => sum + pausedWeeksThisYear(s), 0);
-      const totalSummerAcrossAll = ((history && history.summerWeeksUsed) || 0) + subs.reduce((sum, s) => sum + summerWeeksUsed(s), 0);
-      const sharedPauseWeeksRemaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - totalPausedAcrossAll);
-      const sharedSummerWeeksRemaining = Math.max(0, MAX_SUMMER_PAUSE_WEEKS - totalSummerAcrossAll);
+      const totalSummerAcrossAll = emailSummerWeeksUsedThisYear(history) + subs.reduce((sum, s) => sum + summerWeeksUsed(s), 0);
+      // One merged pool now, not two separate budgets - "remaining" is
+      // the same shared figure either way, computed from BOTH kinds of
+      // usage combined against the one shared cap.
+      const sharedWeeksRemaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - totalPausedAcrossAll - totalSummerAcrossAll);
+      const sharedPauseWeeksRemaining = sharedWeeksRemaining;
+      const sharedSummerWeeksRemaining = sharedWeeksRemaining;
       const summarized = subs.map(s => ({
         subscriptionId: s.subscriptionId,
         instrument: s.instrument,
@@ -152,7 +157,7 @@ exports.handler = async function (event) {
         // correctly unaffected by each other here.
         otherWeeksUsed = await totalPausedWeeksForEmail(record.studentEmail, subscriptionId);
         if (!canPauseWeeks(record, weeks, otherWeeksUsed)) {
-          const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - otherWeeksUsed);
+          const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - summerWeeksUsed(record) - otherWeeksUsed);
           return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' pause week(s) left this year.' }) };
         }
 
@@ -216,13 +221,13 @@ exports.handler = async function (event) {
         '<p>' + escapeHtml(record.studentName) + ' (' + escapeHtml(record.studentEmail) + ') has paused for ' + weeks + ' week(s), resuming ' + formatFriendlyDate(record.pausedUntil) + '.' + (clearedLessonDate ? ' Their lesson on ' + formatFriendlyDate(clearedLessonDate) + ' has been cleared from the calendar as part of this.' : '') + '</p>'
       );
 
-      return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - record.pausedWeeksThisYear - otherWeeksUsed) }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, pausedUntil: record.pausedUntil, pauseWeeksRemaining: Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - record.pausedWeeksThisYear - summerWeeksUsed(record) - otherWeeksUsed) }) };
     }
 
     if (action === 'pauseSummer') {
       const weeks = parseInt(body.weeks, 10);
-      if (!weeks || weeks < 1 || weeks > MAX_SUMMER_PAUSE_WEEKS) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose between 1 and ' + MAX_SUMMER_PAUSE_WEEKS + ' weeks.' }) };
+      if (!weeks || weeks < 1 || weeks > MAX_PAUSE_WEEKS_PER_YEAR) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose between 1 and ' + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks.' }) };
       }
       if (record.status === 'paused' || record.summerPausePending) {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription already has a pause in place.' }) };
@@ -235,7 +240,7 @@ exports.handler = async function (event) {
       try {
         otherSummerWeeksUsed = await totalSummerWeeksForEmail(record.studentEmail, subscriptionId);
         if (!canUseSummerWeeks(record, weeks, otherSummerWeeksUsed)) {
-          const remaining = Math.max(0, MAX_SUMMER_PAUSE_WEEKS - summerWeeksUsed(record) - otherSummerWeeksUsed);
+          const remaining = Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - summerWeeksUsed(record) - otherSummerWeeksUsed);
           return { statusCode: 200, body: JSON.stringify({ success: false, error: 'You only have ' + remaining + ' summer week(s) left for this break.' }) };
         }
 
@@ -254,6 +259,7 @@ exports.handler = async function (event) {
         record.summerPausePending = true;
         record.summerPauseEndDate = summerPauseEndDateCheck;
         record.summerWeeksUsed = summerWeeksUsed(record) + weeks;
+        record.summerPauseYear = currentYear();
         await saveSubscriptionRecord(subscriptionId, record);
       } finally {
         await releaseEmailPauseLock(record.studentEmail);
@@ -267,7 +273,7 @@ exports.handler = async function (event) {
         );
       }
 
-      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: record.summerPauseEndDate, summerWeeksRemaining: MAX_SUMMER_PAUSE_WEEKS - record.summerWeeksUsed }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, summerPauseEndDate: record.summerPauseEndDate, summerWeeksRemaining: Math.max(0, MAX_PAUSE_WEEKS_PER_YEAR - pausedWeeksThisYear(record) - summerWeeksUsed(record)) }) };
     }
 
     if (action === 'changeFrequency') {

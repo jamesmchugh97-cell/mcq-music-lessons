@@ -47,11 +47,6 @@ function confirmationsStore() {
 }
 
 exports.handler = async function (event) {
-  // One-off booking has been fully retired - see reserve-multi-slots.js
-  // for the full reasoning. This endpoint only ever confirmed a one-off
-  // booking's payment, which no longer exists as a path on the site.
-  return { statusCode: 200, body: JSON.stringify({ success: false, error: 'One-off bookings are no longer available. Please subscribe instead.' }) };
-
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }

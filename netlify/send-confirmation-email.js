@@ -35,13 +35,6 @@ function escapeHtml(str) {
 }
 
 exports.handler = async function (event) {
-  // One-off booking has been fully retired - see reserve-multi-slots.js
-  // for the full reasoning. This only ever sent confirmation emails for
-  // a one-off booking; its one caller in booking.html no longer runs
-  // either, but this closes the endpoint itself too, not just the path
-  // to reach it.
-  return { statusCode: 200, body: JSON.stringify({ success: false, error: 'One-off bookings are no longer available. Please subscribe instead.' }) };
-
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   }
@@ -132,8 +125,8 @@ exports.handler = async function (event) {
   }
 
   const introLine = isMulti
-    ? `<p>You've booked <strong>${lessonsCountNum} lessons</strong>. See the dates below.</p>`
-    : `<p>Welcome to your first lesson with MCQ Music! This is your <strong>trial lesson</strong>, a chance to see if it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved every week. You can <a href="https://mcqmusiclessons.com.au/booking.html#subscribe" style="color:#c9942a;">set that up</a> any time after your lesson.</p>`;
+    ? `<p>Your <strong>${lessonsCountNum}-lesson package</strong> is confirmed and paid in full. See your chosen dates below - if you ever need to move one, the normal reschedule policy still applies to each lesson individually.</p>`
+    : `<p>Welcome to your first lesson with MCQ Music! This is your <strong>trial lesson</strong>, a chance to see if it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved every week. You can <a href="https://mcqmusiclessons.com.au/booking.html#calendar" style="color:#c9942a;">set that up</a> any time after your lesson.</p>`;
 
   const emailSubject = isMulti ? 'Your lesson booking is confirmed!' : 'Welcome to your first lesson!';
 
@@ -143,7 +136,11 @@ exports.handler = async function (event) {
   const cancellationNotice = `Can't make it? With 24+ hours' notice, cancel from the link below and you'll get a link by email to reschedule to a new time yourself, any day over the following two weeks, no charge. Cancelling with less than 24 hours' notice means the full lesson fee applies and rescheduling isn't available.`;
 
   const dateFieldsHtml = slotList.length > 1
-    ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => `<li>${formatFriendlyDate(s.date)} at ${s.time}</li>`).join('')}</ul></li>`
+    ? `<li><strong>Lesson dates:</strong><ul style="margin-top:4px;">${slotList.map(s => {
+        const perLessonLink = buildGoogleCalendarLink((instrument || 'Music') + ' Lesson - MCQ Music', s.date, s.time, durationMinutes);
+        const linkHtml = perLessonLink ? ` <a href="${perLessonLink}" style="color:#c9942a;font-size:0.85em;">(add to calendar)</a>` : '';
+        return `<li>${formatFriendlyDate(s.date)} at ${s.time}${linkHtml}</li>`;
+      }).join('')}</ul></li>`
     : `<li><strong>Date:</strong> ${formatFriendlyDate(slotList[0].date)}</li>
         <li><strong>Time:</strong> ${slotList[0].time || 'N/A'}</li>`;
 
