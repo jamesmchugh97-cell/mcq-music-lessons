@@ -147,6 +147,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <button class="instrument-btn" onclick="selectTrialGuitarType(this,'Either')" type="button">Either / Both</button>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="trialSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Date</label>
@@ -166,6 +176,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <option value="75|100">75 minutes · $100</option>
           <option value="90|130">90 minutes · $130</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Songs you'd like to learn (optional)</label>
+        <input class="form-input" type="text" id="trialSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genres you're interested in (optional)</label>
+        <input class="form-input" type="text" id="trialGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
+        <input type="checkbox" id="trialTheoryInterest" style="width:auto;">
+        <label class="form-label" style="margin:0;" for="trialTheoryInterest">Interested in music theory</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anything else James should know? (optional)</label>
+        <textarea class="form-input" id="trialGoalsNotes" rows="2" maxlength="450"></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Card details</label>
@@ -218,6 +244,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <button class="instrument-btn" onclick="selectPackageGuitarType(this,'Either')" type="button">Either / Both</button>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="packageSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Package Size</label>
@@ -239,6 +275,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.6rem;">Pick a date and time for each lesson below. Every date must be within the next 3 months.</p>
       <div id="packageDateRows"></div>
+      <div class="form-group">
+        <label class="form-label">Songs you'd like to learn (optional)</label>
+        <input class="form-input" type="text" id="packageSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genres you're interested in (optional)</label>
+        <input class="form-input" type="text" id="packageGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
+        <input type="checkbox" id="packageTheoryInterest" style="width:auto;">
+        <label class="form-label" style="margin:0;" for="packageTheoryInterest">Interested in music theory</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anything else James should know? (optional)</label>
+        <textarea class="form-input" id="packageGoalsNotes" rows="2" maxlength="450"></textarea>
+      </div>
       <div class="form-group">
         <label class="form-label">Card details</label>
         <div id="package-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
@@ -332,6 +384,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="subSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Lessons per week</label>
         <select class="form-input" id="subLessonsPerWeek" onchange="handleSubLessonsPerWeekChange()">
           <option value="1" selected>1 (a single recurring slot)</option>
@@ -389,6 +451,22 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <option value="fortnightly">Every fortnight</option>
           </select>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Songs you'd like to learn (optional)</label>
+        <input class="form-input" type="text" id="subSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genres you're interested in (optional)</label>
+        <input class="form-input" type="text" id="subGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
+        <input type="checkbox" id="subTheoryInterest" style="width:auto;">
+        <label class="form-label" style="margin:0;" for="subTheoryInterest">Interested in music theory</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anything else James should know? (optional)</label>
+        <textarea class="form-input" id="subGoalsNotes" rows="2" maxlength="450"></textarea>
       </div>
       <div class="subtotal-box">
         <div class="subtotal-total"><span>Billed</span><span id="subTotalAmt">$70 every week</span></div>
@@ -1571,9 +1649,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const date = document.getElementById('trialDate').value;
     const time = document.getElementById('trialTime').value;
     const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
+    const skillLevel = document.getElementById('trialSkillLevel').value;
+    const songRequests = document.getElementById('trialSongRequests').value.trim();
+    const genreFocus = document.getElementById('trialGenreFocus').value.trim();
+    const theoryInterest = document.getElementById('trialTheoryInterest').checked ? 'Yes' : 'No';
+    const goalsNotes = document.getElementById('trialGoalsNotes').value.trim();
     const errEl = document.getElementById('trialError');
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
     if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time.'; return false; }
     if (date > getMaxBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to a month in advance.'; return false; }
     if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'That time is no longer available. Please choose a different time.'; return false; }
@@ -1589,7 +1673,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           slots: [{ date: date, time: time }],
           name: name, email: email, duration: durationMinutes,
           instrument: selectedTrialInstrument,
-          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType
+          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
         })
       });
       const reserveResult = await reserveResp.json();
@@ -1598,6 +1687,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         errEl.textContent = reserveResult.error || 'That time is no longer available.';
         btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
         refreshTrialTimeOptions();
+        refreshTrialDurationOptions();
         return false;
       }
 
@@ -1645,11 +1735,20 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType,
           date: date, time: time, duration: durationMinutes,
           lessons_count: 1, total: '$' + document.getElementById('trialDuration').value.split('|')[1],
-          slots: [{ date: date, time: time }]
+          slots: [{ date: date, time: time }],
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
         })
       }).catch(() => {});
 
       document.getElementById('trialForm').reset();
+      Array.from(document.getElementById('trialDuration').options).forEach(opt => {
+        opt.disabled = false;
+        opt.textContent = opt.textContent.replace(' (unavailable at this time)', '');
+      });
       document.getElementById('modalTitle').textContent = 'Trial Lesson Booked!';
       document.getElementById('modalBody').innerHTML = 'Your trial lesson is confirmed for ' + date + ' at ' + time + '. A confirmation email is on its way.<br><br>Loved it? <a href="#calendar" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a> whenever you\'re ready, same price, no ongoing commitment either way.';
       document.getElementById('successModal').classList.add('open');
@@ -1681,9 +1780,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const email = document.getElementById('packageEmail').value.trim();
     const size = parseInt(document.getElementById('packageSize').value, 10);
     const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
+    const skillLevel = document.getElementById('packageSkillLevel').value;
+    const songRequests = document.getElementById('packageSongRequests').value.trim();
+    const genreFocus = document.getElementById('packageGenreFocus').value.trim();
+    const theoryInterest = document.getElementById('packageTheoryInterest').checked ? 'Yes' : 'No';
+    const goalsNotes = document.getElementById('packageGoalsNotes').value.trim();
     const errEl = document.getElementById('packageError');
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
 
     const slots = [];
     for (let i = 1; i <= size; i++) {
@@ -1718,7 +1823,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           slots: slots,
           name: name, email: email, duration: durationMinutes,
           instrument: selectedPackageInstrument,
-          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
         })
       });
       const reserveResult = await reserveResp.json();
@@ -1775,7 +1885,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
           duration: durationMinutes, lessons_count: size, total: totalAmt,
           booking_type: 'package',
-          slots: slots
+          slots: slots,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
         })
       }).catch(() => {});
 
@@ -1786,7 +1901,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('successModal').classList.add('open');
       btn.textContent = 'Buy Package →'; btn.disabled = false;
       selectedPackageInstrument = 'Guitar'; selectedPackageGuitarType = 'Acoustic';
-      renderPackageDateRows(); updatePackageTotal();
+      renderPackageDateRows(); refreshPackageDurationOptions(); updatePackageTotal();
     } catch (e) {
       errEl.style.display = 'block';
       errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
@@ -2378,9 +2493,37 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
     }
   }
-  function handleTrialDateChange() { refreshTrialTimeOptions(); }
-  function handleTrialTimeChange() {}
-  function handleTrialDurationChange() { refreshTrialTimeOptions(); updateTrialTotal(); }
+  // Mirrors refreshSubscribeDurationOptions exactly, adapted for a
+  // specific date instead of a day-of-week - grays out (not removes)
+  // any duration that wouldn't actually fit at the currently chosen
+  // date and time, so an invalid combination can never be submitted in
+  // the first place, rather than being accepted and rejected only
+  // after the person picks it.
+  function refreshTrialDurationOptions() {
+    const dateInput = document.getElementById('trialDate');
+    const timeSelect = document.getElementById('trialTime');
+    const durationSelect = document.getElementById('trialDuration');
+    if (!dateInput || !timeSelect || !durationSelect) return;
+    const dateVal = dateInput.value;
+    const timeVal = timeSelect.value;
+    if (!dateVal || !timeVal) return;
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = getAvailableTimes(dateVal, minutes).includes(timeVal);
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updateTrialTotal();
+  }
+  function handleTrialDateChange() { refreshTrialTimeOptions(); refreshTrialDurationOptions(); }
+  function handleTrialTimeChange() { refreshTrialDurationOptions(); }
+  function handleTrialDurationChange() { refreshTrialTimeOptions(); refreshTrialDurationOptions(); updateTrialTotal(); }
   document.getElementById('trialDate').min = new Date().toISOString().split('T')[0];
   document.getElementById('trialDate').max = getMaxBookingDate();
 
@@ -2413,7 +2556,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const dateInput = document.getElementById('packageDate' + rowIndex);
     const timeSelect = document.getElementById('packageTime' + rowIndex);
     const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
-    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; return; }
+    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; refreshPackageDurationOptions(); return; }
     const prevVal = timeSelect.value;
     const validTimes = getAvailableTimes(dateInput.value, durationMinutes);
     timeSelect.innerHTML = '';
@@ -2430,6 +2573,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       });
       if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
     }
+    refreshPackageDurationOptions();
   }
   function renderPackageDateRows() {
     const size = parseInt(document.getElementById('packageSize').value, 10);
@@ -2445,7 +2589,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         '</div>' +
         '<div class="form-group">' +
           '<label class="form-label">Lesson ' + i + ' - Time</label>' +
-          '<select class="form-input" id="packageTime' + i + '" required><option value="">Choose a date first</option></select>' +
+          '<select class="form-input" id="packageTime' + i + '" onchange="refreshPackageDurationOptions()" required><option value="">Choose a date first</option></select>' +
         '</div>';
       wrap.appendChild(row);
       const dateInput = document.getElementById('packageDate' + i);
@@ -2453,7 +2597,36 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateInput.max = getMaxPackageBookingDate();
     }
   }
-  function handlePackageSizeChange() { renderPackageDateRows(); updatePackageTotal(); }
+  // A package shares ONE duration across every lesson in it, so a
+  // duration only counts as valid here if it fits at EVERY row that
+  // currently has both a date and time chosen - rows still awaiting
+  // input are skipped rather than treated as a conflict, since nothing
+  // has actually been decided there yet.
+  function refreshPackageDurationOptions() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const durationSelect = document.getElementById('packageDuration');
+    if (!durationSelect) return;
+    const filledRows = [];
+    for (let i = 1; i <= size; i++) {
+      const d = document.getElementById('packageDate' + i);
+      const t = document.getElementById('packageTime' + i);
+      if (d && t && d.value && t.value) filledRows.push({ date: d.value, time: t.value });
+    }
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = filledRows.every(r => getAvailableTimes(r.date, minutes).includes(r.time));
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at one or more chosen times)', '') + (valid ? '' : ' (unavailable at one or more chosen times)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updatePackageTotal();
+  }
+  function handlePackageSizeChange() { renderPackageDateRows(); refreshPackageDurationOptions(); updatePackageTotal(); }
   function handlePackageDurationChange() {
     const size = parseInt(document.getElementById('packageSize').value, 10);
     for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
@@ -2498,21 +2671,33 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // fit at the currently selected day/time, so it's visible but
   // unselectable - the student can see 90 minutes exists as an option
   // in general, just not right here.
+  // Subscribe shares ONE duration across every lesson-per-week slot,
+  // same situation as a package sharing one duration across every
+  // lesson in it - a duration only counts as valid here if it fits at
+  // the main slot AND every extra slot that currently has a day and
+  // time chosen, not just the main one on its own. Missing this for
+  // the extra slots specifically was the same gap package had before
+  // being fixed to check every row.
   function refreshSubscribeDurationOptions() {
     const daySelect = document.getElementById('subDay');
     const timeSelect = document.getElementById('subTime');
     const durationSelect = document.getElementById('subDuration');
     if (!daySelect || !timeSelect || !durationSelect) return;
     const dow = parseInt(daySelect.value, 10);
-    const previewDate = getNextDateForDow(dow);
     const timeVal = timeSelect.value;
     if (!timeVal) return;
+    const slotsToCheck = [{ date: getNextDateForDow(dow), time: timeVal }];
+    document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row').forEach(row => {
+      const rDow = parseInt(row.querySelector('.sub-extra-dow').value, 10);
+      const rTime = row.querySelector('.sub-extra-time').value;
+      if (rTime) slotsToCheck.push({ date: getNextDateForDow(rDow), time: rTime });
+    });
     let currentStillValid = false;
     Array.from(durationSelect.options).forEach(opt => {
       const minutes = parseInt(opt.value.split('|')[0], 10);
-      const valid = getAvailableTimes(previewDate, minutes).includes(timeVal);
+      const valid = slotsToCheck.every(s => getAvailableTimes(s.date, minutes).includes(s.time));
       opt.disabled = !valid;
-      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '').replace(' (unavailable at one or more chosen times)', '') + (valid ? '' : (slotsToCheck.length > 1 ? ' (unavailable at one or more chosen times)' : ' (unavailable at this time)'));
       if (opt.value === durationSelect.value && valid) currentStillValid = true;
     });
     if (!currentStillValid) {
@@ -2596,7 +2781,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         timeSelect.value = existing[i].time;
       }
       dowSelect.addEventListener('change', refreshSubExtraSlotTimeOptions.bind(null, wrap));
-      timeSelect.addEventListener('change', updateSubscribeTotal);
+      timeSelect.addEventListener('change', () => { updateSubscribeTotal(); refreshSubscribeDurationOptions(); });
       row.appendChild(dowSelect);
       row.appendChild(timeSelect);
       wrap.appendChild(label);
@@ -2635,11 +2820,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       });
       if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
     }
+    refreshSubscribeDurationOptions();
   }
 
   function handleSubLessonsPerWeekChange() {
     const count = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
     renderSubExtraSlotRows(count);
+    refreshSubscribeDurationOptions();
   }
 
   function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); refreshSubscribeDurationOptions(); }
@@ -2685,7 +2872,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // Shared by both the single-slot and multi-slot paths - posts one
   // slot to create-subscription.js and returns its result, without
   // redirecting itself, so the caller decides what happens next.
-  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType) {
+  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes) {
     const resp = await fetch('/.netlify/functions/create-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2698,7 +2885,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         dayOfWeek: dow,
         time: time,
         durationMinutes: durationMinutes,
-        frequency: frequency
+        frequency: frequency,
+        skillLevel: skillLevel,
+        songRequests: songRequests,
+        genreFocus: genreFocus,
+        theoryInterest: theoryInterest,
+        goalsNotes: goalsNotes
       })
     });
     return await resp.json();
@@ -2714,9 +2906,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10);
     const frequency = document.getElementById('subFrequency').value;
     const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    const skillLevel = document.getElementById('subSkillLevel').value;
+    const songRequests = document.getElementById('subSongRequests').value.trim();
+    const genreFocus = document.getElementById('subGenreFocus').value.trim();
+    const theoryInterest = document.getElementById('subTheoryInterest').checked ? 'Yes' : 'No';
+    const goalsNotes = document.getElementById('subGoalsNotes').value.trim();
     const errEl = document.getElementById('subError');
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
     if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
     if (isSlotTaken(getNextDateForDow(dow), time, durationMinutes)) {
       errEl.style.display = 'block';
@@ -2770,8 +2968,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       // Unchanged single-slot path, exactly as it worked before this
       // feature existed.
       try {
-        const result = await submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, selectedSubscribeInstrument, selectedSubscribeGuitarType);
+        const result = await submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, selectedSubscribeInstrument, selectedSubscribeGuitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes);
         if (result.success && result.url) {
+          // sessionStorage here is only ever read to build the post-checkout
+          // success message, not to send data anywhere - skillLevel and the
+          // others don't need to be in it, since they already reached
+          // create-subscription.js directly above via Stripe's own metadata.
           try {
             sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
               instrument: selectedSubscribeInstrument, dow: dow, dayName: dayNames[dow], time: time,
@@ -2805,6 +3007,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const queue = {
       studentName: name, studentEmail: email, phone: phone,
       instrument: selectedSubscribeInstrument, guitarType: selectedSubscribeGuitarType, frequency: frequency, durationMinutes: durationMinutes,
+      skillLevel: skillLevel, songRequests: songRequests, genreFocus: genreFocus, theoryInterest: theoryInterest, goalsNotes: goalsNotes,
       slots: slots, completedSlots: [], currentIndex: 0
     };
     await startSubscribeQueueSlot(queue, 0);
@@ -2819,7 +3022,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const btn = document.getElementById('subSubmitBtn');
     const s = queue.slots[index];
     try {
-      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType);
+      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes);
       if (result.success && result.url) {
         queue.currentIndex = index;
         try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
