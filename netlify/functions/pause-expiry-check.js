@@ -138,7 +138,7 @@ async function run() {
           await sendEmail(
             record.studentEmail,
             'MCQ Music Lessons: your old time slot is no longer available',
-            '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your pause has ended, but your usual time has since been taken by another student. No charge will happen while this gets sorted out, your subscription stays paused for now. James will be in touch to arrange a new time, or you\'re welcome to <a href="https://mcqmusiclessons.com.au/booking.html#subscribe">subscribe to a different available time</a> yourself.</p><p>James</p>'
+            '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your pause has ended, but your usual time has since been taken by another student. No charge will happen while this gets sorted out, your subscription stays paused for now. James will be in touch to arrange a new time, or you\'re welcome to <a href="https://mcqmusiclessons.com.au/booking.html#calendar">subscribe to a different available time</a> yourself.</p><p>James</p>'
           );
         }
         await sendEmail(
@@ -182,7 +182,7 @@ async function run() {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: your subscription has resumed',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your ' + record.frequency + ' subscription has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your ' + record.frequency + ' subscription has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
       }
       await sendEmail(

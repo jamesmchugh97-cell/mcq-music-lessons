@@ -272,6 +272,7 @@ exports.handler = async function (event) {
       '<p>Hi ' + escapeHtml(credit.name || 'there') + ',</p>' +
       '<p>Your lesson is now booked for <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>. No payment was needed, this simply moves the lesson you already paid for.</p>' +
       '<p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' +
+      '<p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       '<p style="text-align:center;margin-top:16px;">' +
       '<a href="https://mcqmusiclessons.com.au/booking.html?manage_email=' + encodeURIComponent(credit.email) + '#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Need to cancel this lesson?</a>' +

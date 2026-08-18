@@ -42,11 +42,22 @@ exports.handler = async function (event) {
   if (!pricePerLesson || !payment_method_id) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing or invalid lesson duration, or missing payment method.' }) };
   }
-  // This endpoint is now trial-only - always exactly one lesson, never
-  // a batch. lessonCount from the request is intentionally ignored
-  // here, not just clamped, since anything other than 1 would mean
-  // charging for something that can no longer exist.
-  const count = 1;
+  // Only three shapes are valid: a single trial lesson, or a 5 or 10
+  // lesson package paid upfront in one charge. lessonCount is checked
+  // against this exact whitelist, never trusted as an arbitrary
+  // multiplier - the same validation reserve-multi-slots.js applies
+  // independently, so a mismatch here can never happen by accident,
+  // and a deliberately hand-crafted request gets rejected outright
+  // rather than silently charging the wrong amount.
+  // A missing lessonCount defaults to 1 rather than failing: the trial
+  // booking path legitimately doesn't send this field at all (a trial
+  // is always exactly one lesson), so requiring it outright would
+  // reject every genuine trial booking at the payment step.
+  const VALID_LESSON_COUNTS = [1, 5, 10];
+  const count = (lessonCount === undefined || lessonCount === null || lessonCount === '') ? 1 : parseInt(lessonCount, 10);
+  if (!VALID_LESSON_COUNTS.includes(count)) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid lesson count.' }) };
+  }
   const amount = pricePerLesson * count;
   try {
     const paymentIntent = await stripe.paymentIntents.create({

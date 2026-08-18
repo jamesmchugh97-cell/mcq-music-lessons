@@ -197,7 +197,7 @@ exports.handler = async function (event) {
             await sendEmail(
               record.studentEmail,
               'MCQ Music Lessons: the closure has been lifted',
-              '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Good news, the closure has ended early and your subscription has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p>James</p>'
+              '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Good news, the closure has ended early and your subscription has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
             );
           }
           resumed++;
