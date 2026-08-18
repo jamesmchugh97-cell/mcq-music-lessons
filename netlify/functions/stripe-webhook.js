@@ -263,6 +263,11 @@ exports.handler = async function (event) {
           time: meta.time,
           durationMinutes: meta.durationMinutes,
           frequency: meta.frequency,
+          skillLevel: meta.skillLevel || '',
+          songRequests: meta.songRequests || '',
+          genreFocus: meta.genreFocus || '',
+          theoryInterest: meta.theoryInterest || '',
+          goalsNotes: meta.goalsNotes || '',
           status: 'active',
           pausedWeeksThisYear: inheritedWeeks,
           pauseYear: currentYear(),
@@ -287,12 +292,17 @@ exports.handler = async function (event) {
         await sendEmail(
           meta.studentEmail,
           'MCQ Music Lessons: your ' + meta.frequency + ' subscription is confirmed',
-          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 4 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 8 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
           'New subscription: ' + meta.studentName,
-          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just subscribed: ' + displayInstrument + ', ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>'
+          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just subscribed: ' + displayInstrument + ', ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>' +
+          (meta.skillLevel ? '<p><strong>Skill level:</strong> ' + escapeHtml(meta.skillLevel) + '</p>' : '') +
+          (meta.songRequests ? '<p><strong>Songs/artists:</strong> ' + escapeHtml(meta.songRequests) + '</p>' : '') +
+          (meta.genreFocus ? '<p><strong>Genre focus:</strong> ' + escapeHtml(meta.genreFocus) + '</p>' : '') +
+          (meta.theoryInterest === 'Yes' ? '<p>Wants music theory included</p>' : '') +
+          (meta.goalsNotes ? '<p><strong>Notes:</strong> ' + escapeHtml(meta.goalsNotes) + '</p>' : '')
         );
       } else if (record) {
         // Renewal invoice, advance to the next lesson occurrence and
@@ -400,7 +410,7 @@ exports.handler = async function (event) {
         await sendEmail(
           record.studentEmail,
           'MCQ Music Lessons: subscription ended',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your weekly lesson subscription has now ended and your slot has been released. You are welcome to <a href="https://mcqmusiclessons.com.au/booking.html#subscribe">subscribe again</a> any time.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your weekly lesson subscription has now ended and your slot has been released. You are welcome to <a href="https://mcqmusiclessons.com.au/booking.html#calendar">subscribe again</a> any time.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,

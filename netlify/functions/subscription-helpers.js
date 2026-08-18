@@ -225,11 +225,21 @@ async function createLessonOccurrence(dateStr, record) {
     const displayInstrument = (record.guitarType && record.guitarType !== 'Either' && record.instrument !== 'Piano')
       ? record.instrument + ' (' + record.guitarType + ')'
       : record.instrument;
+    // Same "Skill level: X" / "Songs/artists: X" pattern reserve-multi-slots.js
+    // uses for trial and package bookings, so every lesson type shows this
+    // consistently on the calendar - this is a subscription lesson though,
+    // so it also states the frequency, which those other two never need to.
+    const noteLines = ['Weekly subscription lesson (' + record.frequency + '), ' + record.studentEmail];
+    if (record.skillLevel) noteLines.push('Skill level: ' + record.skillLevel);
+    if (record.songRequests) noteLines.push('Songs/artists: ' + record.songRequests);
+    if (record.genreFocus) noteLines.push('Genre focus: ' + record.genreFocus);
+    if (record.theoryInterest === 'Yes') noteLines.push('Wants music theory included');
+    if (record.goalsNotes) noteLines.push('Notes: ' + record.goalsNotes);
     const eventId = await createCalendarEvent({
       studentName: record.studentName,
       startDateTime: startDateTime,
       endDateTime: endDateTime,
-      notes: 'Weekly subscription lesson (' + record.frequency + '), ' + record.studentEmail,
+      notes: noteLines.join('\n'),
       instrument: displayInstrument
     });
     if (eventId) {

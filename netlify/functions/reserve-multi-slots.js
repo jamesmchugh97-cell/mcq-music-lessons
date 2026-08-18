@@ -146,9 +146,10 @@ function getRecurringBookingsForDate(dateStr) {
 // only included if the student actually provided something for it, so
 // the description stays short for students who left the optional fields
 // blank instead of showing a wall of "Genre focus: (none)"-style noise.
-function buildCalendarNotes({ instrument, email, songRequests, genreFocus, theoryInterest, goalsNotes }) {
+function buildCalendarNotes({ instrument, email, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes }) {
   const lines = [];
   if (instrument) lines.push('Instrument: ' + instrument);
+  if (skillLevel) lines.push('Skill level: ' + skillLevel);
   if (email) lines.push('Booked by: ' + email);
   if (songRequests) lines.push('Songs/artists: ' + songRequests);
   if (genreFocus) lines.push('Genre focus: ' + genreFocus);
@@ -169,20 +170,29 @@ exports.handler = async function (event) {
   }
   const {
     slots, name, email, duration,
-    instrument, guitar_type, song_requests, genre_focus, theory_interest, lesson_goals_notes
+    instrument, guitar_type, skill_level, song_requests, genre_focus, theory_interest, lesson_goals_notes
   } = body;
   if (!Array.isArray(slots) || slots.length === 0) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'No lesson dates provided.' }) };
   }
-  // This used to support booking many lessons at once for ongoing,
-  // casual use - that entire model is gone now, replaced by
-  // subscriptions. All that's left here is a single trial lesson for
-  // someone who hasn't tried a lesson with James before, so this is
-  // now hard-capped at exactly one slot, not just left open for
-  // whatever the frontend happens to send.
-  if (slots.length > 1) {
-    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Only a single trial lesson can be booked this way. For an ongoing slot, please subscribe instead.' }) };
+  // Skill level is the one required field here (everything else about
+  // what they want to learn is optional) - James needs to know at
+  // minimum whether he's walking into a complete-beginner lesson or an
+  // intermediate one, not find out mid-lesson.
+  if (!skill_level) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Please select your current skill level.' }) };
   }
+  // Only three shapes are valid now: a single trial lesson, or a 5 or
+  // 10 lesson package paid upfront. The old open-ended "book as many
+  // as you like" model is gone, replaced by subscriptions - this is
+  // checked directly against what was actually submitted, not a
+  // client-supplied "mode" flag, so it can't be bypassed by
+  // hand-crafting a request.
+  const VALID_SLOT_COUNTS = [1, 5, 10];
+  if (!VALID_SLOT_COUNTS.includes(slots.length)) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Bookings must be a single trial lesson, or a 5 or 10 lesson package. For an ongoing slot, please subscribe instead.' }) };
+  }
+  const bookingType = slots.length === 1 ? 'trial' : 'package';
   for (const s of slots) {
     if (!s || !s.date || !s.time) {
       return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Every lesson needs a date and time.' }) };
@@ -200,13 +210,20 @@ exports.handler = async function (event) {
   // genre, theory interest, and notes are entered once for the whole
   // booking, not per lesson), so this is built once and reused for each
   // calendar event created below.
+  // Truncated defensively, same caps as create-subscription.js uses
+  // for its own version of these fields - no hard failure risk here
+  // the way Stripe's metadata limit creates one, since these just
+  // become calendar notes and a stored record, but this still stops
+  // an arbitrarily long string sent directly to this public endpoint
+  // from producing an unwieldy calendar event or admin email.
   const calendarNotes = buildCalendarNotes({
     instrument: displayInstrument,
     email: email,
-    songRequests: song_requests,
-    genreFocus: genre_focus,
+    skillLevel: skill_level,
+    songRequests: (song_requests || '').slice(0, 300),
+    genreFocus: (genre_focus || '').slice(0, 200),
     theoryInterest: theory_interest,
-    goalsNotes: lesson_goals_notes
+    goalsNotes: (lesson_goals_notes || '').slice(0, 450)
   });
 
   const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
@@ -309,19 +326,24 @@ exports.handler = async function (event) {
       }
     }
 
-    // Hard advance-booking limit: nothing can be booked more than 30
-    // days out at all. Checked here server-side, not just relied on as
-    // a client-side date-picker max (booking.html's getMaxBookingDate),
-    // since this is a public API endpoint anyone could call directly -
-    // without this, the client-side limit would be purely cosmetic.
-    const MAX_ADVANCE_BOOKING_DAYS = 30;
+    // Hard advance-booking limit: checked here server-side, not just
+    // relied on as a client-side date-picker max (booking.html's
+    // getMaxBookingDate), since this is a public API endpoint anyone
+    // could call directly - without this, the client-side limit would
+    // be purely cosmetic. Trial stays capped at 30 days out. A package
+    // gets the full 3 months (90 days) it's actually sold on - the
+    // whole point of paying upfront for 5 or 10 lessons is picking
+    // dates that suit an irregular schedule over that longer window,
+    // not being squeezed into the same 30 days as a single trial.
+    const MAX_ADVANCE_BOOKING_DAYS = (bookingType === 'package') ? 90 : 30;
     {
       const todayStr = todayDateKey();
       for (const s of slots) {
         if (daysBetweenDates(todayStr, s.date) > MAX_ADVANCE_BOOKING_DAYS) {
+          const windowDesc = (bookingType === 'package') ? 'more than 3 months away. Package lessons can only be booked up to 3 months ahead' : 'more than 30 days away. One-off lessons can only be booked up to a month ahead';
           return {
             statusCode: 200,
-            body: JSON.stringify({ success: false, error: s.date + ' is more than 30 days away. One-off lessons can only be booked up to a month ahead - for anything more ongoing, set up a subscription from the Subscribe section instead.' })
+            body: JSON.stringify({ success: false, error: s.date + ' is ' + windowDesc + ' - for anything more ongoing, set up a subscription from the Subscribe section instead.' })
           };
         }
       }
@@ -332,15 +354,15 @@ exports.handler = async function (event) {
     // (that's normal flexible use). Beyond that, the code below used to
     // require each weekday to form a strict, evenly-spaced pattern
     // instead of scattered dates - but the hard 30-day cap just above
-    // now rejects anything past 30 days outright, before it can ever
-    // reach this point, so everything from here through the fortnightly
-    // cap check is currently dormant, not deleted in case the overall
-    // window is ever extended again later, but never actually reachable
-    // as things stand. Was written when the site allowed booking up to
-    // a year ahead - a multi-lesson request could then be a scattered,
-    // slot-squatting set of far-future dates while only attending
-    // occasionally, which blocked a slot from students or subscribers
-    // who'd actually use it every week.
+    // now rejects anything past 30 days outright for a trial, before it
+    // can ever reach this point, so everything from here through the
+    // fortnightly cap check is dormant for trial bookings, not deleted
+    // in case the overall trial window is ever extended again later.
+    // For a package, this is explicitly skipped outright regardless of
+    // how far out the dates reach (see the bookingType check just
+    // below) - a package is sold specifically on picking whatever dates
+    // suit an irregular schedule across the full 3 months, so requiring
+    // an evenly-spaced pattern would defeat the entire point of it.
     //
     // Checked PER WEEKDAY rather than across the whole date list at
     // once, since the site explicitly offers "twice a week" bookings
@@ -364,7 +386,7 @@ exports.handler = async function (event) {
     // existing large-booking note already suggests.
     const MAX_SPORADIC_DAYS_OUT = 30;
     const MAX_FORTNIGHTLY_LESSONS = 5;
-    if (slots.length > 1) {
+    if (slots.length > 1 && bookingType !== 'package') {
       const todayStr = todayDateKey();
       const farthestDaysOut = Math.max(...slots.map(s => daysBetweenDates(todayStr, s.date)));
       if (farthestDaysOut > MAX_SPORADIC_DAYS_OUT) {
@@ -459,6 +481,8 @@ exports.handler = async function (event) {
         email: email || '',
         instrument: instrument || '',
         guitarType: (guitar_type && instrument !== 'Piano') ? guitar_type : '',
+        skillLevel: skill_level,
+        bookingType: bookingType,
         bookedAt: new Date().toISOString(),
         pendingPayment: true,
         reservedAt: new Date().toISOString()

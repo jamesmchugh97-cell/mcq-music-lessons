@@ -44,7 +44,7 @@ exports.handler = async function (event) {
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
-  const { name, email, instrument, guitar_type, date, time, duration, lessons_count, total, slots } = body;
+  const { name, email, instrument, guitar_type, date, time, duration, lessons_count, total, slots, skill_level, song_requests, genre_focus, theory_interest, lesson_goals_notes } = body;
   // Escaped once here, used everywhere below - name and instrument are
   // free-text fields a student fills in, and get embedded directly into
   // HTML emails to both the student and James.
@@ -192,9 +192,14 @@ exports.handler = async function (event) {
       <p><strong>${safeName}</strong> (${safeEmail}) booked ${isMulti ? lessonsCountNum + ' lessons' : 'a trial lesson'}.</p>
       <ul>
         <li><strong>Instrument:</strong> ${displayInstrument || 'N/A'}</li>
+        ${skill_level ? `<li><strong>Skill level:</strong> ${escapeHtml(skill_level)}</li>` : ''}
         ${dateFieldsHtml}
         ${durationMinutes ? `<li><strong>Duration:</strong> ${durationMinutes} minutes</li>` : ''}
         <li><strong>Total:</strong> ${total || 'N/A'}</li>
+        ${song_requests ? `<li><strong>Songs/artists:</strong> ${escapeHtml(song_requests)}</li>` : ''}
+        ${genre_focus ? `<li><strong>Genre focus:</strong> ${escapeHtml(genre_focus)}</li>` : ''}
+        ${theory_interest === 'Yes' ? `<li>Wants music theory included</li>` : ''}
+        ${lesson_goals_notes ? `<li><strong>Notes:</strong> ${escapeHtml(lesson_goals_notes)}</li>` : ''}
       </ul>
     </div>
   `;

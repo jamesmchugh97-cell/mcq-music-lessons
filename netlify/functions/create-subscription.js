@@ -95,9 +95,9 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
 
-  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency } = body;
+  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes } = body;
 
-  if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency) {
+  if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency || !skillLevel) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required subscription details.' }) };
   }
   if (frequency !== 'weekly' && frequency !== 'fortnightly') {
@@ -223,7 +223,18 @@ exports.handler = async function (event) {
           dayOfWeek: String(dow),
           time: time,
           durationMinutes: String(durationMinutes),
-          frequency: frequency
+          frequency: frequency,
+          skillLevel: skillLevel,
+          // Truncated defensively - Stripe rejects any metadata value
+          // over 500 characters outright, which would fail the whole
+          // subscription creation with a confusing error rather than
+          // just losing a bit of the notes. The booking page's own
+          // maxlength attributes are the primary defense; this is the
+          // backstop for anyone calling this endpoint directly.
+          songRequests: (songRequests || '').slice(0, 300),
+          genreFocus: (genreFocus || '').slice(0, 200),
+          theoryInterest: theoryInterest || '',
+          goalsNotes: (goalsNotes || '').slice(0, 450)
         }
       },
       success_url: siteUrl + '/booking.html?subscribed=1#subscribe',
