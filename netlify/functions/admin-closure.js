@@ -153,7 +153,7 @@ exports.handler = async function (event) {
         await sendEmail(
           s.studentEmail,
           'MCQ Music Lessons: closed ' + formatFriendlyDate(startDate) + ' - ' + formatFriendlyDate(endDate),
-          '<p>Hi ' + escapeHtml(s.studentName) + ',</p><p>Just a heads up, MCQ Music will be closed from ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. Your subscription will automatically pause for that period, no charge, and pick back up right after with no need to do anything yourself.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(s.studentName) + ',</p><p>Just a heads up, MCQ Music will be closed from ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. Your enrollment will automatically pause for that period, no charge, and pick back up right after with no need to do anything yourself.</p><p>James</p>'
         );
         notified++;
       }
@@ -161,7 +161,7 @@ exports.handler = async function (event) {
     await sendEmail(
       JAMES_EMAIL,
       'Closure set: ' + formatFriendlyDate(startDate) + ' - ' + formatFriendlyDate(endDate),
-      '<p>Closure recorded for ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. ' + notified + ' active subscriber(s) notified. Their billing will actually pause once ' + startDate + ' arrives (handled automatically), and resume automatically after ' + endDate + '.</p>'
+      '<p>Closure recorded for ' + formatFriendlyDate(startDate) + ' to ' + formatFriendlyDate(endDate) + '. ' + notified + ' active enrolled student(s) notified. Their billing will actually pause once ' + startDate + ' arrives (handled automatically), and resume automatically after ' + endDate + '.</p>'
     );
 
     return { statusCode: 200, body: JSON.stringify({ success: true, notified: notified }) };
@@ -197,7 +197,7 @@ exports.handler = async function (event) {
             await sendEmail(
               record.studentEmail,
               'MCQ Music Lessons: the closure has been lifted',
-              '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Good news, the closure has ended early and your subscription has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
+              '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Good news, the closure has ended early and your enrollment has resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '. Billing has resumed as normal.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
             );
           }
           resumed++;

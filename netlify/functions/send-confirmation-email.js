@@ -125,7 +125,7 @@ exports.handler = async function (event) {
   }
 
   const introLine = isMulti
-    ? `<p>Your <strong>${lessonsCountNum}-lesson package</strong> is confirmed and paid in full. See your chosen dates below - if you ever need to move one, the normal reschedule policy still applies to each lesson individually. This is a one-off package rather than a subscription, so there's no pausing, but everything else works the same way.</p>`
+    ? `<p>Your <strong>${lessonsCountNum}-lesson package</strong> is confirmed and paid in full. See your chosen dates below - if you ever need to move one, the normal reschedule policy still applies to each lesson individually. This is a one-off package rather than an enrollment, so there's no pausing, but everything else works the same way.</p>`
     : `<p>Welcome to your first lesson with MCQ Music! This is your <strong>trial lesson</strong>, a chance to see if it's the right fit. Most students then move to a regular weekly or fortnightly time, the same slot reserved every week. You can <a href="https://mcqmusiclessons.com.au/booking.html#calendar" style="color:#c9942a;">set that up</a> any time after your lesson.</p>`;
 
   const emailSubject = isMulti ? 'Your ' + lessonsCountNum + '-lesson package is confirmed!' : 'Welcome to your first lesson!';
@@ -199,6 +199,7 @@ exports.handler = async function (event) {
         ${song_requests ? `<li><strong>Songs/artists:</strong> ${escapeHtml(song_requests)}</li>` : ''}
         ${genre_focus ? `<li><strong>Genre focus:</strong> ${escapeHtml(genre_focus)}</li>` : ''}
         ${theory_interest === 'Yes' ? `<li>Wants music theory included</li>` : ''}
+        ${theory_interest === 'Not sure' ? `<li>Not sure about music theory - worth asking</li>` : ''}
         ${lesson_goals_notes ? `<li><strong>Notes:</strong> ${escapeHtml(lesson_goals_notes)}</li>` : ''}
       </ul>
     </div>

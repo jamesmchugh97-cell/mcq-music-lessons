@@ -57,16 +57,20 @@ function melbourneEpochMs(dateStr, timeStr) {
   return naiveUtcMs - offsetMinutes * 60000;
 }
 
-const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30;
+const FRI_CLOSING_MINUTES = 16 * 60 + 30;
 const MON_THU_CLOSING_MINUTES = 21 * 60;
 
 function dayOfWeek(dateStr) {
   return new Date(dateStr + 'T00:00:00').getDay();
 }
 
+// Saturday never reaches this check - the explicit dow === 6 rejection
+// above it always fires first - but is included here too so this
+// function is correct standalone.
 function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
   const dow = dayOfWeek(dateStr);
-  if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+  if (dow === 6) return false;
+  if (dow === 5) return endMinutes <= FRI_CLOSING_MINUTES;
   return endMinutes <= MON_THU_CLOSING_MINUTES;
 }
 

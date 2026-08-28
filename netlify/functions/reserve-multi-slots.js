@@ -3,9 +3,9 @@
 // unusably small gap (under 30 minutes) next to an existing lesson. This
 // is the authoritative check, the frontend also filters options for a
 // better experience, but this is what actually protects the schedule.
-// Saturday is a normal open day (Fri/Sat closing hours are enforced below
-// via isWithinBusinessHours), the old Friday-makeup-only restriction and
-// its saturday-credits gate have been retired.
+// Saturday is closed entirely (like Sunday) - see the dow === 0/6 check
+// below. The old Friday-makeup-only restriction and its saturday-credits
+// gate have been retired and are unrelated to this closure.
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes, isStalePendingHold } = require('./subscription-helpers');
@@ -77,15 +77,17 @@ function todayDateKey() {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
-const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Fri/Sat
+const FRI_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Friday
 const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm, lessons must FINISH by this on Mon-Thu
 
-// Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish by
+// Mon-Thu: a lesson must finish by 9pm. Friday: a lesson must finish by
 // 4:30pm, so the last bookable start time shifts earlier depending on
-// how long the lesson runs.
+// how long the lesson runs. Saturday and Sunday are closed entirely,
+// rejected earlier by the dow === 0/6 check before this is even called.
 function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
   const dow = dayOfWeek(dateStr);
-  if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+  if (dow === 6) return false;
+  if (dow === 5) return endMinutes <= FRI_CLOSING_MINUTES;
   return endMinutes <= MON_THU_CLOSING_MINUTES;
 }
 
@@ -154,6 +156,7 @@ function buildCalendarNotes({ instrument, email, skillLevel, songRequests, genre
   if (songRequests) lines.push('Songs/artists: ' + songRequests);
   if (genreFocus) lines.push('Genre focus: ' + genreFocus);
   if (theoryInterest === 'Yes') lines.push('Wants music theory included');
+  if (theoryInterest === 'Not sure') lines.push('Not sure about music theory - worth asking');
   if (goalsNotes) lines.push('Notes: ' + goalsNotes);
   return lines.join('\n');
 }
@@ -239,8 +242,8 @@ exports.handler = async function (event) {
 
     for (const date in byDate) {
       const dow = dayOfWeek(date);
-      if (dow === 0) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a Sunday, James is closed. Please choose a different date.' }) };
+      if (dow === 0 || dow === 6) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: date + ' is a ' + (dow === 0 ? 'Sunday' : 'Saturday') + ', James is closed. Please choose a different date.' }) };
       }
       const { blobs } = await store.list({ prefix: date + '_' });
       const existing = [];

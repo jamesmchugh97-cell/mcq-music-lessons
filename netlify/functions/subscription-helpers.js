@@ -234,6 +234,7 @@ async function createLessonOccurrence(dateStr, record) {
     if (record.songRequests) noteLines.push('Songs/artists: ' + record.songRequests);
     if (record.genreFocus) noteLines.push('Genre focus: ' + record.genreFocus);
     if (record.theoryInterest === 'Yes') noteLines.push('Wants music theory included');
+    if (record.theoryInterest === 'Not sure') noteLines.push('Not sure about music theory - worth asking');
     if (record.goalsNotes) noteLines.push('Notes: ' + record.goalsNotes);
     const eventId = await createCalendarEvent({
       studentName: record.studentName,

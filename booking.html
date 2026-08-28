@@ -55,7 +55,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="pricing.html#pricing">Pricing</a></li>
       <li><a href="faq.html">FAQ</a></li>
       <li><a href="booking.html#manage">Manage Booking</a></li>
-      <li><a href="booking.html#calendar" class="nav-cta">Subscribe</a></li>
+      <li><a href="booking.html#calendar" class="nav-cta">Enroll</a></li>
     </ul>
     <div class="nav-social">
       <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -80,7 +80,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="pricing.html#pricing" onclick="toggleMenu()">Pricing</a>
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
   <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
-  <a href="booking.html#calendar" onclick="toggleMenu()">Subscribe</a>
+  <a href="booking.html#calendar" onclick="toggleMenu()">Enroll</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -116,7 +116,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Trial Lesson</p>
     <h2 class="section-title">Try a <em>trial lesson</em></h2>
-    <p class="section-sub">New here? Book a single lesson to see if it's the right fit, no ongoing commitment. If you'd like to continue afterwards, you can subscribe for the same time every week or fortnight.</p>
+    <p class="section-sub">New here? Book a single lesson to see if it's the right fit, no ongoing commitment. If you'd like to continue afterwards, you can enroll for the same time every week or fortnight.</p>
     <form class="booking-form" id="trialForm" onsubmit="return handleTrialBooking(event)">
       <div class="form-row">
         <div class="form-group">
@@ -177,22 +177,50 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           <option value="90|130">90 minutes · $130</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Songs you'd like to learn (optional)</label>
-        <input class="form-input" type="text" id="trialSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Genres you're interested in (optional)</label>
-        <input class="form-input" type="text" id="trialGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
-      </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
-        <input type="checkbox" id="trialTheoryInterest" style="width:auto;">
-        <label class="form-label" style="margin:0;" for="trialTheoryInterest">Interested in music theory</label>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Anything else James should know? (optional)</label>
-        <textarea class="form-input" id="trialGoalsNotes" rows="2" maxlength="450"></textarea>
-      </div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="trialSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="trialGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trialTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="trialTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="trialGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
       <div class="form-group">
         <label class="form-label">Card details</label>
         <div id="trial-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
@@ -202,7 +230,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="subtotal-total"><span>Total</span><span id="trialTotalAmt">$70</span></div>
       </div>
       <button class="btn-primary" id="trialSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Book Trial Lesson →</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe. Loved it? You can subscribe for an ongoing slot any time afterwards.</p>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe. Loved it? You can enroll for an ongoing slot any time afterwards.</p>
     </form>
   </div>
 </section>
@@ -275,22 +303,50 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.6rem;">Pick a date and time for each lesson below. Every date must be within the next 3 months.</p>
       <div id="packageDateRows"></div>
-      <div class="form-group">
-        <label class="form-label">Songs you'd like to learn (optional)</label>
-        <input class="form-input" type="text" id="packageSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Genres you're interested in (optional)</label>
-        <input class="form-input" type="text" id="packageGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
-      </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
-        <input type="checkbox" id="packageTheoryInterest" style="width:auto;">
-        <label class="form-label" style="margin:0;" for="packageTheoryInterest">Interested in music theory</label>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Anything else James should know? (optional)</label>
-        <textarea class="form-input" id="packageGoalsNotes" rows="2" maxlength="450"></textarea>
-      </div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="packageSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="packageGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="packageTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="packageTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="packageGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
       <div class="form-group">
         <label class="form-label">Card details</label>
         <div id="package-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
@@ -338,7 +394,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the subscribe form below.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the enroll form below.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -348,7 +404,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <section id="subscribe">
   <div class="section-inner">
-    <p class="section-eyebrow">Weekly Subscription</p>
+    <p class="section-eyebrow">Weekly Enrollment</p>
     <h2 class="section-title">Reserve your <em>own time slot</em></h2>
     <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 8 weeks a year, cancel any time, all fully self-service below.</p>
     <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">Prefer to try it out before committing? A <a href="#trial" style="color:var(--gold);">trial lesson</a> is a completely optional way to do that, entirely up to you either way.</p>
@@ -410,7 +466,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <option value="3">Wednesday</option>
             <option value="4">Thursday</option>
             <option value="5">Friday</option>
-            <option value="6">Saturday</option>
           </select>
         </div>
         <div class="form-group">
@@ -430,7 +485,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         </div>
       </div>
       <div id="subExtraSlotsGroup" style="display:none;">
-        <p style="font-size:0.72rem;color:var(--muted);margin:-0.3rem 0 0.6rem;">Choose a day and time for each additional lesson. These become their own separate weekly subscriptions, billed and managed independently, so you're never locked into all of them together.</p>
+        <p style="font-size:0.72rem;color:var(--muted);margin:-0.3rem 0 0.6rem;">Choose a day and time for each additional lesson. These become their own separate weekly enrollments, billed and managed independently, so you're never locked into all of them together.</p>
         <div id="subExtraSlotsContainer"></div>
       </div>
       <div class="form-row">
@@ -452,28 +507,56 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </select>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Songs you'd like to learn (optional)</label>
-        <input class="form-input" type="text" id="subSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Genres you're interested in (optional)</label>
-        <input class="form-input" type="text" id="subGenreFocus" placeholder="e.g. rock, blues, pop" maxlength="200">
-      </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;">
-        <input type="checkbox" id="subTheoryInterest" style="width:auto;">
-        <label class="form-label" style="margin:0;" for="subTheoryInterest">Interested in music theory</label>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Anything else James should know? (optional)</label>
-        <textarea class="form-input" id="subGoalsNotes" rows="2" maxlength="450"></textarea>
-      </div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="subSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="subGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="subTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="subGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
       <div class="subtotal-box">
         <div class="subtotal-total"><span>Billed</span><span id="subTotalAmt">$70 every week</span></div>
       </div>
       <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
-      <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Subscribe →</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing subscription? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+      <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Enroll →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing enrollment? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
     </form>
   </div>
 </section>
@@ -482,15 +565,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <section id="manage-subscription">
   <div class="section-inner">
-    <p class="section-eyebrow">Manage Subscription</p>
-    <h2 class="section-title">Already <em>subscribed?</em></h2>
-    <p class="section-sub">Enter the email you subscribed with to pause, reschedule an individual lesson, or cancel, all yourself, no need to message James. A pause always resumes automatically on its own, nothing to click.</p>
+    <p class="section-eyebrow">Manage Enrollment</p>
+    <h2 class="section-title">Already <em>enrolled?</em></h2>
+    <p class="section-sub">Enter the email you enrolled with to pause, reschedule an individual lesson, or cancel, all yourself, no need to message James. A pause always resumes automatically on its own, nothing to click.</p>
     <div class="booking-form">
       <div class="form-group">
         <label class="form-label">Your Email</label>
         <input class="form-input" type="email" id="manageSubEmail" placeholder="your@email.com">
       </div>
-      <button class="btn-outline" id="findSubBtn" onclick="findMySubscriptions()" type="button" style="width:100%;text-align:center;">Find My Subscription</button>
+      <button class="btn-outline" id="findSubBtn" onclick="findMySubscriptions()" type="button" style="width:100%;text-align:center;">Find My Enrollment</button>
       <p id="manageSubError" style="color:#f87171;font-size:0.8rem;margin-top:0.6rem;min-height:1.2em;"></p>
       <div id="manageSubResults" style="margin-top:1rem;"></div>
     </div>
@@ -624,7 +707,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="policy-box">
       <div class="policy-title">Cancellation Policy</div>
-      <div class="policy-row"><strong>24+ hours notice</strong>Rebook a new time yourself within the next 2 weeks (Mon to Sat). If you don't, it's not refunded</div>
+      <div class="policy-row"><strong>24+ hours notice</strong>Rebook a new time yourself within the next 2 weeks (Mon to Fri). If you don't, it's not refunded</div>
       <div class="policy-row"><strong>Under 24 hours</strong>Full lesson fee applies, no makeup available</div>
     </div>
 </div></section>
@@ -639,7 +722,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4.5c1.6 0 3 1 3.4 2.5l.5 1.8c.2.7 0 1.5-.6 2l-1 .9c1 2.4 2.9 4.3 5.3 5.3l.9-1c.5-.6 1.3-.8 2-.6l1.8.5c1.5.4 2.5 1.8 2.5 3.4v.9c0 1.2-1 2.1-2.2 2C9.9 21.1 2.9 14.1 2 6.4c-.1-1.2.8-2.2 2-2.2h1z"/></svg></span><div><div class="contact-label">Phone</div><div class="contact-value"><a href="tel:0499232898">0499 232 898</a></div></div></div>
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></span><div><div class="contact-label">Email</div><div class="contact-value"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a></div></div></div>
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/></svg></span><div><div class="contact-label">Location</div><div class="contact-value">South Melbourne, VIC</div></div></div>
-      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Thu 12pm to 9pm, Fri & Sat 12pm to 4:30pm</div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Thu 12pm to 9pm, Fri 12pm to 4:30pm</div></div></div>
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span><div><div class="contact-label">Instagram</div><div class="contact-value"><a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a></div></div></div>
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg></span><div><div class="contact-label">Facebook</div><div class="contact-value"><a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">MCQ Music</a></div></div></div>
       <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span><div><div class="contact-label">Music Links</div><div class="contact-value"><a href="https://linktr.ee/jamesmcq" target="_blank">linktr.ee/jamesmcq</a></div></div></div>
@@ -664,7 +747,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="modal-overlay" id="cancelConfirmModal">
   <div class="modal">
-    <div class="modal-title">Cancel this lesson?</div>
+    <div class="modal-title" id="cancelConfirmTitle">Cancel this lesson?</div>
     <div class="modal-body" id="cancelConfirmBody"></div>
     <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
       <button class="modal-close" id="cancelConfirmYesBtn" style="background:#f87171;color:#1a1a1a;">Yes, cancel it</button>
@@ -762,13 +845,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     if (switched) {
       note.style.display = 'block';
-      note.textContent = 'Switched to weekly - fortnightly can only fit ' + MAX_FORTNIGHTLY_IN_WINDOW + ' lessons within the 30-day booking window. For an ongoing fortnightly slot, subscribe instead.';
+      note.textContent = 'Switched to weekly - fortnightly can only fit ' + MAX_FORTNIGHTLY_IN_WINDOW + ' lessons within the 30-day booking window. For an ongoing fortnightly slot, enroll instead.';
     } else if (modeSelect.value === 'weekly' && lessons > MAX_WEEKLY_IN_WINDOW) {
       note.style.display = 'block';
-      note.textContent = 'Only the first ' + MAX_WEEKLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below for you to fill in once that time comes closer, or subscribe for an ongoing weekly slot instead.';
+      note.textContent = 'Only the first ' + MAX_WEEKLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below for you to fill in once that time comes closer, or enroll for an ongoing weekly slot instead.';
     } else if (modeSelect.value === 'fortnightly' && lessons > MAX_FORTNIGHTLY_IN_WINDOW) {
       note.style.display = 'block';
-      note.textContent = 'Only the first ' + MAX_FORTNIGHTLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below, or subscribe for an ongoing fortnightly slot instead.';
+      note.textContent = 'Only the first ' + MAX_FORTNIGHTLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below, or enroll for an ongoing fortnightly slot instead.';
     } else if (modeSelect.value === 'custom') {
       note.style.display = 'block';
       note.textContent = 'Every date must fall within the next 30 days.';
@@ -836,10 +919,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const isWeeklySeries = gaps.every(g => g === 7);
       const isFortnightlySeries = gaps.every(g => g === 14);
       if (!isWeeklySeries && !isFortnightlySeries) {
-        return 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing subscription from the Subscribe section instead.';
+        return 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing enrollment from the Enroll section instead.';
       }
       if (isFortnightlySeries && datesOnThisDay.length > 5) {
-        return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Subscribe section instead.';
+        return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Enroll section instead.';
       }
     }
     return null;
@@ -903,9 +986,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateInput.max = maxDateStr;
       const rowWarning = document.createElement('p');
       rowWarning.style.cssText = 'display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;grid-column:1 / -1;';
-      rowWarning.textContent = 'James is closed on Sundays. Please choose a different day.';
       dateInput.addEventListener('change', () => {
-        if (dateInput.value && isSundayDate(dateInput.value)) {
+        if (dateInput.value && isClosedDate(dateInput.value)) {
+          rowWarning.textContent = 'James is closed on ' + closedDayName(dateInput.value) + '. Please choose a different day.';
           dateInput.value = '';
           rowWarning.style.display = 'block';
         } else {
@@ -1124,19 +1207,27 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     { minutes: 90, value: '90|130' }
   ];
   const MIN_NOTICE_HOURS = 24;
-  const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Fri/Sat
+  const FRI_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Friday
   const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm, lessons must FINISH by this on Mon-Thu
 
   function dayOfWeek(dateStr) {
     return new Date(dateStr + 'T00:00:00').getDay();
   }
 
-  // Mon-Thu: a lesson must finish by 9pm. Fri/Sat: a lesson must finish
+  // Reads a <select multiple> element's chosen options back into the
+  // same comma-joined string format the backend already expects from
+  // the old free-text genre field, so no backend changes are needed.
+  function getMultiSelectValue(id) {
+    return Array.from(document.getElementById(id).selectedOptions).map(o => o.value).join(', ');
+  }
+
+  // Mon-Thu: a lesson must finish by 9pm. Friday: a lesson must finish
   // by 4:30pm, so the last bookable start time shifts earlier depending
-  // on how long the lesson runs.
+  // on how long the lesson runs. Saturday and Sunday are closed
+  // entirely, handled in getAvailableTimes below before this is called.
   function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
     const dow = dayOfWeek(dateStr);
-    if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
+    if (dow === 5) return endMinutes <= FRI_CLOSING_MINUTES;
     return endMinutes <= MON_THU_CLOSING_MINUTES;
   }
 
@@ -1150,13 +1241,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // Given a date and a lesson duration, returns which of ALL_TIMES are
   // valid start times, excluding anything that overlaps an existing
   // lesson, would leave an unusably small (<30 min) gap next to one,
-  // falls outside business hours, or is less than 24 hours away. Only
-  // Sundays are closed; Saturday runs like a normal day, just with the
-  // shorter Fri/Sat closing time handled in isWithinBusinessHours.
+  // falls outside business hours, or is less than 24 hours away.
+  // Sundays and Saturdays are both closed entirely.
   function getAvailableTimes(dateStr, durationMinutes) {
     if (!dateStr) return [];
     const dow = dayOfWeek(dateStr);
-    if (dow === 0) return [];
+    if (dow === 0 || dow === 6) return [];
     const existing = (BOOKED[dateStr] || []).map(b => ({
       start: timeToMinutes(b.time),
       end: timeToMinutes(b.time) + (b.duration || 45)
@@ -1215,7 +1305,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const isToday = date.toDateString() === TODAY.toDateString();
 
       const cell = document.createElement('div');
-      const isClosed = dow === 0; // only Sunday is closed now; Saturday behaves like any other day
+      const isClosed = dow === 0 || dow === 6; // Sunday and Saturday are both closed
       cell.className = 'cal-cell' + (isPast ? ' past' : '') + (isClosed ? ' weekend-closed' : '') + (isToday ? ' today' : '');
 
       const dateDiv = document.createElement('div');
@@ -1223,8 +1313,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       dateDiv.textContent = d;
       cell.appendChild(dateDiv);
 
-      // Business hours: Mon-Thu 12pm-9pm, Fri & Sat 12pm-4:30pm (shorter
-      // closing time, handled in isWithinBusinessHours), Sunday closed.
+      // Business hours: Mon-Thu 12pm-9pm, Fri 12pm-4:30pm (shorter
+      // closing time, handled in isWithinBusinessHours). Saturday and
+      // Sunday are both closed.
       // Availability shown here checks every offered lesson length, a
       // time shows Available if ANY duration could actually be booked
       // there, since a longer lesson sometimes fits when a shorter one
@@ -1333,8 +1424,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   // RESCHEDULE FLOW (free, credit-based, deliberately separate from the
   // normal paid booking form). Only activates when a valid ?reschedule=
-  // token is present in the URL, which only exists in a cancellation
-  // email's "Rebook within the next 2 weeks" button.
+  // token is present in the URL. That token comes either from the
+  // "Rebook within the next 2 weeks" button in a cancellation email, or
+  // from the Reschedule button in Manage Booking, which redirects here
+  // with the token immediately rather than making the student wait on
+  // the email. Both routes land in exactly this same flow.
   let rescheduleCredit = null; // { token, name, duration, weekStart, weekEnd }
 
   function formatDateRange(startStr, endStr) {
@@ -1405,7 +1499,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     while (cursor <= end) {
       const dow = cursor.getDay();
       const key = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
-      if (dow !== 0 && dow !== 6) { // Sunday is closed entirely, Saturday isn't available for rescheduling specifically
+      if (dow !== 0 && dow !== 6) { // Sunday and Saturday are both closed entirely
         const dayIsUsable = cursor >= todayMidnight;
         const hasTimes = dayIsUsable && getAvailableTimes(key, rescheduleCredit.duration).length > 0;
         const btn = document.createElement('button');
@@ -1522,8 +1616,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
   loadLiveBookings().then(initRescheduleFlow).then(initManageFromLink);
 
-  // The homepage's "Subscribe Weekly" / "Subscribe Fortnightly" buttons
-  // link here with ?frequency=weekly or ?frequency=fortnightly, so the
+  // The homepage's "Book a Weekly Lesson" / "Book a Fortnightly Lesson"
+  // buttons link here with ?frequency=weekly or ?frequency=fortnightly, so the
   // Subscribe form opens with the right frequency already chosen rather
   // than making them pick it again.
   (function() {
@@ -1587,7 +1681,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       } else {
         // All lessons in the queue are now confirmed.
         document.getElementById('modalTitle').textContent = "You're All Set!";
-        let bodyHtml = 'All ' + queue.slots.length + ' of your ' + queue.frequency + ' ' + queue.instrument + ' lessons are locked in, as ' + queue.slots.length + ' separate subscriptions you can each manage independently below:<ul style="margin:0.6rem 0 0 1.1rem;padding:0;">' +
+        let bodyHtml = 'All ' + queue.slots.length + ' of your ' + queue.frequency + ' ' + queue.instrument + ' lessons are locked in, as ' + queue.slots.length + ' separate enrollments you can each manage independently below:<ul style="margin:0.6rem 0 0 1.1rem;padding:0;">' +
           queue.completedSlots.map(function (s) { return '<li>' + s.dayName + 's at ' + s.time + '</li>'; }).join('') +
           '</ul>A confirmation email is on its way for each one.';
         queue.completedSlots.forEach(function (s) {
@@ -1612,15 +1706,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       sessionStorage.removeItem('mcqSubscribePending');
     } catch (e) {}
     if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.onclick = function () { closeModal(); }; }
-    document.getElementById('modalTitle').textContent = "You're Subscribed!";
+    document.getElementById('modalTitle').textContent = "You're Enrolled!";
     if (details) {
       const rrule = 'RRULE:FREQ=WEEKLY' + (details.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
       const calTitle = (details.instrument || 'Music') + ' Lesson - MCQ Music';
       const startDate = getNextDateForDow(details.dow);
-      document.getElementById('modalBody').innerHTML = 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.' +
+      document.getElementById('modalBody').innerHTML = 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Enrollment section on this page.' +
         calendarLinksHtml(calTitle, startDate, details.time, details.durationMinutes || 45, rrule);
     } else {
-      document.getElementById('modalBody').textContent = 'Your subscription is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Subscription section on this page.';
+      document.getElementById('modalBody').textContent = 'Your enrollment is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Enrollment section on this page.';
     }
     document.getElementById('successModal').classList.add('open');
   })();
@@ -1651,14 +1745,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
     const skillLevel = document.getElementById('trialSkillLevel').value;
     const songRequests = document.getElementById('trialSongRequests').value.trim();
-    const genreFocus = document.getElementById('trialGenreFocus').value.trim();
-    const theoryInterest = document.getElementById('trialTheoryInterest').checked ? 'Yes' : 'No';
+    const genreFocus = getMultiSelectValue('trialGenreFocus');
+    const theoryInterest = document.getElementById('trialTheoryInterest').value;
     const goalsNotes = document.getElementById('trialGoalsNotes').value.trim();
     const errEl = document.getElementById('trialError');
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
     if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
     if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time.'; return false; }
+    if (isClosedDate(date)) { errEl.style.display = 'block'; errEl.textContent = 'James is closed on ' + closedDayName(date) + '. Please choose a different day.'; return false; }
     if (date > getMaxBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to a month in advance.'; return false; }
     if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'That time is no longer available. Please choose a different time.'; return false; }
     if (!stripe || !trialCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
@@ -1782,8 +1877,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
     const skillLevel = document.getElementById('packageSkillLevel').value;
     const songRequests = document.getElementById('packageSongRequests').value.trim();
-    const genreFocus = document.getElementById('packageGenreFocus').value.trim();
-    const theoryInterest = document.getElementById('packageTheoryInterest').checked ? 'Yes' : 'No';
+    const genreFocus = getMultiSelectValue('packageGenreFocus');
+    const theoryInterest = document.getElementById('packageTheoryInterest').value;
     const goalsNotes = document.getElementById('packageGoalsNotes').value.trim();
     const errEl = document.getElementById('packageError');
     errEl.style.display = 'none'; errEl.textContent = '';
@@ -1795,6 +1890,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const date = document.getElementById('packageDate' + i).value;
       const time = document.getElementById('packageTime' + i).value;
       if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time for every lesson (lesson ' + i + ' is missing one).'; return false; }
+      if (isClosedDate(date)) { errEl.style.display = 'block'; errEl.textContent = 'Lesson ' + i + ' falls on a day James is closed (' + closedDayName(date) + '). Please choose a different day.'; return false; }
       if (date > getMaxPackageBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Lesson ' + i + ' is more than 3 months away. Please choose a closer date.'; return false; }
       if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'The time chosen for lesson ' + i + ' is no longer available. Please choose a different time.'; return false; }
       slots.push({ date: date, time: time });
@@ -1985,9 +2081,21 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return false;
   }
 
-  function isSundayDate(dateStr) {
+  // James is closed on BOTH Saturday and Sunday. Kept as one shared
+  // check (rather than a Sunday-only test repeated in several places)
+  // so a future change to which days are open only has to happen here.
+  function isClosedDate(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
-    return d.getDay() === 0;
+    const dow = d.getDay();
+    return dow === 0 || dow === 6;
+  }
+
+  // Names the specific closed day in warnings, so someone who picks a
+  // Saturday isn't told "closed on Sundays" and left confused about
+  // whether their date was actually the problem.
+  function closedDayName(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.getDay() === 0 ? 'Sundays' : 'Saturdays';
   }
 
   function isPastDate(dateStr) {
@@ -2025,14 +2133,32 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const info = document.createElement('div');
         info.style.cssText = 'font-size:0.85rem;color:var(--cream);';
         info.textContent = b.date + ' at ' + b.time + ' (' + b.duration + ' min)';
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;';
+        // A student can only ever get one free reschedule per original
+        // booking (mirrors cancel-booking.js's own eligible check), so
+        // only offer the Reschedule button when it would actually work -
+        // otherwise it's a dead end that just confuses people further.
+        const hoursUntil = (new Date(b.date + 'T00:00:00').getTime() + (timeToMinutes(b.time) || 0) * 60000 - Date.now()) / (1000 * 60 * 60);
+        const canReschedule = hoursUntil >= 24 && !b.alreadyRescheduled;
+        if (canReschedule) {
+          const rescheduleBtn = document.createElement('button');
+          rescheduleBtn.className = 'btn-primary';
+          rescheduleBtn.type = 'button';
+          rescheduleBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+          rescheduleBtn.textContent = 'Reschedule';
+          rescheduleBtn.onclick = () => confirmAction('reschedule', email, b.date, b.time, b.alreadyRescheduled);
+          btnGroup.appendChild(rescheduleBtn);
+        }
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn-outline';
         cancelBtn.type = 'button';
         cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
-        cancelBtn.textContent = 'Cancel or Reschedule';
-        cancelBtn.onclick = () => confirmCancelBooking(email, b.date, b.time, b.alreadyRescheduled);
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = () => confirmAction('cancel', email, b.date, b.time, b.alreadyRescheduled);
+        btnGroup.appendChild(cancelBtn);
         row.appendChild(info);
-        row.appendChild(cancelBtn);
+        row.appendChild(btnGroup);
         resultsEl.appendChild(row);
       });
     } catch (e) {
@@ -2057,7 +2183,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }));
   }
 
-  function confirmCancelBooking(email, date, time, alreadyRescheduled) {
+  function confirmAction(action, email, date, time, alreadyRescheduled) {
     document.getElementById('manageError').textContent = '';
     const start = new Date(date + 'T00:00:00');
     start.setMinutes(start.getMinutes() + (timeToMinutes(time) || 0));
@@ -2067,17 +2193,31 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     // !alreadyRescheduledOnce exactly, so this pre-confirmation message
     // can never end up promising something the server then contradicts.
     const eligible = hasNotice && !alreadyRescheduled;
+    const titleEl = document.getElementById('cancelConfirmTitle');
+    const yesBtn = document.getElementById('cancelConfirmYesBtn');
     let message;
-    if (eligible) {
-      message = 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll get a link by email to rebook a new time yourself over the next two weeks, no need to contact James. If you don\'t rebook within that fortnight, it won\'t be refunded.';
-    } else if (alreadyRescheduled) {
-      message = 'Your lesson on ' + date + ' at ' + time + ' has already been rescheduled once, so it isn\'t eligible for a further free reschedule. The full lesson fee applies and no rebooking is available.';
+    if (action === 'reschedule') {
+      titleEl.textContent = 'Reschedule this lesson?';
+      yesBtn.textContent = 'Yes, reschedule';
+      yesBtn.style.background = '#c9942a';
+      yesBtn.style.color = '#1a1a1a';
+      message = 'This frees up your lesson on ' + date + ' at ' + time + ' and takes you straight to picking a new time within the next two weeks (Monday to Friday). No charge, no card needed - it\'s the same paid lesson, just moved.';
     } else {
-      message = 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+      titleEl.textContent = 'Cancel this lesson?';
+      yesBtn.textContent = 'Yes, cancel it';
+      yesBtn.style.background = '#f87171';
+      yesBtn.style.color = '#1a1a1a';
+      if (eligible) {
+        message = 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll also get a link by email in case you change your mind, to rebook a new time yourself over the next two weeks. If you don\'t rebook within that fortnight, it won\'t be refunded.';
+      } else if (alreadyRescheduled) {
+        message = 'Your lesson on ' + date + ' at ' + time + ' has already been rescheduled once, so it isn\'t eligible for a further free reschedule. The full lesson fee applies and no rebooking is available.';
+      } else {
+        message = 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+      }
     }
     document.getElementById('cancelConfirmBody').textContent = message;
     document.getElementById('cancelConfirmModal').classList.add('open');
-    document.getElementById('cancelConfirmYesBtn').onclick = () => submitCancelBooking(email, date, time);
+    yesBtn.onclick = () => submitAction(action, email, date, time);
     document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
   }
 
@@ -2085,37 +2225,61 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('cancelConfirmModal').classList.remove('open');
   }
 
-  async function submitCancelBooking(email, date, time) {
+  async function submitAction(action, email, date, time) {
     const yesBtn = document.getElementById('cancelConfirmYesBtn');
-    yesBtn.textContent = 'Cancelling...'; yesBtn.disabled = true;
+    const busyText = action === 'reschedule' ? 'Rescheduling...' : 'Cancelling...';
+    yesBtn.textContent = busyText; yesBtn.disabled = true;
     const errEl = document.getElementById('manageError');
     try {
+      // Both actions call the same endpoint: freeing the slot is identical
+      // either way, the only difference is what happens next. Rescheduling
+      // still counts as "cancelling" this specific slot server-side, which
+      // is exactly why a free reschedule credit gets issued for it.
       const resp = await fetch('/.netlify/functions/cancel-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, date: date, time: time })
       });
       const result = await resp.json();
+      yesBtn.disabled = false;
+      if (!result.success) {
+        closeCancelConfirmModal();
+        yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+        errEl.textContent = result.error || 'Could not process that. Please contact James directly.';
+        return;
+      }
+      if (action === 'reschedule' && result.eligible && result.rescheduleToken) {
+        // Send them straight into the existing, already-tested reschedule
+        // panel instead of making them wait on an email - same flow the
+        // email link uses, just reached immediately.
+        window.location.href = 'booking.html?reschedule=' + encodeURIComponent(result.rescheduleToken) + '#reschedulePanel';
+        return;
+      }
       closeCancelConfirmModal();
-      yesBtn.textContent = 'Yes, cancel it'; yesBtn.disabled = false;
-      if (result.success) {
-        document.getElementById('modalTitle').textContent = result.unpaidHold ? 'Reservation Removed' : 'Lesson Cancelled';
-        document.getElementById('modalBody').textContent = result.unpaidHold
-          ? 'That reservation was never paid for, so it has simply been removed. No charge applies and nothing further is needed.'
+      yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+      document.getElementById('modalTitle').textContent = result.unpaidHold ? 'Reservation Removed' : 'Lesson Cancelled';
+      // If the lesson qualified for a free reschedule but no credit token
+      // came back, the credit failed to save server-side - and that same
+      // failure also leaves the rebook button out of the email. Saying
+      // "check your email" here would send them looking for a link that
+      // isn't there, so point them at James instead, who can sort it out.
+      const eligibleButNoToken = result.eligible && !result.rescheduleToken;
+      document.getElementById('modalBody').textContent = result.unpaidHold
+        ? 'That reservation was never paid for, so it has simply been removed. No charge applies and nothing further is needed.'
+        : (eligibleButNoToken
+          ? 'Your lesson is cancelled and you\'re still entitled to a free reschedule, but the rebooking link couldn\'t be generated. Please contact James on 0499 232 898 or jamesmcqmusic@gmail.com and he\'ll book your new time directly.'
           : (result.eligible
             ? 'Check your email for a link to rebook a new time within the next two weeks.'
             : (result.alreadyRescheduledOnce
               ? 'This lesson had already been rescheduled once, so it wasn\'t eligible for a further free reschedule. No makeup or refund applies.'
-              : 'As this was within 24 hours, no makeup or refund applies.'));
-        document.getElementById('successModal').classList.add('open');
-        findMyBookings();
-        loadLiveBookings();
-      } else {
-        errEl.textContent = result.error || 'Could not cancel that lesson. Please contact James directly.';
-      }
+              : 'As this was within 24 hours, no makeup or refund applies.')));
+      document.getElementById('successModal').classList.add('open');
+      findMyBookings();
+      loadLiveBookings();
     } catch (e) {
       closeCancelConfirmModal();
-      yesBtn.textContent = 'Yes, cancel it'; yesBtn.disabled = false;
+      yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+      yesBtn.disabled = false;
       errEl.textContent = 'Could not reach the server. Please contact James directly.';
     }
   }
@@ -2124,13 +2288,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // for the currently selected date and duration, so a bad time never
   // even shows as pickable. Also refreshes each additional lesson's time
   // picker against its own date.
-  // If the primary date picker is set to a Sunday, clear it immediately
-  // and show a warning, rather than letting an unbookable date sit there.
+  // If the primary date picker is set to a closed day (Saturday or
+  // Sunday), clear it immediately and show a warning, rather than
+  // letting an unbookable date sit there.
   function handleDateFieldChange(input) {
     const warning = document.getElementById('bookDateWarning');
-    if (input.value && dayOfWeek(input.value) === 0) {
+    if (input.value && isClosedDate(input.value)) {
+      warning.textContent = 'James is closed on ' + closedDayName(input.value) + '. Please choose a different day.';
       input.value = '';
-      warning.textContent = 'James is closed on Sundays. Please choose a different day.';
       warning.style.display = 'block';
     } else {
       warning.style.display = 'none';
@@ -2192,8 +2357,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     primarySelect.innerHTML = '';
     if (primaryDate && validPrimary.length === 0) {
       const opt = document.createElement('option');
-      const dow = dayOfWeek(primaryDate);
-      opt.textContent = dow === 0 ? 'Closed on Sundays' : 'No times available that day';
+      opt.textContent = isClosedDate(primaryDate) ? 'Closed on ' + closedDayName(primaryDate) : 'No times available that day';
       opt.disabled = true; opt.selected = true;
       primarySelect.appendChild(opt);
     } else {
@@ -2213,8 +2377,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       tSelect.innerHTML = '';
       if (dInput.value && validTimes.length === 0) {
         const opt = document.createElement('option');
-        const dow = dayOfWeek(dInput.value);
-        opt.textContent = dow === 0 ? 'Closed on Sundays' : 'No times available that day';
+        opt.textContent = isClosedDate(dInput.value) ? 'Closed on ' + closedDayName(dInput.value) : 'No times available that day';
         opt.disabled = true; opt.selected = true;
         tSelect.appendChild(opt);
       } else {
@@ -2237,9 +2400,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
-    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. For anything more ongoing, set up a subscription instead.'; return; }
-    const primaryDow = dayOfWeek(date);
-    if (primaryDow === 0) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on Sundays.'; return; }
+    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. For anything more ongoing, set up an enrollment instead.'; return; }
+    if (isClosedDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on ' + closedDayName(date) + '.'; return; }
     if (hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
     const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
     if (isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
@@ -2274,8 +2436,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
-        if (isSundayDate(dInput.value)) {
-          document.getElementById('stripe-error').textContent = 'James is closed on Sundays. Please choose a different day for every lesson.';
+        if (isClosedDate(dInput.value)) {
+          document.getElementById('stripe-error').textContent = 'James is closed on ' + closedDayName(dInput.value) + '. Please choose a different day for every lesson.';
           btn.textContent = 'Proceed to Payment'; btn.disabled = false;
           return;
         }
@@ -2481,7 +2643,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     timeSelect.innerHTML = '';
     if (validTimes.length === 0) {
       const opt = document.createElement('option');
-      opt.value = ''; opt.textContent = 'No times free that day for this duration';
+      opt.value = '';
+      opt.textContent = isClosedDate(dateInput.value) ? 'Closed on ' + closedDayName(dateInput.value) : 'No times free that day for this duration';
       opt.disabled = true; opt.selected = true;
       timeSelect.appendChild(opt);
     } else {
@@ -2562,7 +2725,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     timeSelect.innerHTML = '';
     if (validTimes.length === 0) {
       const opt = document.createElement('option');
-      opt.value = ''; opt.textContent = 'No times free that day';
+      opt.value = '';
+      opt.textContent = isClosedDate(dateInput.value) ? 'Closed on ' + closedDayName(dateInput.value) : 'No times free that day';
       opt.disabled = true; opt.selected = true;
       timeSelect.appendChild(opt);
     } else {
@@ -2764,7 +2928,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;';
       const dowSelect = document.createElement('select');
       dowSelect.className = 'form-input sub-extra-dow';
-      for (let d = 1; d <= 6; d++) {
+      for (let d = 1; d <= 5; d++) {
         const opt = document.createElement('option');
         opt.value = d; opt.textContent = dayNames[d];
         dowSelect.appendChild(opt);
@@ -2844,7 +3008,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const freqLabel = freq === 'fortnightly' ? 'every fortnight' : 'every week';
     const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
     if (lessonsPerWeek > 1) {
-      document.getElementById('subTotalAmt').textContent = '$' + (price * lessonsPerWeek) + ' ' + freqLabel + ' ($' + price + ' × ' + lessonsPerWeek + ' lessons, as ' + lessonsPerWeek + ' separate subscriptions)';
+      document.getElementById('subTotalAmt').textContent = '$' + (price * lessonsPerWeek) + ' ' + freqLabel + ' ($' + price + ' × ' + lessonsPerWeek + ' lessons, as ' + lessonsPerWeek + ' separate enrollments)';
     } else {
       document.getElementById('subTotalAmt').textContent = '$' + price + ' ' + freqLabel;
     }
@@ -2908,8 +3072,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
     const skillLevel = document.getElementById('subSkillLevel').value;
     const songRequests = document.getElementById('subSongRequests').value.trim();
-    const genreFocus = document.getElementById('subGenreFocus').value.trim();
-    const theoryInterest = document.getElementById('subTheoryInterest').checked ? 'Yes' : 'No';
+    const genreFocus = getMultiSelectValue('subGenreFocus');
+    const theoryInterest = document.getElementById('subTheoryInterest').value;
     const goalsNotes = document.getElementById('subGoalsNotes').value.trim();
     const errEl = document.getElementById('subError');
     errEl.style.display = 'none'; errEl.textContent = '';
@@ -2984,14 +3148,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         } else {
           errEl.style.display = 'block';
           errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
-          btn.textContent = 'Subscribe →'; btn.disabled = false;
+          btn.textContent = 'Enroll →'; btn.disabled = false;
           refreshSubscribeTimeOptions();
           refreshSubscribeDurationOptions();
         }
       } catch (e) {
         errEl.style.display = 'block';
         errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
-        btn.textContent = 'Subscribe →'; btn.disabled = false;
+        btn.textContent = 'Enroll →'; btn.disabled = false;
       }
       return false;
     }
@@ -3037,9 +3201,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           errEl.style.display = 'block';
           errEl.textContent = (index === 0 ? '' : (index) + ' of ' + queue.slots.length + ' lesson(s) already confirmed. ') +
             'Lesson ' + (index + 1) + ' (' + s.dayName + ' ' + s.time + ') could not be booked: ' + (result.error || 'that time is no longer available.') +
-            (index === 0 ? '' : ' The rest were not attempted - you can subscribe to a replacement time separately whenever you\'re ready.');
+            (index === 0 ? '' : ' The rest were not attempted - you can enroll for a replacement time separately whenever you\'re ready.');
         }
-        if (btn) { btn.textContent = 'Subscribe →'; btn.disabled = false; }
+        if (btn) { btn.textContent = 'Enroll →'; btn.disabled = false; }
       }
     } catch (e) {
       try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e2) {}
@@ -3047,7 +3211,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         errEl.style.display = 'block';
         errEl.textContent = 'Could not reach the server for lesson ' + (index + 1) + '. Please try again or contact James directly.';
       }
-      if (btn) { btn.textContent = 'Subscribe →'; btn.disabled = false; }
+      if (btn) { btn.textContent = 'Enroll →'; btn.disabled = false; }
     }
   }
 
@@ -3068,10 +3232,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         body: JSON.stringify({ action: 'lookup', email: email })
       });
       const result = await resp.json();
-      btn.textContent = 'Find My Subscription'; btn.disabled = false;
+      btn.textContent = 'Find My Enrollment'; btn.disabled = false;
       if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
       if (!result.subscriptions || result.subscriptions.length === 0) {
-        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No subscription found for that email.</p>';
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No enrollment found for that email.</p>';
         return;
       }
       result.subscriptions.forEach(sub => {
@@ -3150,7 +3314,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const cancelBtn = document.createElement('button');
           cancelBtn.className = 'btn-outline'; cancelBtn.type = 'button';
           cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
-          cancelBtn.textContent = 'Cancel subscription';
+          cancelBtn.textContent = 'Cancel enrollment';
           cancelBtn.onclick = () => confirmCancelSubscription(email, sub.subscriptionId, dayName + ' ' + sub.time);
           btnRow.appendChild(cancelBtn);
           row.appendChild(btnRow);
@@ -3158,7 +3322,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         resultsEl.appendChild(row);
       });
     } catch (e) {
-      btn.textContent = 'Find My Subscription'; btn.disabled = false;
+      btn.textContent = 'Find My Enrollment'; btn.disabled = false;
       errEl.textContent = 'Could not reach the server. Please try again.';
     }
   }
@@ -3178,7 +3342,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       if (result.success) {
         findMySubscriptions();
       } else {
-        errEl.textContent = result.error || 'Could not update your subscription. Please try again.';
+        errEl.textContent = result.error || 'Could not update your enrollment. Please try again.';
       }
     } catch (e) {
       errEl.textContent = 'Could not reach the server. Please try again.';
@@ -3190,7 +3354,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // confirmCancelBooking above.
   function confirmCancelSubscription(email, subscriptionId, label) {
     document.getElementById('manageSubError').textContent = '';
-    document.getElementById('cancelConfirmBody').textContent = 'Cancelling your ' + label + ' subscription keeps any lesson you\'ve already paid for, but stops future billing and frees the slot. Want to go ahead?';
+    document.getElementById('cancelConfirmBody').textContent = 'Cancelling your ' + label + ' enrollment keeps any lesson you\'ve already paid for, but stops future billing and frees the slot. Want to go ahead?';
     document.getElementById('cancelConfirmModal').classList.add('open');
     document.getElementById('cancelConfirmYesBtn').onclick = () => {
       closeCancelConfirmModal();

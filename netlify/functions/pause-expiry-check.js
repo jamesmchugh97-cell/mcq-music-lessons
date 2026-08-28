@@ -181,14 +181,14 @@ async function run() {
       if (record.studentEmail) {
         await sendEmail(
           record.studentEmail,
-          'MCQ Music Lessons: your subscription has resumed',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your ' + record.frequency + ' subscription has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
+          'MCQ Music Lessons: your enrollment has resumed',
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your ' + record.frequency + ' enrollment has resumed.' + (recomputedLessonDate ? ' Your next lesson is ' + formatFriendlyDate(recomputedLessonDate) + '.' : '') + ' Billing has resumed as normal.</p><p>You can pause again (if you still have weeks left this year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Enrollment</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
       }
       await sendEmail(
         JAMES_EMAIL,
-        'Subscription resumed: ' + record.studentName,
-        '<p>' + escapeHtml(record.studentName) + '\'s subscription has automatically resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '.</p>'
+        'Enrollment resumed: ' + record.studentName,
+        '<p>' + escapeHtml(record.studentName) + '\'s enrollment has automatically resumed' + (recomputedLessonDate ? ', next lesson ' + formatFriendlyDate(recomputedLessonDate) : '') + '.</p>'
       );
     }
   }

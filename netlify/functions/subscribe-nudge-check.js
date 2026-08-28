@@ -155,7 +155,7 @@ exports.handler = schedule('@daily', async (event) => {
         await sendEmail(record.email, 'MCQ Music Lessons: want a weekly slot?', html);
         await sendEmail(
           JAMES_EMAIL,
-          'Subscribe nudge sent: ' + studentName,
+          'Enroll nudge sent: ' + studentName,
           '<p>A "want a weekly slot?" nudge was just sent to <strong>' + escapeHtml(studentName) + '</strong> (' + escapeHtml(record.email) + ') after their lesson on ' + dateStr + ' at ' + record.time + '.</p>'
         );
       }

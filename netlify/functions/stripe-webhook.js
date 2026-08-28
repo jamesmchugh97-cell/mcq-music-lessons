@@ -238,7 +238,7 @@ exports.handler = async function (event) {
           } catch (cancelErr) {}
           await sendEmail(
             meta.studentEmail,
-            'MCQ Music Lessons: subscription could not be started',
+            'MCQ Music Lessons: enrollment could not be started',
             '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Sorry, that lesson slot was taken by another student in the moments before your payment went through. You have been fully refunded, no charge will appear on your account. Please head back to the booking page to choose a different time.</p><p>James</p>'
           );
           return { statusCode: 200, body: 'ok' };
@@ -291,17 +291,18 @@ exports.handler = async function (event) {
         const gcalLinkHtml = gcalLink ? '<p><a href="' + gcalLink + '">Add to Google Calendar</a> (repeats automatically)</p>' : '';
         await sendEmail(
           meta.studentEmail,
-          'MCQ Music Lessons: your ' + meta.frequency + ' subscription is confirmed',
-          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson subscription is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your subscription. For a longer break, you can pause (up to 8 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
+          'MCQ Music Lessons: your ' + meta.frequency + ' enrollment is confirmed',
+          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson enrollment is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your enrollment. For a longer break, you can pause (up to 8 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Enrollment</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
-          'New subscription: ' + meta.studentName,
-          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just subscribed: ' + displayInstrument + ', ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>' +
+          'New enrollment: ' + meta.studentName,
+          '<p>' + escapeHtml(meta.studentName) + ' (' + escapeHtml(meta.studentEmail) + ') just enrolled: ' + displayInstrument + ', ' + meta.frequency + ' ' + meta.durationMinutes + ' min, ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + '. Next lesson: ' + formatFriendlyDate(lessonDate) + '.</p>' +
           (meta.skillLevel ? '<p><strong>Skill level:</strong> ' + escapeHtml(meta.skillLevel) + '</p>' : '') +
           (meta.songRequests ? '<p><strong>Songs/artists:</strong> ' + escapeHtml(meta.songRequests) + '</p>' : '') +
           (meta.genreFocus ? '<p><strong>Genre focus:</strong> ' + escapeHtml(meta.genreFocus) + '</p>' : '') +
           (meta.theoryInterest === 'Yes' ? '<p>Wants music theory included</p>' : '') +
+          (meta.theoryInterest === 'Not sure' ? '<p>Not sure about music theory - worth asking</p>' : '') +
           (meta.goalsNotes ? '<p><strong>Notes:</strong> ' + escapeHtml(meta.goalsNotes) + '</p>' : '')
         );
       } else if (record) {
@@ -368,13 +369,13 @@ exports.handler = async function (event) {
 
           await sendEmail(
             record.studentEmail,
-            'MCQ Music Lessons: payment issue with your subscription',
-            '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>We could not process your latest subscription payment. Stripe will automatically retry over the next few days. Please make sure your card details are up to date. If this isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, your slot will be automatically released so it doesn\'t sit unused. You can check or update your subscription from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Subscription</a> page.</p><p>James</p>'
+            'MCQ Music Lessons: payment issue with your enrollment',
+            '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>We could not process your latest enrollment payment. Stripe will automatically retry over the next few days. Please make sure your card details are up to date. If this isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, your slot will be automatically released so it doesn\'t sit unused. You can check or update your enrollment from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Enrollment</a> page.</p><p>James</p>'
           );
           await sendEmail(
             JAMES_EMAIL,
             'Payment failed: ' + record.studentName,
-            '<p>' + escapeHtml(record.studentName) + '\'s subscription payment failed. Stripe will retry automatically. If it isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, their slot will be automatically released and you\'ll get a separate email confirming it.</p>'
+            '<p>' + escapeHtml(record.studentName) + '\'s enrollment payment failed. Stripe will retry automatically. If it isn\'t resolved within ' + PAYMENT_GRACE_PERIOD_DAYS + ' days, their slot will be automatically released and you\'ll get a separate email confirming it.</p>'
           );
         }
       }
@@ -409,13 +410,13 @@ exports.handler = async function (event) {
 
         await sendEmail(
           record.studentEmail,
-          'MCQ Music Lessons: subscription ended',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your weekly lesson subscription has now ended and your slot has been released. You are welcome to <a href="https://mcqmusiclessons.com.au/booking.html#calendar">subscribe again</a> any time.</p><p>James</p>'
+          'MCQ Music Lessons: enrollment ended',
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your weekly lesson enrollment has now ended and your slot has been released. You are welcome to <a href="https://mcqmusiclessons.com.au/booking.html#calendar">enroll again</a> any time.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
-          'Subscription ended: ' + record.studentName,
-          '<p>' + escapeHtml(record.studentName) + '\'s subscription has ended. Their slot (' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][parseInt(record.dayOfWeek,10)] + 's ' + record.time + ') is now free.</p>'
+          'Enrollment ended: ' + record.studentName,
+          '<p>' + escapeHtml(record.studentName) + '\'s enrollment has ended. Their slot (' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][parseInt(record.dayOfWeek,10)] + 's ' + record.time + ') is now free.</p>'
         );
       }
     }

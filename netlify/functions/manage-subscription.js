@@ -118,7 +118,7 @@ exports.handler = async function (event) {
     }
     const record = await getSubscriptionRecord(subscriptionId);
     if (!record || (record.studentEmail || '').trim().toLowerCase() !== email.trim().toLowerCase()) {
-      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Subscription not found for that email.' }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Enrollment not found for that email.' }) };
     }
 
     if (action === 'pause') {
@@ -127,7 +127,7 @@ exports.handler = async function (event) {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose between 1 and ' + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks.' }) };
       }
       if (record.status === 'paused') {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This subscription is already paused.' }) };
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'This enrollment is already paused.' }) };
       }
       // Acquired right before the cross-subscription read, held only
       // through the write just below - not through the slower Stripe
@@ -202,13 +202,13 @@ exports.handler = async function (event) {
       if (record.studentEmail) {
         await sendEmail(
           record.studentEmail,
-          'MCQ Music Lessons: your subscription is paused',
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription is paused' + (clearedLessonDate ? ', including your lesson on ' + formatFriendlyDate(clearedLessonDate) : '') + '. No charge while paused. It resumes automatically on ' + formatFriendlyDate(record.pausedUntil) + ', nothing further to do.</p><p>James</p>'
+          'MCQ Music Lessons: your enrollment is paused',
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your enrollment is paused' + (clearedLessonDate ? ', including your lesson on ' + formatFriendlyDate(clearedLessonDate) : '') + '. No charge while paused. It resumes automatically on ' + formatFriendlyDate(record.pausedUntil) + ', nothing further to do.</p><p>James</p>'
         );
       }
       await sendEmail(
         JAMES_EMAIL,
-        'Subscription paused: ' + record.studentName,
+        'Enrollment paused: ' + record.studentName,
         '<p>' + escapeHtml(record.studentName) + ' (' + escapeHtml(record.studentEmail) + ') has paused for ' + weeks + ' week(s), resuming ' + formatFriendlyDate(record.pausedUntil) + '.' + (clearedLessonDate ? ' Their lesson on ' + formatFriendlyDate(clearedLessonDate) + ' has been cleared from the calendar as part of this.' : '') + '</p>'
       );
 
@@ -228,7 +228,7 @@ exports.handler = async function (event) {
         return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That is already your current frequency.' }) };
       }
       if (record.status !== 'active') {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Only an active subscription can change frequency. Please wait until any pause has ended.' }) };
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Only an active enrollment can change frequency. Please wait until any pause has ended.' }) };
       }
       const priceId = PRICE_IDS[String(record.durationMinutes) + '_' + newFrequency];
       if (!priceId) {
@@ -259,8 +259,8 @@ exports.handler = async function (event) {
       if (record.studentEmail) {
         await sendEmail(
           record.studentEmail,
-          'MCQ Music Lessons: your subscription is now ' + newFrequency,
-          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your subscription has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
+          'MCQ Music Lessons: your enrollment is now ' + newFrequency,
+          '<p>Hi ' + escapeHtml(record.studentName) + ',</p><p>Your enrollment has switched from ' + oldFrequency + ' to ' + newFrequency + '.' + (record.nextLessonDate ? ' Your next lesson on ' + formatFriendlyDate(record.nextLessonDate) + ' is unaffected, the new frequency applies from the one after that.' : '') + '</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
       }
       await sendEmail(
@@ -276,7 +276,7 @@ exports.handler = async function (event) {
       await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
       record.cancelling = true;
       await saveSubscriptionRecord(subscriptionId, record);
-      return { statusCode: 200, body: JSON.stringify({ success: true, message: 'Your subscription will end after your next paid lesson. No further charges will be made.' }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, message: 'Your enrollment will end after your next paid lesson. No further charges will be made.' }) };
     }
 
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Unknown action.' }) };

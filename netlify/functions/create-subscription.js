@@ -26,7 +26,7 @@ function timeToMinutes(t) {
   return h * 60 + min;
 }
 
-const FRI_SAT_CLOSING_MINUTES = 16 * 60 + 30;
+const FRI_CLOSING_MINUTES = 16 * 60 + 30;
 const MON_THU_CLOSING_MINUTES = 21 * 60;
 
 // Checks business hours directly off the day-of-week integer (0=Sun,
@@ -42,8 +42,8 @@ const MON_THU_CLOSING_MINUTES = 21 * 60;
 // have been blocked. This version can't drift the same way since it
 // never touches a date at all.
 function isWithinBusinessHoursForDow(dow, startMinutes, endMinutes) {
-  if (dow === 5 || dow === 6) return endMinutes <= FRI_SAT_CLOSING_MINUTES;
-  if (dow === 0) return false; // Sunday closed
+  if (dow === 0 || dow === 6) return false; // Sunday and Saturday closed
+  if (dow === 5) return endMinutes <= FRI_CLOSING_MINUTES;
   return endMinutes <= MON_THU_CLOSING_MINUTES;
 }
 
@@ -98,7 +98,7 @@ exports.handler = async function (event) {
   const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes } = body;
 
   if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency || !skillLevel) {
-    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required subscription details.' }) };
+    return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required enrollment details.' }) };
   }
   if (frequency !== 'weekly' && frequency !== 'fortnightly') {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Frequency must be weekly or fortnightly.' }) };
@@ -121,7 +121,7 @@ exports.handler = async function (event) {
       const availableAgainStr = availableAgainDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
       return {
         statusCode: 200,
-        body: JSON.stringify({ success: false, error: "You've already used your " + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks of flexibility for this year. You\'re welcome to subscribe again from ' + availableAgainStr + ', or book lessons one at a time in the meantime.' })
+        body: JSON.stringify({ success: false, error: "You've already used your " + MAX_PAUSE_WEEKS_PER_YEAR + ' weeks of flexibility for this year. You\'re welcome to enroll again from ' + availableAgainStr + ', or book lessons one at a time in the meantime.' })
       };
     }
   }
@@ -163,9 +163,9 @@ exports.handler = async function (event) {
   });
   if (conflictingSub) {
     if (conflictingSub.status === 'paused') {
-      return { statusCode: 200, body: JSON.stringify({ success: false, error: "This time is free for single lessons right now, but it's reserved for a returning subscriber, so it's not available to subscribe to. You're welcome to book a one-off lesson there, or subscribe to a different time." }) };
+      return { statusCode: 200, body: JSON.stringify({ success: false, error: "This time is free for single lessons right now, but it's reserved for a returning student, so it's not available to enroll in. You're welcome to book a one-off lesson there, or enroll in a different time." }) };
     }
-    return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already taken by another subscriber. Please choose a different day or time.' }) };
+    return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already taken by another enrolled student. Please choose a different day or time.' }) };
   }
 
   // Also check upcoming one-off Blobs bookings on that weekday, however

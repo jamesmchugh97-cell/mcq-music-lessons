@@ -72,8 +72,9 @@ function formatFriendlyDate(dateStr) {
 }
 
 // The reschedule credit's window is Monday of the week the cancelled
-// lesson fell in, through to the Saturday of the FOLLOWING week (a full
-// fortnight), so a student who's genuinely unwell (a cold that runs past
+// lesson fell in, through to the Friday of the FOLLOWING week (a full
+// fortnight of open days, since James doesn't teach on Saturdays or
+// Sundays), so a student who's genuinely unwell (a cold that runs past
 // what's left of the current week, for example) still has a real chance
 // to use it, not just whatever days happen to be left in the current week.
 function mondayOfWeek(dateStr) {
@@ -87,7 +88,7 @@ function mondayOfWeek(dateStr) {
 function fortnightEnd(dateStr) {
   const mon = mondayOfWeek(dateStr);
   const d = new Date(mon + 'T00:00:00');
-  d.setDate(d.getDate() + 12); // Monday + 12 days = Saturday of the following week
+  d.setDate(d.getDate() + 11); // Monday + 11 days = Friday of the following week
   return formatDateKey(d);
 }
 
@@ -239,7 +240,7 @@ exports.handler = async function (event) {
       '<p>Your lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
-        ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Saturday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
+        ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Friday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
         : (alreadyRescheduledOnce
           ? "This lesson had already been rescheduled once, so it's not eligible for a further free reschedule. The full lesson fee applies and no rebooking is available."
           : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.")) + '</p>' +
@@ -263,7 +264,7 @@ exports.handler = async function (event) {
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible, alreadyRescheduledOnce: alreadyRescheduledOnce }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, eligible: eligible, alreadyRescheduledOnce: alreadyRescheduledOnce, rescheduleToken: rescheduleToken }) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }
