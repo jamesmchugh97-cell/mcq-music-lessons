@@ -394,7 +394,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Pick a start time, then a lesson length. Only lengths that actually fit at that time are offered.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Pick a start time, then a lesson length. Every option is listed, with anything that isn't free greyed out and labelled with why.</p>
       <div id="calPickerWrap">
         <div class="cal-picker-row">
           <div class="form-group" style="margin-bottom:0;">
@@ -1296,6 +1296,33 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return bestFit;
   }
 
+  // Why a given start time + length can't be booked, or null if it can.
+  // Mirrors getAvailableTimes exactly, but reports the reason instead of
+  // silently dropping the slot, so both dropdowns can show every option
+  // with the unavailable ones greyed out and labelled.
+  function slotUnavailableReason(dateStr, timeStr, durationMinutes) {
+    const dow = dayOfWeek(dateStr);
+    if (dow === 0 || dow === 6) return 'Closed';
+    const start = timeToMinutes(timeStr);
+    const end = start + durationMinutes;
+    if (!isWithinBusinessHours(dateStr, start, end)) return 'Past closing';
+    if (hoursUntilSlot(dateStr, timeStr) < MIN_NOTICE_HOURS) return 'Too soon';
+    const existing = (BOOKED[dateStr] || []).map(b => ({
+      start: timeToMinutes(b.time),
+      end: timeToMinutes(b.time) + (b.duration || 45)
+    }));
+    for (const ex of existing) {
+      if (start < ex.end && ex.start < end) return 'Booked';
+    }
+    for (const ex of existing) {
+      const gapBefore = start - ex.end;
+      const gapAfter = ex.start - end;
+      if (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) return 'Too close to a lesson';
+      if (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES) return 'Not enough room';
+    }
+    return null;
+  }
+
   // Returns, for a given date, a map of time -> array of EVERY duration
   // tier that fits there, shortest first. Deliberately a list rather
   // than just the longest: the 30 minute gap rule means the set isn't
@@ -1428,25 +1455,43 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     emptyMsg.style.display = 'none';
 
     timeSel.innerHTML = '';
-    availableTimes.forEach(t => {
+    ALL_TIMES.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t;
-      opt.textContent = t;
+      if (fits[t] && fits[t].length) {
+        opt.textContent = t;
+      } else {
+        // Nothing fits here at all. Report the reason the shortest
+        // lesson failed, since that's the most forgiving case.
+        const why = slotUnavailableReason(key, t, DURATION_TIERS[0].minutes) || 'Unavailable';
+        opt.textContent = t + '  ·  ' + why;
+        opt.disabled = true;
+      }
       timeSel.appendChild(opt);
     });
+    timeSel.value = availableTimes[0];
 
     // Rebuilds the length dropdown against whichever start time is
-    // selected, so it can never offer a length that wouldn't fit.
+    // selected. Every length is always listed so the choice is visible,
+    // but the ones that wouldn't fit are greyed out and say why.
     function refreshDurations() {
       const t = timeSel.value;
-      const tiers = fits[t] || [];
+      const okValues = (fits[t] || []).map(x => x.value);
       durSel.innerHTML = '';
-      tiers.forEach(tier => {
+      DURATION_TIERS.forEach(tier => {
         const opt = document.createElement('option');
         opt.value = tier.value;
-        opt.textContent = tier.minutes + ' minutes  ·  $' + tier.value.split('|')[1];
+        const label = tier.minutes + ' minutes  ·  $' + tier.value.split('|')[1];
+        if (okValues.indexOf(tier.value) !== -1) {
+          opt.textContent = label;
+        } else {
+          const why = slotUnavailableReason(key, t, tier.minutes) || 'Unavailable';
+          opt.textContent = label + '  ·  ' + why;
+          opt.disabled = true;
+        }
         durSel.appendChild(opt);
       });
+      if (okValues.length) durSel.value = okValues[0];
     }
     timeSel.onchange = refreshDurations;
     refreshDurations();
