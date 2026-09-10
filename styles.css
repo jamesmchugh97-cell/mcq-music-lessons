@@ -201,11 +201,11 @@
   .cal-detail-panel.show { display: block; }
   .cal-detail-heading { font-family: var(--font-display); font-size: 1.1rem; color: var(--white); margin-bottom: 0.75rem; }
   .time-slots-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cal-picker-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .cal-picker-row { grid-template-columns: 1fr; } }
   .time-slot-btn { padding: 0.4rem 0.85rem; border-radius: 4px; font-size: 0.75rem; border: 1px solid; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; }
   .time-slot-btn.free { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: #4ade80; }
   .time-slot-btn.free:hover { background: rgba(74,222,128,0.2); }
-  .time-slot-btn.limited { background: rgba(134,184,154,0.06); border-color: rgba(134,184,154,0.28); color: #86b89a; }
-  .time-slot-btn.limited:hover { background: rgba(134,184,154,0.16); }
   .time-slot-btn.taken { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.2); color: #f87171; cursor: not-allowed; }
   .reschedule-confirm-box { background: var(--navy-mid); border: 1px solid var(--navy-border); border-radius: 8px; padding: 1.1rem 1.2rem; }
   .reschedule-confirm-text { font-size: 0.92rem; color: var(--cream); margin-bottom: 0.9rem; line-height: 1.5; }

@@ -394,8 +394,21 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Bright green means any lesson length fits. Softer green means only the lengths shown will fit there. Pick one and the enroll form below is filled in for you.</p>
-      <div class="time-slots-grid" id="timeSlotsGrid"></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Pick a start time, then a lesson length. Only lengths that actually fit at that time are offered.</p>
+      <div id="calPickerWrap">
+        <div class="cal-picker-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="calPickTime">Start time</label>
+            <select class="form-input" id="calPickTime"></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="calPickDuration">Lesson length</label>
+            <select class="form-input" id="calPickDuration"></select>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="calPickGoBtn" style="margin-top:0.9rem;">Use this time</button>
+      </div>
+      <p id="calPickerEmpty" style="color:var(--muted);font-size:0.85rem;display:none;">No times available that day.</p>
     </div>
   </div>
 </section>
@@ -1300,16 +1313,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return fits;
   }
 
-  // Turns [30, 45, 60] into "30, 45 or 60 min" and [30] into "30 min".
-  function formatDurationList(tiers) {
-    const mins = tiers.map(x => x.minutes);
-    // Wide open slot: listing all five is noise, since on a quiet day
-    // that would be every chip on the row reading the same thing.
-    if (mins.length === DURATION_TIERS.length) return 'any length';
-    if (mins.length === 1) return mins[0] + ' min';
-    return mins.slice(0, -1).join(', ') + ' or ' + mins[mins.length - 1] + ' min';
-  }
-
   function renderCal() {
     document.getElementById('calMonthTitle').textContent = MONTHS[calMonth] + ' ' + calYear;
     const body = document.getElementById('calBody');
@@ -1408,35 +1411,58 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!currentDetailDay) return;
     const { key, d, dayTimes } = currentDetailDay;
     document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
-    const grid = document.getElementById('timeSlotsGrid');
-    grid.innerHTML = '';
+    const wrap = document.getElementById('calPickerWrap');
+    const emptyMsg = document.getElementById('calPickerEmpty');
+    const timeSel = document.getElementById('calPickTime');
+    const durSel = document.getElementById('calPickDuration');
+
     const fits = getFittingDurations(key);
     const availableTimes = dayTimes.filter(t => fits[t] && fits[t].length);
+
     if (availableTimes.length === 0) {
-      const msg = document.createElement('p');
-      msg.style.cssText = 'color:var(--muted);font-size:0.85rem;';
-      msg.textContent = 'No times available that day.';
-      grid.appendChild(msg);
+      wrap.style.display = 'none';
+      emptyMsg.style.display = 'block';
       return;
     }
+    wrap.style.display = 'block';
+    emptyMsg.style.display = 'none';
+
+    timeSel.innerHTML = '';
     availableTimes.forEach(t => {
-      const tier = fits[t][0]; // shortest that fits, used to preselect the enroll form
-      const wideOpen = fits[t].length === DURATION_TIERS.length;
-      const btn = document.createElement('button');
-      btn.className = 'time-slot-btn ' + (wideOpen ? 'free' : 'limited');
-      btn.textContent = t + '  ·  ' + formatDurationList(fits[t]);
-      btn.onclick = () => {
-        const dow = new Date(key + 'T00:00:00').getDay();
-        const subDaySelect = document.getElementById('subDay');
-        subDaySelect.value = dow;
-        handleSubscribeDayChange();
-        document.getElementById('subDuration').value = tier.value; // the actual duration proven to fit this exact time
-        document.getElementById('subscribe').scrollIntoView({behavior:'smooth'});
-        document.getElementById('subTime').value = t;
-        handleSubscribeDurationChange();
-      };
-      grid.appendChild(btn);
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      timeSel.appendChild(opt);
     });
+
+    // Rebuilds the length dropdown against whichever start time is
+    // selected, so it can never offer a length that wouldn't fit.
+    function refreshDurations() {
+      const t = timeSel.value;
+      const tiers = fits[t] || [];
+      durSel.innerHTML = '';
+      tiers.forEach(tier => {
+        const opt = document.createElement('option');
+        opt.value = tier.value;
+        opt.textContent = tier.minutes + ' minutes  ·  $' + tier.value.split('|')[1];
+        durSel.appendChild(opt);
+      });
+    }
+    timeSel.onchange = refreshDurations;
+    refreshDurations();
+
+    document.getElementById('calPickGoBtn').onclick = () => {
+      const t = timeSel.value;
+      const durValue = durSel.value;
+      if (!t || !durValue) return;
+      const dow = new Date(key + 'T00:00:00').getDay();
+      document.getElementById('subDay').value = dow;
+      handleSubscribeDayChange();
+      document.getElementById('subDuration').value = durValue;
+      document.getElementById('subscribe').scrollIntoView({behavior:'smooth'});
+      document.getElementById('subTime').value = t;
+      handleSubscribeDurationChange();
+    };
   }
 
   function changeMonth(dir) {
