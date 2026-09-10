@@ -394,7 +394,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Each time shows the lesson lengths that actually fit in that spot. Pick one and the enroll form below is filled in for you.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Bright green means any lesson length fits. Softer green means only the lengths shown will fit there. Pick one and the enroll form below is filled in for you.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -1421,8 +1421,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
     availableTimes.forEach(t => {
       const tier = fits[t][0]; // shortest that fits, used to preselect the enroll form
+      const wideOpen = fits[t].length === DURATION_TIERS.length;
       const btn = document.createElement('button');
-      btn.className = 'time-slot-btn free';
+      btn.className = 'time-slot-btn ' + (wideOpen ? 'free' : 'limited');
       btn.textContent = t + '  ·  ' + formatDurationList(fits[t]);
       btn.onclick = () => {
         const dow = new Date(key + 'T00:00:00').getDay();
