@@ -1,0 +1,3466 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Lesson · MCQ Music Lessons</title>
+<meta name="description" content="Book your guitar or piano lesson online at MCQ Music Lessons. Check live availability, book instantly, or manage an existing booking.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MCQ Music Lessons">
+<meta property="og:url" content="https://mcqmusiclessons.com.au/booking.html">
+<meta property="og:title" content="Book a Lesson · MCQ Music Lessons">
+<meta property="og:description" content="Book your guitar or piano lesson online at MCQ Music Lessons. Check live availability, book instantly, or manage an existing booking.">
+<meta property="og:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Book a Lesson · MCQ Music Lessons">
+<meta name="twitter:description" content="Book your guitar or piano lesson online at MCQ Music Lessons. Check live availability, book instantly, or manage an existing booking.">
+<meta name="twitter:image" content="https://mcqmusiclessons.com.au/james-mchugh.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://js.stripe.com/v3/"></script><!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '551157863990443');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="nav-logo-icon">♩</span>
+    <span class="nav-logo-text">MCQ <span>Music</span></span>
+  </a>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1.8rem;">
+    <ul class="nav-links">
+      <li><a href="programs.html">Programs</a></li>
+      <li><a href="pricing.html#reviews">Reviews</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html#pricing">Pricing</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="booking.html#manage">Manage Booking</a></li>
+      <li><a href="booking.html#calendar" class="nav-cta">Enroll</a></li>
+    </ul>
+    <div class="nav-social">
+      <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+      </a>
+    </div>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="programs.html" onclick="toggleMenu()">Programs</a>
+  <a href="pricing.html#reviews" onclick="toggleMenu()">Reviews</a>
+  <a href="about.html" onclick="toggleMenu()">About</a>
+  <a href="pricing.html#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="faq.html" onclick="toggleMenu()">FAQ</a>
+  <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
+  <a href="booking.html#calendar" onclick="toggleMenu()">Enroll</a>
+  <div class="mobile-social">
+    <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+    </a>
+  </div>
+</div>
+
+<section id="reschedulePanel" class="reschedule-section" style="display:none;">
+  <div class="section-inner">
+    <div class="reschedule-card">
+      <p id="rescheduleError" style="display:none;color:#f87171;font-size:0.9rem;line-height:1.6;"></p>
+      <div id="rescheduleContent">
+        <div class="reschedule-badge"><span>&#10003;</span> No charge, rescheduling your existing lesson</div>
+        <h2 class="section-title">Hi <span id="rescheduleName">there</span>, pick a new time</h2>
+        <p id="rescheduleOriginalLesson" style="color:var(--muted);font-size:0.85rem;margin:-0.6rem 0 0.8rem;display:none;"></p>
+        <p class="section-sub" id="rescheduleSub">Choose any available time between <strong id="rescheduleWeekRange"></strong>. This moves the lesson you already paid for. No card, no payment, nothing to fill in.</p>
+        <div id="rescheduleDaysWrap"></div>
+        <div id="rescheduleTimesWrap" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" id="rescheduleDivider" style="display:none;"></div>
+
+<section id="trial">
+  <div class="section-inner">
+    <p class="section-eyebrow">Trial Lesson</p>
+    <h2 class="section-title">Try a <em>trial lesson</em></h2>
+    <p class="section-sub">New here? Book a single lesson to see if it's the right fit, no ongoing commitment. If you'd like to continue afterwards, you can enroll for the same time every week or fortnight.</p>
+    <form class="booking-form" id="trialForm" onsubmit="return handleTrialBooking(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="trialName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="trialEmail" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="trialPhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectTrialInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectTrialInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="trialGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectTrialGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectTrialGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectTrialGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="trialSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-input" type="date" id="trialDate" onchange="handleTrialDateChange()" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <select class="form-input" id="trialTime" onchange="handleTrialTimeChange()" required></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lesson Duration</label>
+        <select class="form-input" id="trialDuration" onchange="handleTrialDurationChange()">
+          <option value="30|50">30 minutes · $50</option>
+          <option value="45|70" selected>45 minutes · $70</option>
+          <option value="60|85">60 minutes · $85</option>
+          <option value="75|100">75 minutes · $100</option>
+          <option value="90|120">90 minutes · $120</option>
+        </select>
+      </div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="trialSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="trialGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="trialTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="trialTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="trialGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
+      <div class="form-group">
+        <label class="form-label">Card details</label>
+        <div id="trial-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
+      </div>
+      <p id="trialError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Total</span><span id="trialTotalAmt">$70</span></div>
+      </div>
+      <button class="btn-primary" id="trialSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Book Trial Lesson →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe. Loved it? You can enroll for an ongoing slot any time afterwards.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="package">
+  <div class="section-inner">
+    <p class="section-eyebrow">Lesson Package</p>
+    <h2 class="section-title">Buy a <em>lesson package</em></h2>
+    <p class="section-sub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
+    <form class="booking-form" id="packageForm" onsubmit="return handlePackageBooking(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="packageName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="packageEmail" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="packagePhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectPackageInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectPackageInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="packageGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectPackageGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectPackageGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectPackageGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="packageSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Package Size</label>
+          <select class="form-input" id="packageSize" onchange="handlePackageSizeChange()">
+            <option value="5">5 lessons</option>
+            <option value="10">10 lessons</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lesson Duration</label>
+          <select class="form-input" id="packageDuration" onchange="handlePackageDurationChange()">
+            <option value="30|50">30 minutes · $50</option>
+            <option value="45|70" selected>45 minutes · $70</option>
+            <option value="60|85">60 minutes · $85</option>
+            <option value="75|100">75 minutes · $100</option>
+            <option value="90|120">90 minutes · $120</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.6rem;">Pick a date and time for each lesson below. Every date must be within the next 3 months.</p>
+      <div id="packageDateRows"></div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="packageSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="packageGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="packageTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="packageTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="packageGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
+      <div class="form-group">
+        <label class="form-label">Card details</label>
+        <div id="package-stripe-card-element" style="padding:0.9rem;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:rgba(255,255,255,0.03);"></div>
+      </div>
+      <p id="packageError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Total</span><span id="packageTotalAmt">$350</span></div>
+      </div>
+      <button class="btn-primary" id="packageSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Buy Package →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Secure payment via Stripe, charged once for the full package. Need to reschedule an individual lesson later? That still works the normal way.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="calendar" class="calendar-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">Availability</p>
+    <h2 class="section-title">Check <em>Availability</em></h2>
+    <p class="section-sub">Green = available. Red = booked. Click any date to see individual time slots and book directly.</p>
+
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+        <div class="cal-month-title" id="calMonthTitle"></div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+      <div class="cal-day-labels">
+        <div class="cal-day-label">Mon</div>
+        <div class="cal-day-label">Tue</div>
+        <div class="cal-day-label">Wed</div>
+        <div class="cal-day-label">Thu</div>
+        <div class="cal-day-label">Fri</div>
+        <div class="cal-day-label">Sat</div>
+        <div class="cal-day-label">Sun</div>
+      </div>
+      <div class="cal-body" id="calBody"></div>
+      <div class="cal-legend">
+        <div class="legend-item"><div class="legend-swatch avail"></div> Available slots</div>
+        <div class="legend-item"><div class="legend-swatch booked"></div> Booked</div>
+        <div class="legend-item"><div class="legend-swatch empty-s"></div> Unavailable</div>
+      </div>
+    </div>
+
+    <div class="cal-detail-panel" id="calDetailPanel">
+      <div class="cal-detail-heading" id="calDetailHeading"></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Pick a start time, then a lesson length. Every option is listed, with anything that isn't free greyed out and labelled with why.</p>
+      <div id="calPickerWrap">
+        <div class="cal-picker-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="calPickTime">Start time</label>
+            <select class="form-input" id="calPickTime"></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="calPickDuration">Lesson length</label>
+            <select class="form-input" id="calPickDuration"></select>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="calPickGoBtn" style="margin-top:0.9rem;">Use this time</button>
+      </div>
+      <p id="calPickerEmpty" style="color:var(--muted);font-size:0.85rem;display:none;">No times available that day.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="subscribe">
+  <div class="section-inner">
+    <p class="section-eyebrow">Weekly Enrollment</p>
+    <h2 class="section-title">Reserve your <em>own time slot</em></h2>
+    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 8 weeks a year, cancel any time, all fully self-service below.</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">Prefer to try it out before committing? A <a href="#trial" style="color:var(--gold);">trial lesson</a> is a completely optional way to do that, entirely up to you either way.</p>
+
+    <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" id="subName" placeholder="Your full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="subEmail" placeholder="your@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input class="form-input" type="tel" id="subPhone" placeholder="04xx xxx xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="instrument-btn active" onclick="selectSubscribeInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+          <button class="instrument-btn" onclick="selectSubscribeInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+        </div>
+      </div>
+      <div class="form-group" id="subGuitarTypeGroup">
+        <label class="form-label">Guitar type</label>
+        <div class="instrument-grid" style="grid-template-columns:repeat(3,1fr);">
+          <button class="instrument-btn active" onclick="selectSubGuitarType(this,'Acoustic')" type="button">Acoustic</button>
+          <button class="instrument-btn" onclick="selectSubGuitarType(this,'Electric')" type="button">Electric</button>
+          <button class="instrument-btn" onclick="selectSubGuitarType(this,'Either')" type="button">Either / Both</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" id="subSkillLevel" required>
+          <option value="">Select your level</option>
+          <option value="Complete Beginner">Complete beginner (never played)</option>
+          <option value="Beginner">Beginner (some experience)</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lessons per week</label>
+        <select class="form-input" id="subLessonsPerWeek" onchange="handleSubLessonsPerWeekChange()">
+          <option value="1" selected>1 (a single recurring slot)</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Day of the week</label>
+          <select class="form-input" id="subDay" onchange="handleSubscribeDayChange()">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <select class="form-input" id="subTime" onchange="handleSubscribeTimeChange()">
+            <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
+            <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
+            <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
+            <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
+            <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
+            <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
+            <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
+            <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
+            <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
+            <option>9:00 pm</option>
+          </select>
+        </div>
+      </div>
+      <div id="subExtraSlotsGroup" style="display:none;">
+        <p style="font-size:0.72rem;color:var(--muted);margin:-0.3rem 0 0.6rem;">Choose a day and time for each additional lesson. These become their own separate weekly enrollments, billed and managed independently, so you're never locked into all of them together.</p>
+        <div id="subExtraSlotsContainer"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lesson Duration</label>
+          <select class="form-input" id="subDuration" onchange="handleSubscribeDurationChange()">
+            <option value="30|50">30 minutes · $50</option>
+            <option value="45|70" selected>45 minutes · $70</option>
+            <option value="60|85">60 minutes · $85</option>
+            <option value="75|100">75 minutes · $100</option>
+            <option value="90|120">90 minutes · $120</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frequency</label>
+          <select class="form-input" id="subFrequency" onchange="updateSubscribeTotal();updateLessonsPerWeekLabel();">
+            <option value="weekly">Every week</option>
+            <option value="fortnightly">Every fortnight</option>
+          </select>
+        </div>
+      </div>
+      <details class="optional-details">
+        <summary>+ Add song requests, genre, or notes (optional)</summary>
+        <div class="optional-details-body">
+          <div class="form-group">
+            <label class="form-label">Songs you'd like to learn (optional)</label>
+            <input class="form-input" type="text" id="subSongRequests" placeholder="e.g. Wonderwall, Hotel California" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genres you're interested in (optional)</label>
+            <select class="form-input" id="subGenreFocus" multiple size="6">
+              <option value="Rock">Rock</option>
+              <option value="Pop">Pop</option>
+              <option value="Folk">Folk</option>
+              <option value="Country">Country</option>
+              <option value="Blues">Blues</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Classical">Classical</option>
+              <option value="Singer-Songwriter">Singer-Songwriter</option>
+              <option value="Indie/Alternative">Indie / Alternative</option>
+              <option value="Metal">Metal</option>
+              <option value="Punk">Punk</option>
+              <option value="R&B/Soul">R&amp;B / Soul</option>
+              <option value="Funk">Funk</option>
+              <option value="Reggae">Reggae</option>
+              <option value="Hip Hop">Hip Hop</option>
+              <option value="Musical Theatre">Musical Theatre</option>
+              <option value="Not sure yet">Not sure yet / open to anything</option>
+            </select>
+            <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Hold Ctrl (Cmd on Mac) to pick more than one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subTheoryInterest">Interested in music theory?</label>
+            <select class="form-input" id="subTheoryInterest">
+              <option value="Not sure" selected>Not sure</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anything else James should know? (optional)</label>
+            <textarea class="form-input" id="subGoalsNotes" rows="2" maxlength="450"></textarea>
+          </div>
+        </div>
+      </details>
+      <div class="subtotal-box">
+        <div class="subtotal-total"><span>Billed</span><span id="subTotalAmt">$70 every week</span></div>
+      </div>
+      <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
+      <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Enroll →</button>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing enrollment? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+    </form>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="manage-subscription">
+  <div class="section-inner">
+    <p class="section-eyebrow">Manage Enrollment</p>
+    <h2 class="section-title">Already <em>enrolled?</em></h2>
+    <p class="section-sub">Enter the email you enrolled with to pause, reschedule an individual lesson, or cancel, all yourself, no need to message James. A pause always resumes automatically on its own, nothing to click.</p>
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Your Email</label>
+        <input class="form-input" type="email" id="manageSubEmail" placeholder="your@email.com">
+      </div>
+      <button class="btn-outline" id="findSubBtn" onclick="findMySubscriptions()" type="button" style="width:100%;text-align:center;">Find My Enrollment</button>
+      <p id="manageSubError" style="color:#f87171;font-size:0.8rem;margin-top:0.6rem;min-height:1.2em;"></p>
+      <div id="manageSubResults" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="group">
+  <div class="section-inner">
+    <p class="section-eyebrow">Group Classes</p>
+    <h2 class="section-title">Learn <em>Together</em></h2>
+    <p class="section-sub">A social way to learn music alongside others.</p>
+    <div class="group-card">
+      <div class="group-header"><div class="group-name">Group Classes</div><div class="program-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M14.8 12.2c2.6 .2 4.7 2.1 4.7 4.8"/></svg></div></div>
+      <div class="group-tagline">Learn together, grow together</div>
+      <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
+      <div class="group-desc">Register your interest below to learn alongside another student. Once two people select the same instrument and time slot, the class is confirmed. A great, low-cost way to learn.</div>
+      <div class="group-details">
+        <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 or 60 Minutes</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$45 or $55 per person</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Instruments</div><div class="group-detail-value">Guitar & Piano</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Minimum</div><div class="group-detail-value">2 people, same slot</div></div>
+      </div>
+      <form id="groupClassForm" onsubmit="return handleGroupClassRegistration(event)" style="margin-top:1.2rem;border-top:1px solid var(--navy-border);padding-top:1.2rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" id="groupName" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="groupEmail" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone (optional)</label>
+            <input class="form-input" type="tel" id="groupPhone" placeholder="04xx xxx xxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preferred Date</label>
+            <input class="form-input" type="date" id="groupDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instrument</label>
+          <div class="instrument-grid" style="grid-template-columns:repeat(2,1fr);">
+            <button class="instrument-btn active" onclick="selectGroupInstrument(this,'Guitar')" type="button"><span class="inst-icon"><svg viewBox="4 1.5 16 20" width="20" height="20" fill="currentColor"><path d="M19.59,3H22V5H20.41L16.17,9.24C15.8,8.68 15.32,8.2 14.76,7.83L19.59,3M12,8A4,4 0 0,1 16,12C16,13.82 14.77,15.42 13,15.87V16A5,5 0 0,1 8,21A5,5 0 0,1 3,16A5,5 0 0,1 8,11H8.13C8.58,9.24 10.17,8 12,8M12,10.5A1.5,1.5 0 0,0 10.5,12A1.5,1.5 0 0,0 12,13.5A1.5,1.5 0 0,0 13.5,12A1.5,1.5 0 0,0 12,10.5M6.94,14.24L6.23,14.94L9.06,17.77L9.77,17.06L6.94,14.24Z"/></svg></span>Guitar</button>
+            <button class="instrument-btn" onclick="selectGroupInstrument(this,'Piano')" type="button"><span class="inst-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/></svg></span>Piano</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration</label>
+          <select class="form-input" id="groupDuration">
+            <option value="45|45" selected>45 minutes · $45 per person</option>
+            <option value="60|55">60 minutes · $55 per person</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time</label>
+          <select class="form-input" id="groupTime">
+            <option>12:00 pm</option><option>12:15 pm</option><option>12:30 pm</option><option>12:45 pm</option>
+            <option>1:00 pm</option><option>1:15 pm</option><option>1:30 pm</option><option>1:45 pm</option>
+            <option>2:00 pm</option><option>2:15 pm</option><option>2:30 pm</option><option>2:45 pm</option>
+            <option>3:00 pm</option><option>3:15 pm</option><option>3:30 pm</option><option>3:45 pm</option>
+            <option>4:00 pm</option><option>4:15 pm</option><option>4:30 pm</option><option>4:45 pm</option>
+            <option>5:00 pm</option><option>5:15 pm</option><option>5:30 pm</option><option>5:45 pm</option>
+            <option>6:00 pm</option><option>6:15 pm</option><option>6:30 pm</option><option>6:45 pm</option>
+            <option>7:00 pm</option><option>7:15 pm</option><option>7:30 pm</option><option>7:45 pm</option>
+            <option>8:00 pm</option><option>8:15 pm</option><option>8:30 pm</option><option>8:45 pm</option>
+            <option>9:00 pm</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);cursor:pointer;">
+            <input type="checkbox" id="groupOngoingInterest" style="width:auto;">
+            I'd be interested in this becoming an ongoing weekly or fortnightly class, if it works out
+          </label>
+        </div>
+        <button class="btn-primary" id="groupSubmitBtn" type="submit" style="width:100%;text-align:center;">Register Interest →</button>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Your time is held pending. You're only charged once a second person books the same instrument, time, and duration.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="manage">
+  <div class="section-inner">
+    <p class="section-eyebrow">Manage Booking</p>
+    <h2 class="section-title">Need to <em>reschedule or cancel?</em></h2>
+    <p class="section-sub">Enter the email you booked with to find your upcoming lessons, reschedule, or cancel, all yourself, no need to message James.</p>
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Your Email</label>
+        <input class="form-input" type="email" id="manageEmail" placeholder="your@email.com">
+      </div>
+      <button class="btn-outline" id="findBookingsBtn" onclick="findMyBookings()" type="button" style="width:100%;text-align:center;">Find My Lessons</button>
+      <p id="manageError" style="color:#f87171;font-size:0.8rem;margin-top:0.6rem;min-height:1.2em;"></p>
+      <div id="manageResults" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="booking-policy"><div class="section-inner" style="padding-top:0;">
+<div class="policy-box" style="margin-bottom:1.2rem;">
+      <div class="policy-title">Not sure yet?</div>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;">If nothing on the calendar suits you right now, register your interest and James will reach out when a spot opens up.</p>
+      <form id="interestForm" onsubmit="return handleInterest(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" id="interestName" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="interestEmail" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">What are you interested in? (optional)</label>
+          <input class="form-input" type="text" id="interestNote" placeholder="e.g. Guitar lessons, weekday evenings">
+        </div>
+        <button class="btn-outline" id="interestSubmitBtn" type="submit" style="width:100%;text-align:center;">Register Interest</button>
+      </form>
+    </div>
+
+    <div class="policy-box">
+      <div class="policy-title">Cancellation Policy</div>
+      <div class="policy-row"><strong>24+ hours notice</strong>Rebook a new time yourself within the next 2 weeks (Mon to Fri). If you don't, it's not refunded</div>
+      <div class="policy-row"><strong>Under 24 hours</strong>Full lesson fee applies, no makeup available</div>
+    </div>
+</div></section>
+
+<div class="divider"></div>
+
+<section id="contact">
+  <div class="section-inner">
+    <p class="section-eyebrow">Contact</p>
+    <h2 class="section-title">Get in <em>touch.</em></h2>
+    <div class="contact-grid">
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4.5c1.6 0 3 1 3.4 2.5l.5 1.8c.2.7 0 1.5-.6 2l-1 .9c1 2.4 2.9 4.3 5.3 5.3l.9-1c.5-.6 1.3-.8 2-.6l1.8.5c1.5.4 2.5 1.8 2.5 3.4v.9c0 1.2-1 2.1-2.2 2C9.9 21.1 2.9 14.1 2 6.4c-.1-1.2.8-2.2 2-2.2h1z"/></svg></span><div><div class="contact-label">Phone</div><div class="contact-value"><a href="tel:0499232898">0499 232 898</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></span><div><div class="contact-label">Email</div><div class="contact-value"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.5 7-11.5a7 7 0 1 0-14 0C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/></svg></span><div><div class="contact-label">Location</div><div class="contact-value">South Melbourne, VIC</div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><div class="contact-label">Hours</div><div class="contact-value">Mon to Thu 12pm to 9pm, Fri 12pm to 4:30pm</div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span><div><div class="contact-label">Instagram</div><div class="contact-value"><a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg></span><div><div class="contact-label">Facebook</div><div class="contact-value"><a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">MCQ Music</a></div></div></div>
+      <div class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span><div><div class="contact-label">Music Links</div><div class="contact-value"><a href="https://linktr.ee/jamesmcq" target="_blank">linktr.ee/jamesmcq</a></div></div></div>
+    </div>
+
+      </div>
+</section>
+
+<footer>
+  <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="privacy.html">Privacy Policy</a></p>
+</footer>
+
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div class="modal-icon">✓</div>
+    <div class="modal-title" id="modalTitle">Booking Confirmed!</div>
+    <div class="modal-body" id="modalBody"></div>
+    <button class="modal-close" onclick="closeModal()">Done</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cancelConfirmModal">
+  <div class="modal">
+    <div class="modal-title" id="cancelConfirmTitle">Cancel this lesson?</div>
+    <div class="modal-body" id="cancelConfirmBody"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
+      <button class="modal-close" id="cancelConfirmYesBtn" style="background:#f87171;color:#1a1a1a;">Yes, cancel it</button>
+      <button class="btn-outline" id="cancelConfirmNoBtn" type="button">Keep my lesson</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  function toggleFaq(btn) { btn.parentElement.classList.toggle('open'); }
+  function closeModal() {
+    document.getElementById('successModal').classList.remove('open');
+    const doneBtn = document.querySelector('#successModal .modal-close');
+    if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.onclick = function () { closeModal(); }; }
+  }
+
+  // INSTRUMENT
+  let selectedInstrument = 'Guitar';
+  let selectedGuitarType = 'Acoustic';
+  function selectInstrument(btn, name) {
+    const grid = btn.closest('.instrument-grid');
+    grid.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedInstrument = name;
+    document.getElementById('hiddenInstrument').value = name;
+    const guitarGroup = document.getElementById('guitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+    updateTotal();
+  }
+  function selectGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGuitarType = type;
+  }
+
+  // Used by the "Book 5 lessons" / "Book 10 lessons" shortcut buttons so
+  // they actually set the count, not just scroll to the form.
+  function presetLessonCount(n) {
+    document.getElementById('bookLessons').value = n;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const price = parseInt(document.getElementById('bookDuration').value.split('|')[1]);
+    let lessons = parseInt(document.getElementById('bookLessons').value);
+    if (!lessons || lessons < 1) lessons = 1;
+    document.getElementById('extraDatesGroup').style.display = lessons > 1 ? 'block' : 'none';
+    document.getElementById('largeBookingNote').style.display = lessons >= 20 ? 'block' : 'none';
+    updateBookingPatternGuidance(lessons);
+    renderExtraDateRows(lessons);
+    refreshTimeOptions();
+    updateDurationAvailability();
+    document.getElementById('subtotalAmt').textContent = '$' + price;
+    document.getElementById('totalAmt').textContent = '$' + (price * lessons);
+    if (lessons > 1) {
+      document.getElementById('lessonsRow').style.display = 'flex';
+      document.getElementById('lessonsLabel').textContent = lessons + ' lessons × $' + price;
+      document.getElementById('lessonsAmt').textContent = '$' + (price * lessons);
+    } else {
+      document.getElementById('lessonsRow').style.display = 'none';
+    }
+  }
+
+  // Keeps the "how would you like to book these" options honest against
+  // the same rule reserve-multi-slots.js enforces server-side: a
+  // fortnightly series reaching past 30 days out is capped at 5 lessons.
+  // If the lesson count grows past 5 while fortnightly is selected, it's
+  // switched to weekly automatically (with a note explaining why) rather
+  // than letting the student fill in 10 fortnightly dates only to have
+  // it rejected at the very end. Also surfaces a short reminder for
+  // custom mode, since that's the option most likely to drift into the
+  // sporadic pattern the rule exists to prevent.
+  // Everything must now fit within the 30-day booking window, full
+  // stop - there's no longer a "beyond 30 days, use a consistent
+  // pattern instead" middle ground the way there was when the site
+  // allowed booking up to a year ahead. A weekly pattern can fit at
+  // most 5 lessons within 30 days (days 0, 7, 14, 21, 28), fortnightly
+  // at most 3 (days 0, 14, 28) - both far below the old 5-lesson
+  // fortnightly cap, since that only ever applied beyond 30 days, which
+  // no longer exists as an option at all.
+  function updateBookingPatternGuidance(lessons) {
+    const modeSelect = document.getElementById('bookingMode');
+    const fortnightlyOption = document.getElementById('fortnightlyOption');
+    const note = document.getElementById('bookingPatternNote');
+    if (!modeSelect || !fortnightlyOption || !note) return;
+    const MAX_WEEKLY_IN_WINDOW = 5;
+    const MAX_FORTNIGHTLY_IN_WINDOW = 3;
+    const tooManyForFortnightly = lessons > MAX_FORTNIGHTLY_IN_WINDOW;
+    fortnightlyOption.disabled = tooManyForFortnightly;
+    let switched = false;
+    if (tooManyForFortnightly && modeSelect.value === 'fortnightly') {
+      modeSelect.value = 'weekly';
+      switched = true;
+    }
+    if (switched) {
+      note.style.display = 'block';
+      note.textContent = 'Switched to weekly - fortnightly can only fit ' + MAX_FORTNIGHTLY_IN_WINDOW + ' lessons within the 30-day booking window. For an ongoing fortnightly slot, enroll instead.';
+    } else if (modeSelect.value === 'weekly' && lessons > MAX_WEEKLY_IN_WINDOW) {
+      note.style.display = 'block';
+      note.textContent = 'Only the first ' + MAX_WEEKLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below for you to fill in once that time comes closer, or enroll for an ongoing weekly slot instead.';
+    } else if (modeSelect.value === 'fortnightly' && lessons > MAX_FORTNIGHTLY_IN_WINDOW) {
+      note.style.display = 'block';
+      note.textContent = 'Only the first ' + MAX_FORTNIGHTLY_IN_WINDOW + ' of your ' + lessons + ' requested lessons fit within the 30-day booking window - the rest are left blank below, or enroll for an ongoing fortnightly slot instead.';
+    } else if (modeSelect.value === 'custom') {
+      note.style.display = 'block';
+      note.textContent = 'Every date must fall within the next 30 days.';
+    } else {
+      note.style.display = 'none';
+    }
+  }
+
+  // Returns the furthest date anyone can book, 30 days from today.
+  function getMaxBookingDate() {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() + 30);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  // Separate from getMaxBookingDate above - packages are specifically
+  // sold on a 3-month window, not the 30-day one everything else uses.
+  function getMaxPackageBookingDate() {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() + 90);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function daysBetweenDates(dateStr1, dateStr2) {
+    const d1 = new Date(dateStr1 + 'T00:00:00');
+    const d2 = new Date(dateStr2 + 'T00:00:00');
+    return Math.round((d2 - d1) / 86400000);
+  }
+
+  // Mirrors the authoritative server-side check in reserve-multi-slots.js
+  // exactly, so a student gets an instant answer here rather than
+  // filling in the whole form and only finding out at the very end. The
+  // server re-checks this regardless, this is purely for a faster,
+  // friendlier response, never the actual enforcement.
+  //
+  // Written when the site allowed booking up to a year ahead - the
+  // "farthestDaysOut <= 30 return null" line just below means this
+  // function's own body can now never actually run, since nothing can
+  // reach past 30 days at all anymore (see getMaxBookingDate). Left in
+  // place rather than deleted, in case the window is ever widened
+  // again later, matching the same choice made server-side.
+  //
+  // Checked PER WEEKDAY rather than across the whole date list at once,
+  // since the site explicitly offers "twice a week" bookings (see
+  // pricing.html/faq.html) - checked as one combined sequence, two
+  // legitimate weekly patterns on different days would interleave into
+  // uneven gaps and be wrongly rejected.
+  function validateBookingPattern(allSlots) {
+    if (allSlots.length <= 1) return null;
+    const todayStr = dKey(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    const farthestDaysOut = Math.max.apply(null, allSlots.map(s => daysBetweenDates(todayStr, s.date)));
+    if (farthestDaysOut <= 30) return null;
+    const byWeekday = {};
+    allSlots.forEach(s => {
+      const dw = dayOfWeek(s.date);
+      if (!byWeekday[dw]) byWeekday[dw] = [];
+      byWeekday[dw].push(s.date);
+    });
+    for (const dw in byWeekday) {
+      const datesOnThisDay = byWeekday[dw].slice().sort();
+      if (datesOnThisDay.length === 1) continue;
+      const gaps = [];
+      for (let i = 1; i < datesOnThisDay.length; i++) {
+        gaps.push(daysBetweenDates(datesOnThisDay[i - 1], datesOnThisDay[i]));
+      }
+      const isWeeklySeries = gaps.every(g => g === 7);
+      const isFortnightlySeries = gaps.every(g => g === 14);
+      if (!isWeeklySeries && !isFortnightlySeries) {
+        return 'Bookings reaching more than 30 days out need an evenly-spaced weekly or fortnightly pattern on each day you choose, not individually scattered dates. Please keep everything within the next 30 days, pick a consistent pattern, or set up an ongoing enrollment from the Enroll section instead.';
+      }
+      if (isFortnightlySeries && datesOnThisDay.length > 5) {
+        return 'Fortnightly bookings reaching more than 30 days out are limited to 5 lessons on any one day and time. Please reduce to 5, switch to weekly, or set up an ongoing fortnightly slot from the Enroll section instead.';
+      }
+    }
+    return null;
+  }
+
+  // Builds one date+time picker per additional lesson (lessons - 1 of them).
+  // In "weekly"/"fortnightly" mode, dates are pre-filled from the first
+  // lesson's date at the matching interval (still editable). In "custom"
+  // mode, they're left for the student to fill in, preserving any values
+  // already entered when the count changes.
+  function renderExtraDateRows(lessons) {
+    const container = document.getElementById('extraDatesContainer');
+    const needed = Math.max(0, lessons - 1);
+    const modeSelect = document.getElementById('bookingMode');
+    const mode = modeSelect ? modeSelect.value : 'custom';
+    const primaryDate = document.getElementById('bookDate').value;
+    const primaryTime = document.getElementById('bookTime').value;
+    const maxDateStr = getMaxBookingDate();
+
+    let autoDates = [];
+    let trimmedByWindow = false;
+    if ((mode === 'weekly' || mode === 'fortnightly') && primaryDate) {
+      const intervalDays = mode === 'fortnightly' ? 14 : 7;
+      const start = new Date(primaryDate + 'T00:00:00');
+      for (let i = 1; i <= needed; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + intervalDays * i);
+        const dateStr = dKey(d.getFullYear(), d.getMonth(), d.getDate());
+        // Never silently pre-fill a date beyond the booking window - a
+        // student choosing "10 weekly lessons" would otherwise only
+        // discover most of those dates are invalid after filling in
+        // their name, email, and card details and clicking submit.
+        // Leaving the row empty instead makes the gap visible right
+        // away, paired with the message below explaining why.
+        if (dateStr > maxDateStr) {
+          trimmedByWindow = true;
+          break;
+        }
+        autoDates.push(dateStr);
+      }
+    }
+
+    const existing = Array.from(container.querySelectorAll('.extra-date-row')).map(row => ({
+      date: row.querySelector('.extra-date-input').value,
+      time: row.querySelector('.extra-time-input').value
+    }));
+    container.innerHTML = '';
+    for (let i = 0; i < needed; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'extra-date-row';
+      wrap.style.cssText = 'margin-bottom:0.8rem;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;';
+      label.textContent = 'Lesson ' + (i + 2);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;';
+      const dateInput = document.createElement('input');
+      dateInput.className = 'form-input extra-date-input';
+      dateInput.type = 'date';
+      dateInput.min = new Date().toISOString().split('T')[0];
+      dateInput.max = maxDateStr;
+      const rowWarning = document.createElement('p');
+      rowWarning.style.cssText = 'display:none;color:#f87171;font-size:0.76rem;margin-top:0.4rem;grid-column:1 / -1;';
+      dateInput.addEventListener('change', () => {
+        if (dateInput.value && isClosedDate(dateInput.value)) {
+          rowWarning.textContent = 'James is closed on ' + closedDayName(dateInput.value) + '. Please choose a different day.';
+          dateInput.value = '';
+          rowWarning.style.display = 'block';
+        } else {
+          rowWarning.style.display = 'none';
+        }
+        refreshTimeOptions();
+        updateDurationAvailability();
+      });
+      const timeSelect = document.createElement('select');
+      timeSelect.className = 'form-input extra-time-input';
+      ALL_TIMES.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      // Had no change listener at all before - picking a specific time
+      // for an extra lesson never re-checked whether the shared duration
+      // still fit every slot.
+      timeSelect.addEventListener('change', () => {
+        updateDurationAvailability();
+      });
+      if (mode === 'weekly' || mode === 'fortnightly') {
+        if (autoDates[i]) dateInput.value = autoDates[i];
+        timeSelect.value = primaryTime;
+      } else if (existing[i]) {
+        dateInput.value = existing[i].date;
+        timeSelect.value = existing[i].time;
+      }
+      row.appendChild(dateInput);
+      row.appendChild(timeSelect);
+      wrap.appendChild(label);
+      wrap.appendChild(row);
+      wrap.appendChild(rowWarning);
+      container.appendChild(wrap);
+    }
+  }
+
+  // CALENDAR
+  const TODAY = new Date();
+  let calYear = TODAY.getFullYear(), calMonth = TODAY.getMonth();
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const ALL_TIMES = ['12:00 pm','12:15 pm','12:30 pm','12:45 pm','1:00 pm','1:15 pm','1:30 pm','1:45 pm','2:00 pm','2:15 pm','2:30 pm','2:45 pm','3:00 pm','3:15 pm','3:30 pm','3:45 pm','4:00 pm','4:15 pm','4:30 pm','4:45 pm','5:00 pm','5:15 pm','5:30 pm','5:45 pm','6:00 pm','6:15 pm','6:30 pm','6:45 pm','7:00 pm','7:15 pm','7:30 pm','7:45 pm','8:00 pm','8:15 pm','8:30 pm','8:45 pm','9:00 pm'];
+
+  function padZ(n) { return String(n).padStart(2,'0'); }
+  function dKey(y,m,d) { return y+'-'+padZ(m+1)+'-'+padZ(d); }
+
+  // ===== ADD TO CALENDAR (student's own calendar, separate from the
+  // Google Calendar sync that already exists for James's own bookings
+  // calendar). Two options are offered rather than assuming everyone
+  // uses Google: a one-click Google Calendar link, and a universal
+  // .ics download that Apple Calendar, Outlook, and anything else that
+  // reads the standard format can open.
+  function calGcalDateTime(dateStr, minutesSinceMidnight) {
+    const ymd = dateStr.replace(/-/g, '');
+    const h = Math.floor(minutesSinceMidnight / 60);
+    const m = minutesSinceMidnight % 60;
+    return ymd + 'T' + padZ(h) + padZ(m) + '00';
+  }
+
+  // recurrenceRule is optional, e.g. 'RRULE:FREQ=WEEKLY' or
+  // 'RRULE:FREQ=WEEKLY;INTERVAL=2' for a subscription's recurring slot.
+  // ctz=Australia/Melbourne means Google handles daylight saving itself,
+  // no manual UTC offset math needed here.
+  function buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const startMin = timeToMinutes(timeStr);
+    const endMin = startMin + durationMinutes;
+    const dates = calGcalDateTime(dateStr, startMin) + '/' + calGcalDateTime(dateStr, endMin);
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: dates,
+      details: 'Lesson with James McHugh, MCQ Music Lessons.',
+      location: '84 Nelson Rd, South Melbourne VIC 3205',
+      ctz: 'Australia/Melbourne'
+    });
+    if (recurrenceRule) params.set('recur', recurrenceRule);
+    return 'https://calendar.google.com/calendar/render?' + params.toString();
+  }
+
+  function buildIcsBlobUrl(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const startMin = timeToMinutes(timeStr);
+    const endMin = startMin + durationMinutes;
+    const dtStart = calGcalDateTime(dateStr, startMin);
+    const dtEnd = calGcalDateTime(dateStr, endMin);
+    const uid = 'mcq-' + dateStr + '-' + timeStr.replace(/[^0-9]/g, '') + '-' + Date.now() + '@mcqmusiclessons.com.au';
+    const lines = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MCQ Music Lessons//Booking//EN',
+      'BEGIN:VEVENT',
+      'UID:' + uid,
+      'DTSTART;TZID=Australia/Melbourne:' + dtStart,
+      'DTEND;TZID=Australia/Melbourne:' + dtEnd,
+      'SUMMARY:' + title,
+      'LOCATION:84 Nelson Rd\\, South Melbourne VIC 3205',
+      'DESCRIPTION:Lesson with James McHugh\\, MCQ Music Lessons.'
+    ];
+    if (recurrenceRule) lines.push(recurrenceRule);
+    lines.push('END:VEVENT', 'END:VCALENDAR');
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    return URL.createObjectURL(blob);
+  }
+
+  // Returns the small HTML snippet for both add-to-calendar links,
+  // dropped straight into a modal body alongside the confirmation text.
+  function calendarLinksHtml(title, dateStr, timeStr, durationMinutes, recurrenceRule) {
+    const gcalUrl = buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, recurrenceRule);
+    const icsId = 'icsLink' + Date.now();
+    setTimeout(() => {
+      const el = document.getElementById(icsId);
+      if (el) {
+        el.href = buildIcsBlobUrl(title, dateStr, timeStr, durationMinutes, recurrenceRule);
+        el.download = 'mcq-lesson.ics';
+      }
+    }, 0);
+    return '<div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-top:0.8rem;">' +
+      '<a href="' + gcalUrl + '" target="_blank" rel="noopener" class="btn-outline" style="font-size:0.76rem;padding:0.5rem 1rem;">Add to Google Calendar</a>' +
+      '<a href="#" id="' + icsId + '" class="btn-outline" style="font-size:0.76rem;padding:0.5rem 1rem;">Download calendar file</a>' +
+      '</div>';
+  }
+
+  // Converts "3:15 pm" to minutes since midnight, and back, for gap math.
+  function timeToMinutes(t) {
+    const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ap = m[3].toLowerCase();
+    if (ap === 'pm' && h !== 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+
+  // Victorian government school holiday date ranges (inclusive), per the
+  // official VIC DET term calendar as of Aug 2026, vic.gov.au/school-term-dates-and-holidays-victoria.
+  // Add next year's ranges here once VIC DET publishes them.
+  const SCHOOL_HOLIDAY_RANGES = [
+    ['2026-09-19', '2026-10-04'], // Spring holidays (between Term 3 and Term 4, 2026)
+    ['2026-12-19', '2027-01-26']  // Summer holidays (between Term 4 2026 and Term 1 2027)
+  ];
+
+  function isSchoolHoliday(dateStr) {
+    return SCHOOL_HOLIDAY_RANGES.some(([start, end]) => dateStr >= start && dateStr <= end);
+  }
+
+  // RECURRING_STUDENTS: the ongoing student roster. dow: 0=Sun..6=Sat.
+  // frequency 'fortnightly' uses anchorDate as a real confirmed lesson date
+  // to lock in the correct 14-day cycle. pauseForHolidays: true means the
+  // lesson is skipped during VIC school holidays; false means it continues
+  // year-round. Flaky/uncertain students (Ebony, Frida, Will, Lisa) are
+  // deliberately left out, their times stay open on the booking site.
+  const RECURRING_STUDENTS = [
+    { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Jacq',    dow: 2, time: '2:30 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-18', pauseForHolidays: false },
+    { name: 'Cash',    dow: 2, time: '12:45 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false  },
+    { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-11', pauseForHolidays: false },
+    { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Jacq',    dow: 3, time: '2:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false }, // confirmed with James on Aug 7
+    { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
+    { name: 'Cash',    dow: 4, time: '12:45 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false  },
+    { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
+    { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  }
+  ];
+
+  // Generates BOOKED entries from RECURRING_STUDENTS for a rolling window
+  // starting today, projecting monthsAhead into the future, skipping any
+  // occurrence that falls in a school holiday range if the student pauses.
+  function generateRecurringBookings(fromDateStr, monthsAhead) {
+    const result = {};
+    const start = new Date(fromDateStr + 'T00:00:00');
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + monthsAhead);
+
+    RECURRING_STUDENTS.forEach(student => {
+      let cursor = new Date(start);
+      while (cursor.getDay() !== student.dow) cursor.setDate(cursor.getDate() + 1);
+
+      if (student.frequency === 'fortnightly' && student.anchorDate) {
+        const anchor = new Date(student.anchorDate + 'T00:00:00');
+        const diffDays = Math.round((cursor - anchor) / 86400000);
+        const offset = ((diffDays % 14) + 14) % 14;
+        if (offset !== 0) cursor.setDate(cursor.getDate() + (14 - offset));
+      }
+
+      const stepDays = student.frequency === 'fortnightly' ? 14 : 7;
+      while (cursor <= end) {
+        const dateStr = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+        if (!(student.pauseForHolidays && isSchoolHoliday(dateStr))) {
+          if (!result[dateStr]) result[dateStr] = [];
+          result[dateStr].push({ time: student.time, duration: student.duration });
+        }
+        cursor.setDate(cursor.getDate() + stepDays);
+      }
+    });
+
+    Object.keys(result).forEach(k => {
+      result[k].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    });
+    return result;
+  }
+
+  const BOOKED = generateRecurringBookings(dKey(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), 12);
+
+  const MIN_GAP_MINUTES = 30;
+  const DURATION_TIERS = [
+    { minutes: 30, value: '30|50' },
+    { minutes: 45, value: '45|70' },
+    { minutes: 60, value: '60|85' },
+    { minutes: 75, value: '75|100' },
+    { minutes: 90, value: '90|120' }
+  ];
+  const MIN_NOTICE_HOURS = 24;
+  const FRI_CLOSING_MINUTES = 16 * 60 + 30; // 4:30 pm, lessons must FINISH by this on Friday
+  const MON_THU_CLOSING_MINUTES = 21 * 60; // 9:00 pm, lessons must FINISH by this on Mon-Thu
+
+  function dayOfWeek(dateStr) {
+    return new Date(dateStr + 'T00:00:00').getDay();
+  }
+
+  // Reads a <select multiple> element's chosen options back into the
+  // same comma-joined string format the backend already expects from
+  // the old free-text genre field, so no backend changes are needed.
+  function getMultiSelectValue(id) {
+    return Array.from(document.getElementById(id).selectedOptions).map(o => o.value).join(', ');
+  }
+
+  // Mon-Thu: a lesson must finish by 9pm. Friday: a lesson must finish
+  // by 4:30pm, so the last bookable start time shifts earlier depending
+  // on how long the lesson runs. Saturday and Sunday are closed
+  // entirely, handled in getAvailableTimes below before this is called.
+  function isWithinBusinessHours(dateStr, startMinutes, endMinutes) {
+    const dow = dayOfWeek(dateStr);
+    if (dow === 5) return endMinutes <= FRI_CLOSING_MINUTES;
+    return endMinutes <= MON_THU_CLOSING_MINUTES;
+  }
+
+  // How many hours from right now until this date+time starts.
+  function hoursUntilSlot(dateStr, timeStr) {
+    const start = new Date(dateStr + 'T00:00:00');
+    start.setMinutes(start.getMinutes() + (timeToMinutes(timeStr) || 0));
+    return (start.getTime() - Date.now()) / (1000 * 60 * 60);
+  }
+
+  // Given a date and a lesson duration, returns which of ALL_TIMES are
+  // valid start times, excluding anything that overlaps an existing
+  // lesson, would leave an unusably small (<30 min) gap next to one,
+  // falls outside business hours, or is less than 24 hours away.
+  // Sundays and Saturdays are both closed entirely.
+  function getAvailableTimes(dateStr, durationMinutes) {
+    if (!dateStr) return [];
+    const dow = dayOfWeek(dateStr);
+    if (dow === 0 || dow === 6) return [];
+    const existing = (BOOKED[dateStr] || []).map(b => ({
+      start: timeToMinutes(b.time),
+      end: timeToMinutes(b.time) + (b.duration || 45)
+    }));
+    return ALL_TIMES.filter(t => {
+      const start = timeToMinutes(t);
+      const end = start + durationMinutes;
+      if (!isWithinBusinessHours(dateStr, start, end)) return false;
+      if (hoursUntilSlot(dateStr, t) < MIN_NOTICE_HOURS) return false;
+      for (const ex of existing) {
+        if (start < ex.end && ex.start < end) return false; // overlaps
+        const gapBefore = start - ex.end;
+        const gapAfter = ex.start - end;
+        if (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) return false;
+        if (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES) return false;
+      }
+      return true;
+    });
+  }
+
+  // Returns, for a given date, a map of time -> smallest duration tier
+  // that actually fits there. A time only appears if AT LEAST ONE
+  // offered lesson length works, used for the "is anything bookable
+  // here" preview, since the shortest lesson isn't always the one that
+  // fits (a longer lesson can land exactly on the next booking with
+  // zero gap when a shorter one would leave an awkward gap instead).
+  function getAvailableTimesAnyDuration(dateStr) {
+    const bestFit = {};
+    DURATION_TIERS.forEach(tier => {
+      getAvailableTimes(dateStr, tier.minutes).forEach(t => {
+        if (!bestFit[t]) bestFit[t] = tier;
+      });
+    });
+    return bestFit;
+  }
+
+  // Why a given start time + length can't be booked, or null if it can.
+  // Mirrors getAvailableTimes exactly, but reports the reason instead of
+  // silently dropping the slot, so both dropdowns can show every option
+  // with the unavailable ones greyed out and labelled.
+  function slotUnavailableReason(dateStr, timeStr, durationMinutes) {
+    const dow = dayOfWeek(dateStr);
+    if (dow === 0 || dow === 6) return 'Closed';
+    const start = timeToMinutes(timeStr);
+    const end = start + durationMinutes;
+    if (!isWithinBusinessHours(dateStr, start, end)) return 'Past closing';
+    if (hoursUntilSlot(dateStr, timeStr) < MIN_NOTICE_HOURS) return 'Too soon';
+    const existing = (BOOKED[dateStr] || []).map(b => ({
+      start: timeToMinutes(b.time),
+      end: timeToMinutes(b.time) + (b.duration || 45)
+    }));
+    for (const ex of existing) {
+      if (start < ex.end && ex.start < end) return 'Booked';
+    }
+    for (const ex of existing) {
+      const gapBefore = start - ex.end;
+      const gapAfter = ex.start - end;
+      if (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) return 'Too close to a lesson';
+      if (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES) return 'Not enough room';
+    }
+    return null;
+  }
+
+  // Returns, for a given date, a map of time -> array of EVERY duration
+  // tier that fits there, shortest first. Deliberately a list rather
+  // than just the longest: the 30 minute gap rule means the set isn't
+  // always contiguous, so a slot can fit 30, 45, 60 and 90 but not 75,
+  // or fit 45 and nothing shorter. Saying "up to 90" would be wrong in
+  // both cases, so the calendar preview lists the real options instead.
+  function getFittingDurations(dateStr) {
+    const fits = {};
+    DURATION_TIERS.forEach(tier => {
+      getAvailableTimes(dateStr, tier.minutes).forEach(t => {
+        if (!fits[t]) fits[t] = [];
+        fits[t].push(tier);
+      });
+    });
+    return fits;
+  }
+
+  function renderCal() {
+    document.getElementById('calMonthTitle').textContent = MONTHS[calMonth] + ' ' + calYear;
+    const body = document.getElementById('calBody');
+    body.innerHTML = '';
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const offset = (firstDay + 6) % 7;
+    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+    for (let i = 0; i < offset; i++) {
+      const e = document.createElement('div');
+      e.className = 'cal-cell empty';
+      body.appendChild(e);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(calYear, calMonth, d);
+      const dow = date.getDay(); // 0=Sun
+      const key = dKey(calYear, calMonth, d);
+      const isPast = date < new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+      const isToday = date.toDateString() === TODAY.toDateString();
+
+      const cell = document.createElement('div');
+      const isClosed = dow === 0 || dow === 6; // Sunday and Saturday are both closed
+      cell.className = 'cal-cell' + (isPast ? ' past' : '') + (isClosed ? ' weekend-closed' : '') + (isToday ? ' today' : '');
+
+      const dateDiv = document.createElement('div');
+      dateDiv.className = 'cal-date-num';
+      dateDiv.textContent = d;
+      cell.appendChild(dateDiv);
+
+      // Business hours: Mon-Thu 12pm-9pm, Fri 12pm-4:30pm (shorter
+      // closing time, handled in isWithinBusinessHours). Saturday and
+      // Sunday are both closed.
+      // Availability shown here checks every offered lesson length, a
+      // time shows Available if ANY duration could actually be booked
+      // there, since a longer lesson sometimes fits when a shorter one
+      // wouldn't (e.g. landing exactly on the next booking, zero gap).
+      let dayTimes = ALL_TIMES;
+
+      if (!isPast && !isClosed) {
+        const bookedList = BOOKED[key] || [];
+        const bestFit = getAvailableTimesAnyDuration(key);
+        const freeCount = Object.keys(bestFit).length;
+        const pills = document.createElement('div');
+        pills.className = 'cal-slot-pills';
+
+        if (freeCount === 0) {
+          const p = document.createElement('div');
+          p.className = 'cal-pill full';
+          p.textContent = 'Fully booked';
+          pills.appendChild(p);
+        } else {
+          const p1 = document.createElement('div');
+          p1.className = 'cal-pill avail';
+          p1.textContent = freeCount + ' free';
+          pills.appendChild(p1);
+          if (bookedList.length > 0) {
+            const p2 = document.createElement('div');
+            p2.className = 'cal-pill booked';
+            p2.textContent = bookedList.length + ' booked';
+            pills.appendChild(p2);
+          }
+        }
+        cell.appendChild(pills);
+        cell.onclick = (ev) => showDayDetail(ev, key, d, dayTimes);
+      }
+      body.appendChild(cell);
+    }
+  }
+
+  let currentDetailDay = null; // { key, d, dayTimes }, tracks which day is open
+
+  function showDayDetail(ev, key, d, dayTimes) {
+    dayTimes = dayTimes || ALL_TIMES;
+    document.querySelectorAll('.cal-cell.selected').forEach(c => c.classList.remove('selected'));
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
+    currentDetailDay = { key: key, d: d, dayTimes: dayTimes };
+    const panel = document.getElementById('calDetailPanel');
+    panel.classList.add('show');
+    renderDayDetailTimes();
+    // Wait for the browser to actually finish laying out the newly shown
+    // panel before measuring its position, otherwise getBoundingClientRect
+    // can be read before the layout has updated and the scroll silently
+    // goes nowhere. Two rAF calls reliably waits for a full paint cycle.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const nav = document.querySelector('nav');
+        const navHeight = nav ? nav.offsetHeight : 0;
+        const targetY = window.scrollY + panel.getBoundingClientRect().top - navHeight - 24;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      });
+    });
+  }
+
+  function renderDayDetailTimes() {
+    if (!currentDetailDay) return;
+    const { key, d, dayTimes } = currentDetailDay;
+    document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
+    const wrap = document.getElementById('calPickerWrap');
+    const emptyMsg = document.getElementById('calPickerEmpty');
+    const timeSel = document.getElementById('calPickTime');
+    const durSel = document.getElementById('calPickDuration');
+
+    const fits = getFittingDurations(key);
+    const availableTimes = dayTimes.filter(t => fits[t] && fits[t].length);
+
+    if (availableTimes.length === 0) {
+      wrap.style.display = 'none';
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    wrap.style.display = 'block';
+    emptyMsg.style.display = 'none';
+
+    timeSel.innerHTML = '';
+    ALL_TIMES.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      if (fits[t] && fits[t].length) {
+        opt.textContent = t;
+      } else {
+        // Nothing fits here at all. Report the reason the shortest
+        // lesson failed, since that's the most forgiving case.
+        const why = slotUnavailableReason(key, t, DURATION_TIERS[0].minutes) || 'Unavailable';
+        opt.textContent = t + '  ·  ' + why;
+        opt.disabled = true;
+      }
+      timeSel.appendChild(opt);
+    });
+    timeSel.value = availableTimes[0];
+
+    // Rebuilds the length dropdown against whichever start time is
+    // selected. Every length is always listed so the choice is visible,
+    // but the ones that wouldn't fit are greyed out and say why.
+    function refreshDurations() {
+      const t = timeSel.value;
+      const okValues = (fits[t] || []).map(x => x.value);
+      durSel.innerHTML = '';
+      DURATION_TIERS.forEach(tier => {
+        const opt = document.createElement('option');
+        opt.value = tier.value;
+        const label = tier.minutes + ' minutes  ·  $' + tier.value.split('|')[1];
+        if (okValues.indexOf(tier.value) !== -1) {
+          opt.textContent = label;
+        } else {
+          const why = slotUnavailableReason(key, t, tier.minutes) || 'Unavailable';
+          opt.textContent = label + '  ·  ' + why;
+          opt.disabled = true;
+        }
+        durSel.appendChild(opt);
+      });
+      if (okValues.length) durSel.value = okValues[0];
+    }
+    timeSel.onchange = refreshDurations;
+    refreshDurations();
+
+    document.getElementById('calPickGoBtn').onclick = () => {
+      const t = timeSel.value;
+      const durValue = durSel.value;
+      if (!t || !durValue) return;
+      const dow = new Date(key + 'T00:00:00').getDay();
+      document.getElementById('subDay').value = dow;
+      handleSubscribeDayChange();
+      document.getElementById('subDuration').value = durValue;
+      document.getElementById('subscribe').scrollIntoView({behavior:'smooth'});
+      document.getElementById('subTime').value = t;
+      handleSubscribeDurationChange();
+    };
+  }
+
+  function changeMonth(dir) {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCal();
+    currentDetailDay = null;
+    document.getElementById('calDetailPanel').classList.remove('show');
+  }
+
+  renderCal();
+
+  // RESCHEDULE FLOW (free, credit-based, deliberately separate from the
+  // normal paid booking form). Only activates when a valid ?reschedule=
+  // token is present in the URL. That token comes either from the
+  // "Rebook within the next 2 weeks" button in a cancellation email, or
+  // from the Reschedule button in Manage Booking, which redirects here
+  // with the token immediately rather than making the student wait on
+  // the email. Both routes land in exactly this same flow.
+  let rescheduleCredit = null; // { token, name, duration, weekStart, weekEnd }
+
+  function formatDateRange(startStr, endStr) {
+    const s = new Date(startStr + 'T00:00:00');
+    const e = new Date(endStr + 'T00:00:00');
+    const opts = { month: 'short', day: 'numeric' };
+    return s.toLocaleDateString('en-AU', opts) + ' to ' + e.toLocaleDateString('en-AU', opts);
+  }
+
+  async function initRescheduleFlow() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('reschedule');
+    if (!token) return;
+    const panel = document.getElementById('reschedulePanel');
+    const errorEl = document.getElementById('rescheduleError');
+    const contentEl = document.getElementById('rescheduleContent');
+    panel.style.display = 'block';
+    document.getElementById('rescheduleDivider').style.display = 'block';
+    try {
+      const resp = await fetch('/.netlify/functions/get-reschedule-credit?token=' + encodeURIComponent(token));
+      const result = await resp.json();
+      if (!result.valid) {
+        contentEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        errorEl.textContent = result.error || 'This reschedule link is invalid or has expired. Please contact James directly.';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          panel.scrollIntoView({ behavior: 'smooth' });
+        }));
+        return;
+      }
+      rescheduleCredit = {
+        token: token,
+        name: result.name,
+        duration: result.duration,
+        weekStart: result.weekStart,
+        weekEnd: result.weekEnd
+      };
+      document.getElementById('rescheduleName').textContent = result.name || 'there';
+      const origEl = document.getElementById('rescheduleOriginalLesson');
+      if (result.originalDate && result.originalTime) {
+        const origDate = new Date(result.originalDate + 'T00:00:00');
+        const origFormatted = origDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+        origEl.textContent = 'Rescheduling your lesson originally on ' + origFormatted + ' at ' + result.originalTime + '.';
+        origEl.style.display = 'block';
+      } else {
+        origEl.style.display = 'none';
+      }
+      document.getElementById('rescheduleWeekRange').textContent = formatDateRange(result.weekStart, result.weekEnd);
+      renderRescheduleDays();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }));
+    } catch (e) {
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.textContent = 'Could not verify your reschedule link. Please contact James directly.';
+    }
+  }
+
+  function renderRescheduleDays() {
+    const wrap = document.getElementById('rescheduleDaysWrap');
+    wrap.innerHTML = '';
+    document.getElementById('rescheduleTimesWrap').innerHTML = '';
+    const start = new Date(rescheduleCredit.weekStart + 'T00:00:00');
+    const end = new Date(rescheduleCredit.weekEnd + 'T00:00:00');
+    const todayMidnight = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    let cursor = new Date(start);
+    while (cursor <= end) {
+      const dow = cursor.getDay();
+      const key = dKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+      if (dow !== 0 && dow !== 6) { // Sunday and Saturday are both closed entirely
+        const dayIsUsable = cursor >= todayMidnight;
+        const hasTimes = dayIsUsable && getAvailableTimes(key, rescheduleCredit.duration).length > 0;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'reschedule-day-btn';
+        btn.textContent = cursor.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+        if (hasTimes) {
+          btn.onclick = () => {
+            wrap.querySelectorAll('.reschedule-day-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderRescheduleTimes(key);
+          };
+        } else {
+          btn.disabled = true;
+        }
+        wrap.appendChild(btn);
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  function renderRescheduleTimes(dateKey) {
+    const timesWrap = document.getElementById('rescheduleTimesWrap');
+    timesWrap.innerHTML = '';
+    const times = getAvailableTimes(dateKey, rescheduleCredit.duration);
+    if (times.length === 0) {
+      timesWrap.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No times available that day.</p>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'time-slots-grid';
+    times.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'time-slot-btn free';
+      btn.textContent = t;
+      btn.onclick = () => selectRescheduleTime(dateKey, t);
+      grid.appendChild(btn);
+    });
+    timesWrap.appendChild(grid);
+  }
+
+  // Picking a time doesn't reschedule immediately anymore - it shows a
+  // confirm step first, so an accidental click on the wrong time doesn't
+  // silently move the lesson. Only clicking "Yes, confirm this time" here
+  // actually submits it.
+  function selectRescheduleTime(date, time) {
+    const timesWrap = document.getElementById('rescheduleTimesWrap');
+    timesWrap.innerHTML =
+      '<div class="reschedule-confirm-box">' +
+        '<p class="reschedule-confirm-text">Move your lesson to <strong>' + date + '</strong> at <strong>' + time + '</strong>?</p>' +
+        '<div class="reschedule-confirm-buttons">' +
+          '<button type="button" class="btn-primary" id="rescheduleConfirmBtn">Yes, confirm this time</button>' +
+          '<button type="button" class="btn-outline" id="rescheduleBackBtn">Choose a different time</button>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('rescheduleConfirmBtn').onclick = () => submitReschedule(date, time);
+    document.getElementById('rescheduleBackBtn').onclick = () => renderRescheduleTimes(date);
+  }
+
+  async function submitReschedule(date, time) {
+    const errorEl = document.getElementById('rescheduleError');
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+    const confirmBtn = document.getElementById('rescheduleConfirmBtn');
+    const backBtn = document.getElementById('rescheduleBackBtn');
+    if (confirmBtn) { confirmBtn.textContent = 'Confirming...'; confirmBtn.disabled = true; }
+    if (backBtn) { backBtn.disabled = true; }
+    try {
+      const resp = await fetch('/.netlify/functions/redeem-reschedule-credit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: rescheduleCredit.token, date: date, time: time })
+      });
+      const result = await resp.json();
+      if (!result.success) {
+        errorEl.style.display = 'block';
+        errorEl.textContent = result.error || 'Could not reschedule that slot. Please try a different time.';
+        renderRescheduleDays(); // refresh availability in case the slot really was just taken
+        return;
+      }
+      document.getElementById('modalTitle').textContent = 'Lesson Rescheduled!';
+      document.getElementById('modalBody').textContent = 'No charge, your lesson is now booked for ' + date + ' at ' + time + '. A confirmation email is on its way.';
+      document.getElementById('successModal').classList.add('open');
+      document.getElementById('reschedulePanel').style.display = 'none';
+      document.getElementById('rescheduleDivider').style.display = 'none';
+      loadLiveBookings();
+    } catch (e) {
+      errorEl.style.display = 'block';
+      errorEl.textContent = 'Could not reach the server. Please contact James directly.';
+    }
+  }
+
+  // Load real-time bookings from Netlify Blobs and merge them into BOOKED,
+  // so slots booked live through the site show up immediately.
+  async function loadLiveBookings() {
+    try {
+      const resp = await fetch('/.netlify/functions/get-bookings');
+      const result = await resp.json();
+      if (result.success && result.booked) {
+        for (const dateKey in result.booked) {
+          if (!BOOKED[dateKey]) BOOKED[dateKey] = [];
+          result.booked[dateKey].forEach(entry => {
+            if (!BOOKED[dateKey].some(b => b.time === entry.time)) {
+              BOOKED[dateKey].push({ time: entry.time, duration: entry.duration || 45 });
+            }
+          });
+        }
+        renderCal();
+        refreshSubscribeTimeOptions();
+        refreshSubscribeDurationOptions();
+      }
+    } catch (e) {}
+  }
+  loadLiveBookings().then(initRescheduleFlow).then(initManageFromLink);
+
+  // The homepage's "Book a Weekly Lesson" / "Book a Fortnightly Lesson"
+  // buttons link here with ?frequency=weekly or ?frequency=fortnightly, so the
+  // Subscribe form opens with the right frequency already chosen rather
+  // than making them pick it again.
+  (function() {
+    const presetFrequency = new URLSearchParams(window.location.search).get('frequency');
+    const freqSelect = document.getElementById('subFrequency');
+    if ((presetFrequency === 'weekly' || presetFrequency === 'fortnightly') && freqSelect) {
+      freqSelect.value = presetFrequency;
+      updateSubscribeTotal();
+      updateLessonsPerWeekLabel();
+    }
+  })();
+
+  // Stripe redirects back here with ?subscribed=1 once checkout actually
+  // completes (see create-subscription.js's success_url). Without this,
+  // a student who just paid lands back on the page with no on-screen
+  // acknowledgement at all, only the confirmation email, which reads as
+  // if nothing happened. Shows the same success modal already used for
+  // one-off bookings, so it looks and behaves consistently with the
+  // rest of the site, and needs an explicit "Done" click to dismiss
+  // rather than silently dropping them back into the page.
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscribed') !== '1') return;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+    const doneBtn = document.querySelector('#successModal .modal-close');
+
+    // Multi-lesson queue (2 or 3 lessons/week) takes priority over the
+    // single-slot path below, since only one of the two sessionStorage
+    // keys will ever be set at a time.
+    let queue = null;
+    try {
+      const rawQueue = sessionStorage.getItem('mcqMultiSubscribeQueue');
+      if (rawQueue) queue = JSON.parse(rawQueue);
+    } catch (e) {}
+
+    if (queue) {
+      const justConfirmed = queue.slots[queue.currentIndex];
+      queue.completedSlots.push(justConfirmed);
+      const nextIndex = queue.currentIndex + 1;
+      const calTitle = (queue.instrument || 'Music') + ' Lesson - MCQ Music';
+      const rrule = 'RRULE:FREQ=WEEKLY' + (queue.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
+
+      if (nextIndex < queue.slots.length) {
+        // More lessons left to set up - this one's genuinely confirmed
+        // already (it's a real, separate subscription from this point
+        // on, not provisional), the rest just haven't been started yet.
+        document.getElementById('modalTitle').textContent = 'Lesson ' + (nextIndex) + ' of ' + queue.slots.length + ' confirmed!';
+        const next = queue.slots[nextIndex];
+        document.getElementById('modalBody').innerHTML = 'Your ' + queue.frequency + ' ' + queue.instrument + ' lesson on ' + justConfirmed.dayName + 's at ' + justConfirmed.time + ' is locked in, a confirmation email is on its way for that one. Now let\'s set up lesson ' + (nextIndex + 1) + ' of ' + queue.slots.length + ': ' + next.dayName + 's at ' + next.time + '. You\'ll be redirected to Stripe again to pay for this one separately.' +
+          calendarLinksHtml(calTitle, getNextDateForDow(justConfirmed.dow), justConfirmed.time, queue.durationMinutes || 45, rrule);
+        try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
+        if (doneBtn) {
+          doneBtn.textContent = 'Continue to lesson ' + (nextIndex + 1) + ' \u2192';
+          doneBtn.onclick = function () {
+            document.getElementById('successModal').classList.remove('open');
+            startSubscribeQueueSlot(queue, nextIndex);
+          };
+        }
+      } else {
+        // All lessons in the queue are now confirmed.
+        document.getElementById('modalTitle').textContent = "You're All Set!";
+        let bodyHtml = 'All ' + queue.slots.length + ' of your ' + queue.frequency + ' ' + queue.instrument + ' lessons are locked in, as ' + queue.slots.length + ' separate enrollments you can each manage independently below:<ul style="margin:0.6rem 0 0 1.1rem;padding:0;">' +
+          queue.completedSlots.map(function (s) { return '<li>' + s.dayName + 's at ' + s.time + '</li>'; }).join('') +
+          '</ul>A confirmation email is on its way for each one.';
+        queue.completedSlots.forEach(function (s) {
+          bodyHtml += calendarLinksHtml(calTitle, getNextDateForDow(s.dow), s.time, queue.durationMinutes || 45, rrule);
+        });
+        document.getElementById('modalBody').innerHTML = bodyHtml;
+        try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e) {}
+        if (doneBtn) {
+          doneBtn.textContent = 'Done';
+          doneBtn.onclick = function () { closeModal(); };
+        }
+      }
+      document.getElementById('successModal').classList.add('open');
+      return;
+    }
+
+    // Single-slot path, unchanged from before this feature existed.
+    let details = null;
+    try {
+      const raw = sessionStorage.getItem('mcqSubscribePending');
+      if (raw) details = JSON.parse(raw);
+      sessionStorage.removeItem('mcqSubscribePending');
+    } catch (e) {}
+    if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.onclick = function () { closeModal(); }; }
+    document.getElementById('modalTitle').textContent = "You're Enrolled!";
+    if (details) {
+      const rrule = 'RRULE:FREQ=WEEKLY' + (details.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
+      const calTitle = (details.instrument || 'Music') + ' Lesson - MCQ Music';
+      const startDate = getNextDateForDow(details.dow);
+      document.getElementById('modalBody').innerHTML = 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Enrollment section on this page.' +
+        calendarLinksHtml(calTitle, startDate, details.time, details.durationMinutes || 45, rrule);
+    } else {
+      document.getElementById('modalBody').textContent = 'Your enrollment is confirmed. A confirmation email is on its way. You can pause or cancel any time from the Manage Enrollment section on this page.';
+    }
+    document.getElementById('successModal').classList.add('open');
+  })();
+
+  // STRIPE - trial lesson card payment only. Subscribe uses Stripe
+  // Checkout redirect instead and never touches this.
+  const STRIPE_PUBLISHABLE_KEY = 'pk_live_51Tmu5ZAOM8tPKKgkKuEsyMefOrQohK7PXI2mcfzfVxb2oyqd97mSqsadpuYEQwyMY6VnjoOHkKB8skkOLdwmX6pP00rZ3Bont3';
+  let stripe, trialCardElement;
+  try {
+    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    const elements = stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#c9942a', colorBackground: '#152033', colorText: '#e8e0d0', colorDanger: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } });
+    trialCardElement = elements.create('card');
+    trialCardElement.mount('#trial-stripe-card-element');
+    trialCardElement.on('focus', () => document.getElementById('trial-stripe-card-element').classList.add('focused'));
+    trialCardElement.on('blur', () => document.getElementById('trial-stripe-card-element').classList.remove('focused'));
+  } catch (e) {
+    const el = document.getElementById('trial-stripe-card-element');
+    if (el) el.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
+  }
+
+  async function handleTrialBooking(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('trialName').value.trim();
+    const email = document.getElementById('trialEmail').value.trim();
+    const phone = document.getElementById('trialPhone').value.trim();
+    const date = document.getElementById('trialDate').value;
+    const time = document.getElementById('trialTime').value;
+    const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
+    const skillLevel = document.getElementById('trialSkillLevel').value;
+    const songRequests = document.getElementById('trialSongRequests').value.trim();
+    const genreFocus = getMultiSelectValue('trialGenreFocus');
+    const theoryInterest = document.getElementById('trialTheoryInterest').value;
+    const goalsNotes = document.getElementById('trialGoalsNotes').value.trim();
+    const errEl = document.getElementById('trialError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
+    if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time.'; return false; }
+    if (isClosedDate(date)) { errEl.style.display = 'block'; errEl.textContent = 'James is closed on ' + closedDayName(date) + '. Please choose a different day.'; return false; }
+    if (date > getMaxBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to a month in advance.'; return false; }
+    if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'That time is no longer available. Please choose a different time.'; return false; }
+    if (!stripe || !trialCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
+
+    const btn = document.getElementById('trialSubmitBtn');
+    btn.textContent = 'Booking…'; btn.disabled = true;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: [{ date: date, time: time }],
+          name: name, email: email, duration: durationMinutes,
+          instrument: selectedTrialInstrument,
+          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
+        })
+      });
+      const reserveResult = await reserveResp.json();
+      if (!reserveResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = reserveResult.error || 'That time is no longer available.';
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        refreshTrialTimeOptions();
+        refreshTrialDurationOptions();
+        return false;
+      }
+
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: trialCardElement });
+      if (pmError) {
+        errEl.style.display = 'block';
+        errEl.textContent = pmError.message;
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        return false;
+      }
+
+      const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationMinutes: durationMinutes, payment_method_id: paymentMethod.id, email: email, description: 'Trial lesson - ' + selectedTrialInstrument })
+      });
+      const chargeResult = await chargeResp.json();
+      if (!chargeResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = chargeResult.error || 'Payment failed. Please check your card details and try again.';
+        btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+        return false;
+      }
+      if (chargeResult.status === 'requires_action') {
+        const { error: confirmError } = await stripe.confirmCardPayment(chargeResult.client_secret);
+        if (confirmError) {
+          errEl.style.display = 'block';
+          errEl.textContent = confirmError.message;
+          btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+          return false;
+        }
+      }
+
+      await fetch('/.netlify/functions/confirm-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: [{ date: date, time: time }], payment_intent_id: chargeResult.payment_intent_id, durationMinutes: durationMinutes })
+      }).catch(() => {});
+
+      fetch('/.netlify/functions/send-confirmation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name, email: email, instrument: selectedTrialInstrument,
+          guitar_type: (selectedTrialInstrument === 'Piano') ? '' : selectedTrialGuitarType,
+          date: date, time: time, duration: durationMinutes,
+          lessons_count: 1, total: '$' + document.getElementById('trialDuration').value.split('|')[1],
+          slots: [{ date: date, time: time }],
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
+        })
+      }).catch(() => {});
+
+      document.getElementById('trialForm').reset();
+      Array.from(document.getElementById('trialDuration').options).forEach(opt => {
+        opt.disabled = false;
+        opt.textContent = opt.textContent.replace(' (unavailable at this time)', '');
+      });
+      document.getElementById('modalTitle').textContent = 'Trial Lesson Booked!';
+      document.getElementById('modalBody').innerHTML = 'Your trial lesson is confirmed for ' + date + ' at ' + time + '. A confirmation email is on its way.<br><br>Loved it? <a href="#calendar" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a> whenever you\'re ready, same price, no ongoing commitment either way.';
+      document.getElementById('successModal').classList.add('open');
+      btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Book Trial Lesson →'; btn.disabled = false;
+    }
+    return false;
+  }
+
+  // STRIPE - package card payment, separate element from the trial's.
+  let packageCardElement;
+  try {
+    const packageElements = stripe.elements({ appearance: { theme: 'night', variables: { colorPrimary: '#c9942a', colorBackground: '#152033', colorText: '#e8e0d0', colorDanger: '#f87171', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } });
+    packageCardElement = packageElements.create('card');
+    packageCardElement.mount('#package-stripe-card-element');
+    packageCardElement.on('focus', () => document.getElementById('package-stripe-card-element').classList.add('focused'));
+    packageCardElement.on('blur', () => document.getElementById('package-stripe-card-element').classList.remove('focused'));
+  } catch (e) {
+    const el = document.getElementById('package-stripe-card-element');
+    if (el) el.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">⚠ Payment setup incomplete.</p>';
+  }
+
+  async function handlePackageBooking(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('packageName').value.trim();
+    const email = document.getElementById('packageEmail').value.trim();
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
+    const skillLevel = document.getElementById('packageSkillLevel').value;
+    const songRequests = document.getElementById('packageSongRequests').value.trim();
+    const genreFocus = getMultiSelectValue('packageGenreFocus');
+    const theoryInterest = document.getElementById('packageTheoryInterest').value;
+    const goalsNotes = document.getElementById('packageGoalsNotes').value.trim();
+    const errEl = document.getElementById('packageError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
+
+    const slots = [];
+    for (let i = 1; i <= size; i++) {
+      const date = document.getElementById('packageDate' + i).value;
+      const time = document.getElementById('packageTime' + i).value;
+      if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time for every lesson (lesson ' + i + ' is missing one).'; return false; }
+      if (isClosedDate(date)) { errEl.style.display = 'block'; errEl.textContent = 'Lesson ' + i + ' falls on a day James is closed (' + closedDayName(date) + '). Please choose a different day.'; return false; }
+      if (date > getMaxPackageBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Lesson ' + i + ' is more than 3 months away. Please choose a closer date.'; return false; }
+      if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'The time chosen for lesson ' + i + ' is no longer available. Please choose a different time.'; return false; }
+      slots.push({ date: date, time: time });
+    }
+    // Two lessons in the same package can't land on the exact same
+    // date and time as each other - checked here on the full set,
+    // since the per-row availability check above only ever compares
+    // against ALREADY-BOOKED lessons elsewhere, not against the other
+    // rows in this same still-unsubmitted form.
+    const seen = new Set();
+    for (const s of slots) {
+      const key = s.date + '_' + s.time;
+      if (seen.has(key)) { errEl.style.display = 'block'; errEl.textContent = 'Two lessons in this package are set to the same date and time. Please choose different times.'; return false; }
+      seen.add(key);
+    }
+
+    if (!stripe || !packageCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
+
+    const btn = document.getElementById('packageSubmitBtn');
+    btn.textContent = 'Booking…'; btn.disabled = true;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: slots,
+          name: name, email: email, duration: durationMinutes,
+          instrument: selectedPackageInstrument,
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
+        })
+      });
+      const reserveResult = await reserveResp.json();
+      if (!reserveResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = reserveResult.error || 'One of those times is no longer available.';
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
+        return false;
+      }
+
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: packageCardElement });
+      if (pmError) {
+        errEl.style.display = 'block';
+        errEl.textContent = pmError.message;
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        return false;
+      }
+
+      const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationMinutes: durationMinutes, lessonCount: size, payment_method_id: paymentMethod.id, email: email, description: size + '-lesson package - ' + selectedPackageInstrument })
+      });
+      const chargeResult = await chargeResp.json();
+      if (!chargeResult.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = chargeResult.error || 'Payment failed. Please check your card details and try again.';
+        btn.textContent = 'Buy Package →'; btn.disabled = false;
+        return false;
+      }
+      if (chargeResult.status === 'requires_action') {
+        const { error: confirmError } = await stripe.confirmCardPayment(chargeResult.client_secret);
+        if (confirmError) {
+          errEl.style.display = 'block';
+          errEl.textContent = confirmError.message;
+          btn.textContent = 'Buy Package →'; btn.disabled = false;
+          return false;
+        }
+      }
+
+      await fetch('/.netlify/functions/confirm-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: slots, payment_intent_id: chargeResult.payment_intent_id, durationMinutes: durationMinutes })
+      }).catch(() => {});
+
+      const totalAmt = document.getElementById('packageTotalAmt').textContent;
+      fetch('/.netlify/functions/send-confirmation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name, email: email, instrument: selectedPackageInstrument,
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
+          duration: durationMinutes, lessons_count: size, total: totalAmt,
+          booking_type: 'package',
+          slots: slots,
+          skill_level: skillLevel,
+          song_requests: songRequests,
+          genre_focus: genreFocus,
+          theory_interest: theoryInterest,
+          lesson_goals_notes: goalsNotes
+        })
+      }).catch(() => {});
+
+      document.getElementById('packageForm').reset();
+      const slotsListHtml = slots.map(s => '<li>' + s.date + ' at ' + s.time + '</li>').join('');
+      document.getElementById('modalTitle').textContent = 'Package Booked!';
+      document.getElementById('modalBody').innerHTML = 'Your ' + size + '-lesson package is confirmed. A confirmation email listing every lesson is on its way.<br><br><ul style="text-align:left;max-width:320px;margin:0 auto;">' + slotsListHtml + '</ul>';
+      document.getElementById('successModal').classList.add('open');
+      btn.textContent = 'Buy Package →'; btn.disabled = false;
+      selectedPackageInstrument = 'Guitar'; selectedPackageGuitarType = 'Acoustic';
+      renderPackageDateRows(); refreshPackageDurationOptions(); updatePackageTotal();
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Buy Package →'; btn.disabled = false;
+    }
+    return false;
+  }
+
+  // GROUP CLASSES, a fully separate registration flow from private lessons
+  let selectedGroupInstrument = 'Guitar';
+  function selectGroupInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGroupInstrument = name;
+  }
+
+  async function handleGroupClassRegistration(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('groupName').value.trim();
+    const email = document.getElementById('groupEmail').value.trim();
+    const phone = document.getElementById('groupPhone').value.trim();
+    const date = document.getElementById('groupDate').value;
+    const time = document.getElementById('groupTime').value;
+    const durationVal = document.getElementById('groupDuration').value.split('|');
+    const durationMinutes = durationVal[0];
+    const price = durationVal[1];
+    const ongoingInterest = document.getElementById('groupOngoingInterest').checked;
+    if (!name || !email || !date) { alert('Please fill in your name, email, and preferred date.'); return false; }
+    const btn = document.getElementById('groupSubmitBtn');
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    const formData = new FormData();
+    formData.append('form-name', 'booking');
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('instrument', 'Group Class, ' + selectedGroupInstrument);
+    formData.append('date', date);
+    formData.append('time', time);
+    formData.append('duration', durationMinutes);
+    formData.append('total', '$' + price + ' (pending confirmation)');
+    formData.append('group_ongoing_interest', ongoingInterest ? 'Yes - interested in an ongoing weekly/fortnightly group class if this works out.' : '');
+    fetch('/', { method: 'POST', body: formData }).catch(() => {});
+    setTimeout(() => {
+      btn.textContent = 'Register Interest →'; btn.disabled = false;
+      document.getElementById('groupClassForm').reset();
+      document.getElementById('modalTitle').textContent = 'Interest Registered!';
+      document.getElementById('modalBody').textContent = 'Your interest in a ' + durationMinutes + '-minute ' + selectedGroupInstrument + ' group class on ' + date + ' at ' + time + ' has been recorded ($' + price + ' per person once confirmed). James will be in touch once a second person books the same instrument, time, and duration.' + (ongoingInterest ? ' He\'ll also follow up about setting this up as an ongoing class once it\'s confirmed.' : '');
+      document.getElementById('successModal').classList.add('open');
+    }, 1000);
+    return false;
+  }
+
+  async function handleInterest(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('interestName').value.trim();
+    const email = document.getElementById('interestEmail').value.trim();
+    const note = document.getElementById('interestNote').value.trim();
+    if (!name || !email) { alert('Please fill in your name and email.'); return false; }
+    const btn = document.getElementById('interestSubmitBtn');
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    const formData = new FormData();
+    formData.append('form-name', 'booking');
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('phone', '');
+    formData.append('instrument', 'General Interest (no time selected)');
+    formData.append('date', '');
+    formData.append('time', '');
+    formData.append('duration', '');
+    formData.append('lessons_count', '');
+    formData.append('total', 'N/A (registering interest, not booked)');
+    if (note) formData.append('note', note);
+    fetch('/', { method: 'POST', body: formData }).catch(() => {});
+    setTimeout(() => {
+      btn.textContent = 'Register Interest'; btn.disabled = false;
+      document.getElementById('interestForm').reset();
+      document.getElementById('modalTitle').textContent = 'Interest Registered!';
+      document.getElementById('modalBody').textContent = 'Thanks ' + name + '. James has your details and will be in touch as soon as a spot opens up.';
+      document.getElementById('successModal').classList.add('open');
+    }, 1000);
+    return false;
+  }
+
+  // James is closed on BOTH Saturday and Sunday. Kept as one shared
+  // check (rather than a Sunday-only test repeated in several places)
+  // so a future change to which days are open only has to happen here.
+  function isClosedDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const dow = d.getDay();
+    return dow === 0 || dow === 6;
+  }
+
+  // Names the specific closed day in warnings, so someone who picks a
+  // Saturday isn't told "closed on Sundays" and left confused about
+  // whether their date was actually the problem.
+  function closedDayName(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.getDay() === 0 ? 'Sundays' : 'Saturdays';
+  }
+
+  function isPastDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const today = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    return d < today;
+  }
+
+  function isSlotTaken(dateStr, timeStr, durationMinutes) {
+    return !getAvailableTimes(dateStr, durationMinutes || 45).includes(timeStr);
+  }
+
+  // MANAGE BOOKING, self-service lookup and cancellation
+  async function findMyBookings() {
+    const email = document.getElementById('manageEmail').value.trim();
+    const errEl = document.getElementById('manageError');
+    const resultsEl = document.getElementById('manageResults');
+    errEl.textContent = '';
+    resultsEl.innerHTML = '';
+    if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+    const btn = document.getElementById('findBookingsBtn');
+    btn.textContent = 'Searching…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/find-bookings?email=' + encodeURIComponent(email));
+      const result = await resp.json();
+      btn.textContent = 'Find My Lessons'; btn.disabled = false;
+      if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
+      if (!result.bookings || result.bookings.length === 0) {
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No upcoming lessons found for that email.</p>';
+        return;
+      }
+      result.bookings.forEach(b => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.6rem;gap:0.75rem;flex-wrap:wrap;';
+        const info = document.createElement('div');
+        info.style.cssText = 'font-size:0.85rem;color:var(--cream);';
+        info.textContent = b.date + ' at ' + b.time + ' (' + b.duration + ' min)';
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;';
+        // A student can only ever get one free reschedule per original
+        // booking (mirrors cancel-booking.js's own eligible check), so
+        // only offer the Reschedule button when it would actually work -
+        // otherwise it's a dead end that just confuses people further.
+        const hoursUntil = (new Date(b.date + 'T00:00:00').getTime() + (timeToMinutes(b.time) || 0) * 60000 - Date.now()) / (1000 * 60 * 60);
+        const canReschedule = hoursUntil >= 24 && !b.alreadyRescheduled;
+        if (canReschedule) {
+          const rescheduleBtn = document.createElement('button');
+          rescheduleBtn.className = 'btn-primary';
+          rescheduleBtn.type = 'button';
+          rescheduleBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+          rescheduleBtn.textContent = 'Reschedule';
+          rescheduleBtn.onclick = () => confirmAction('reschedule', email, b.date, b.time, b.alreadyRescheduled);
+          btnGroup.appendChild(rescheduleBtn);
+        }
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn-outline';
+        cancelBtn.type = 'button';
+        cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = () => confirmAction('cancel', email, b.date, b.time, b.alreadyRescheduled);
+        btnGroup.appendChild(cancelBtn);
+        row.appendChild(info);
+        row.appendChild(btnGroup);
+        resultsEl.appendChild(row);
+      });
+    } catch (e) {
+      btn.textContent = 'Find My Lessons'; btn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  // If arriving via a booking confirmation email's cancellation link
+  // (?manage_email=...), pre-fill the Manage Booking email field, run the
+  // lookup automatically, and scroll straight to the results, so the
+  // student doesn't have to type their email in again.
+  async function initManageFromLink() {
+    const params = new URLSearchParams(window.location.search);
+    const manageEmail = params.get('manage_email');
+    if (!manageEmail) return;
+    document.getElementById('manageEmail').value = manageEmail;
+    await findMyBookings();
+    const manageSection = document.getElementById('manage');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      manageSection.scrollIntoView({ behavior: 'smooth' });
+    }));
+  }
+
+  function confirmAction(action, email, date, time, alreadyRescheduled) {
+    document.getElementById('manageError').textContent = '';
+    const start = new Date(date + 'T00:00:00');
+    start.setMinutes(start.getMinutes() + (timeToMinutes(time) || 0));
+    const hoursUntil = (start.getTime() - Date.now()) / (1000 * 60 * 60);
+    const hasNotice = hoursUntil >= 24;
+    // Mirrors cancel-booking.js's own eligible = hasNoticeForCredit &&
+    // !alreadyRescheduledOnce exactly, so this pre-confirmation message
+    // can never end up promising something the server then contradicts.
+    const eligible = hasNotice && !alreadyRescheduled;
+    const titleEl = document.getElementById('cancelConfirmTitle');
+    const yesBtn = document.getElementById('cancelConfirmYesBtn');
+    let message;
+    if (action === 'reschedule') {
+      titleEl.textContent = 'Reschedule this lesson?';
+      yesBtn.textContent = 'Yes, reschedule';
+      yesBtn.style.background = '#c9942a';
+      yesBtn.style.color = '#1a1a1a';
+      message = 'This frees up your lesson on ' + date + ' at ' + time + ' and takes you straight to picking a new time within the next two weeks (Monday to Friday). No charge, no card needed - it\'s the same paid lesson, just moved.';
+    } else {
+      titleEl.textContent = 'Cancel this lesson?';
+      yesBtn.textContent = 'Yes, cancel it';
+      yesBtn.style.background = '#f87171';
+      yesBtn.style.color = '#1a1a1a';
+      if (eligible) {
+        message = 'Your lesson on ' + date + ' at ' + time + ' is 24+ hours away, so you\'ll also get a link by email in case you change your mind, to rebook a new time yourself over the next two weeks. If you don\'t rebook within that fortnight, it won\'t be refunded.';
+      } else if (alreadyRescheduled) {
+        message = 'Your lesson on ' + date + ' at ' + time + ' has already been rescheduled once, so it isn\'t eligible for a further free reschedule. The full lesson fee applies and no rebooking is available.';
+      } else {
+        message = 'Your lesson on ' + date + ' at ' + time + ' is less than 24 hours away, so the full lesson fee applies and no makeup lesson is available.';
+      }
+    }
+    document.getElementById('cancelConfirmBody').textContent = message;
+    document.getElementById('cancelConfirmModal').classList.add('open');
+    yesBtn.onclick = () => submitAction(action, email, date, time);
+    document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
+  }
+
+  function closeCancelConfirmModal() {
+    document.getElementById('cancelConfirmModal').classList.remove('open');
+  }
+
+  async function submitAction(action, email, date, time) {
+    const yesBtn = document.getElementById('cancelConfirmYesBtn');
+    const busyText = action === 'reschedule' ? 'Rescheduling...' : 'Cancelling...';
+    yesBtn.textContent = busyText; yesBtn.disabled = true;
+    const errEl = document.getElementById('manageError');
+    try {
+      // Both actions call the same endpoint: freeing the slot is identical
+      // either way, the only difference is what happens next. Rescheduling
+      // still counts as "cancelling" this specific slot server-side, which
+      // is exactly why a free reschedule credit gets issued for it.
+      const resp = await fetch('/.netlify/functions/cancel-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, date: date, time: time })
+      });
+      const result = await resp.json();
+      yesBtn.disabled = false;
+      if (!result.success) {
+        closeCancelConfirmModal();
+        yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+        errEl.textContent = result.error || 'Could not process that. Please contact James directly.';
+        return;
+      }
+      if (action === 'reschedule' && result.eligible && result.rescheduleToken) {
+        // Send them straight into the existing, already-tested reschedule
+        // panel instead of making them wait on an email - same flow the
+        // email link uses, just reached immediately.
+        window.location.href = 'booking.html?reschedule=' + encodeURIComponent(result.rescheduleToken) + '#reschedulePanel';
+        return;
+      }
+      closeCancelConfirmModal();
+      yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+      document.getElementById('modalTitle').textContent = result.unpaidHold ? 'Reservation Removed' : 'Lesson Cancelled';
+      // If the lesson qualified for a free reschedule but no credit token
+      // came back, the credit failed to save server-side - and that same
+      // failure also leaves the rebook button out of the email. Saying
+      // "check your email" here would send them looking for a link that
+      // isn't there, so point them at James instead, who can sort it out.
+      const eligibleButNoToken = result.eligible && !result.rescheduleToken;
+      document.getElementById('modalBody').textContent = result.unpaidHold
+        ? 'That reservation was never paid for, so it has simply been removed. No charge applies and nothing further is needed.'
+        : (eligibleButNoToken
+          ? 'Your lesson is cancelled and you\'re still entitled to a free reschedule, but the rebooking link couldn\'t be generated. Please contact James on 0499 232 898 or jamesmcqmusic@gmail.com and he\'ll book your new time directly.'
+          : (result.eligible
+            ? 'Check your email for a link to rebook a new time within the next two weeks.'
+            : (result.alreadyRescheduledOnce
+              ? 'This lesson had already been rescheduled once, so it wasn\'t eligible for a further free reschedule. No makeup or refund applies.'
+              : 'As this was within 24 hours, no makeup or refund applies.')));
+      document.getElementById('successModal').classList.add('open');
+      findMyBookings();
+      loadLiveBookings();
+    } catch (e) {
+      closeCancelConfirmModal();
+      yesBtn.textContent = action === 'reschedule' ? 'Yes, reschedule' : 'Yes, cancel it';
+      yesBtn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please contact James directly.';
+    }
+  }
+
+  // Rebuilds the "Preferred Time" dropdown to only show times that work
+  // for the currently selected date and duration, so a bad time never
+  // even shows as pickable. Also refreshes each additional lesson's time
+  // picker against its own date.
+  // If the primary date picker is set to a closed day (Saturday or
+  // Sunday), clear it immediately and show a warning, rather than
+  // letting an unbookable date sit there.
+  function handleDateFieldChange(input) {
+    const warning = document.getElementById('bookDateWarning');
+    if (input.value && isClosedDate(input.value)) {
+      warning.textContent = 'James is closed on ' + closedDayName(input.value) + '. Please choose a different day.';
+      input.value = '';
+      warning.style.display = 'block';
+    } else {
+      warning.style.display = 'none';
+    }
+    refreshTimeOptions();
+    updateDurationAvailability();
+  }
+
+  // Disables any Lesson Duration option that would not actually fit ANY
+  // of the currently selected lesson slots - the primary one, plus
+  // every additional lesson row in a multi-lesson booking - rather than
+  // only checking the primary slot and letting a conflict on lesson 3
+  // silently exist until submission. A duration only stays selectable
+  // if it works for every slot that currently has both a date and a
+  // time chosen; slots missing either are skipped, not treated as a
+  // failure, since they're simply not filled in yet.
+  function updateDurationAvailability() {
+    const durationSelect = document.getElementById('bookDuration');
+    const primaryDate = document.getElementById('bookDate').value;
+    const primaryTime = document.getElementById('bookTime').value;
+    const extraRows = Array.from(document.querySelectorAll('#extraDatesContainer .extra-date-row')).map(row => ({
+      date: row.querySelector('.extra-date-input').value,
+      time: row.querySelector('.extra-time-input').value
+    }));
+    const allSlots = [{ date: primaryDate, time: primaryTime }].concat(extraRows).filter(s => s.date && s.time);
+    if (allSlots.length === 0) {
+      Array.from(durationSelect.options).forEach(opt => {
+        opt.disabled = false;
+        opt.textContent = opt.textContent.replace(' (unavailable at this time)', '');
+      });
+      return;
+    }
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = allSlots.every(s => getAvailableTimes(s.date, minutes).includes(s.time));
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) {
+        durationSelect.value = firstValid.value;
+        updateTotal();
+      }
+    }
+  }
+
+  function refreshTimeOptions() {
+    const durationVal = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value.split('|')[0] : '45';
+    const durationMinutes = parseInt(durationVal, 10) || 45;
+
+    const primaryDate = document.getElementById('bookDate').value;
+    const primarySelect = document.getElementById('bookTime');
+    const prevPrimary = primarySelect.value;
+
+    const validPrimary = primaryDate ? getAvailableTimes(primaryDate, durationMinutes) : ALL_TIMES;
+    primarySelect.innerHTML = '';
+    if (primaryDate && validPrimary.length === 0) {
+      const opt = document.createElement('option');
+      opt.textContent = isClosedDate(primaryDate) ? 'Closed on ' + closedDayName(primaryDate) : 'No times available that day';
+      opt.disabled = true; opt.selected = true;
+      primarySelect.appendChild(opt);
+    } else {
+      validPrimary.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        primarySelect.appendChild(opt);
+      });
+      if (validPrimary.includes(prevPrimary)) primarySelect.value = prevPrimary;
+    }
+
+    document.querySelectorAll('#extraDatesContainer .extra-date-row').forEach(row => {
+      const dInput = row.querySelector('.extra-date-input');
+      const tSelect = row.querySelector('.extra-time-input');
+      const prevVal = tSelect.value;
+      const validTimes = dInput.value ? getAvailableTimes(dInput.value, durationMinutes) : ALL_TIMES;
+      tSelect.innerHTML = '';
+      if (dInput.value && validTimes.length === 0) {
+        const opt = document.createElement('option');
+        opt.textContent = isClosedDate(dInput.value) ? 'Closed on ' + closedDayName(dInput.value) : 'No times available that day';
+        opt.disabled = true; opt.selected = true;
+        tSelect.appendChild(opt);
+      } else {
+        validTimes.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t; opt.textContent = t;
+          tSelect.appendChild(opt);
+        });
+        if (validTimes.includes(prevVal)) tSelect.value = prevVal;
+      }
+    });
+  }
+
+  async function handleBooking(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('bookName').value.trim();
+    const email = document.getElementById('bookEmail').value.trim();
+    const date = document.getElementById('bookDate').value;
+    const time = document.getElementById('bookTime').value;
+    if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
+    document.getElementById('stripe-error').textContent = '';
+    if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
+    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. For anything more ongoing, set up an enrollment instead.'; return; }
+    if (isClosedDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on ' + closedDayName(date) + '.'; return; }
+    if (hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
+    const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
+    if (isSlotTaken(date, time, primaryDurationMinutes)) { document.getElementById('stripe-error').textContent = 'Sorry, that time slot is already booked, overlaps another lesson, or is too close to one. Please pick a different time from the calendar above.'; return; }
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Processing…'; btn.disabled = true;
+   if (!stripe || !cardElement) { alert('Payment not configured. Contact James directly.'); btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
+
+    let lessonsForReserve = parseInt(document.getElementById('bookLessons').value);
+    if (!lessonsForReserve || lessonsForReserve < 1) lessonsForReserve = 1;
+    const isMultiLesson = lessonsForReserve > 1;
+
+    // Build the full list of lesson slots: the primary date/time above,
+    // plus one manually-chosen date/time for every additional lesson.
+    let allSlots = [{ date: date, time: time }];
+    if (isMultiLesson) {
+      const rows = document.querySelectorAll('#extraDatesContainer .extra-date-row');
+      for (const row of rows) {
+        const dInput = row.querySelector('.extra-date-input');
+        const tInput = row.querySelector('.extra-time-input');
+        if (!dInput.value) {
+          document.getElementById('stripe-error').textContent = 'Please choose a date for every lesson.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (isPastDate(dInput.value)) {
+          document.getElementById('stripe-error').textContent = 'One of your lesson dates has already passed. Please check each date.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (dInput.value > getMaxBookingDate()) {
+          document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. Please check each date.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (isClosedDate(dInput.value)) {
+          document.getElementById('stripe-error').textContent = 'James is closed on ' + closedDayName(dInput.value) + '. Please choose a different day for every lesson.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (hoursUntilSlot(dInput.value, tInput.value) < MIN_NOTICE_HOURS) {
+          document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please check each lesson time.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        if (isSlotTaken(dInput.value, tInput.value, primaryDurationMinutes)) {
+          document.getElementById('stripe-error').textContent = 'One of your lesson times (' + dInput.value + ' at ' + tInput.value + ') is already booked, overlaps another lesson, or is too close to one. Please check each date and time.';
+          btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+          return;
+        }
+        allSlots.push({ date: dInput.value, time: tInput.value });
+      }
+    }
+
+    const patternError = validateBookingPattern(allSlots);
+    if (patternError) {
+      document.getElementById('stripe-error').textContent = patternError;
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+
+    // Reserve every slot before charging, so two people can never both pay for the same time.
+    let reserveResult;
+    try {
+      const reserveResp = await fetch('/.netlify/functions/reserve-multi-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: allSlots,
+          name: name,
+          email: email,
+          duration: primaryDurationMinutes,
+          instrument: selectedInstrument,
+          guitar_type: (selectedInstrument === 'Piano') ? '' : selectedGuitarType,
+          song_requests: document.getElementById('bookSongRequests').value.trim(),
+          genre_focus: document.getElementById('bookGenreFocus').value,
+          theory_interest: document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No',
+          lesson_goals_notes: document.getElementById('bookGoalsNotes').value.trim()
+        })
+      });
+      reserveResult = await reserveResp.json();
+    } catch (e) {
+      document.getElementById('stripe-error').textContent = 'Could not confirm slot availability. Please try again.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+    if (!reserveResult.success) {
+      document.getElementById('stripe-error').textContent = reserveResult.error || 'That time slot is no longer available.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+    const reservedSlots = reserveResult.slots || allSlots;
+    const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
+    if (error) { document.getElementById('stripe-error').textContent = error.message; btn.textContent = 'Proceed to Payment'; btn.disabled = false; return; }
+
+    // Charge the card via our serverless function (client-side alone cannot actually charge a card).
+    // Sends the duration and lesson count, not a dollar amount - the
+    // server looks up the actual price itself from those, rather than
+    // trusting whatever number this page happens to send. See the
+    // security note in create-payment-intent.js for why that matters.
+    let chargeResult;
+    try {
+      const resp = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          durationMinutes: primaryDurationMinutes,
+          lessonCount: reservedSlots.length,
+          payment_method_id: paymentMethod.id,
+          email: email,
+          description: selectedInstrument + ' lesson (' + date + ' ' + time + ')'
+        })
+      });
+      chargeResult = await resp.json();
+    } catch (e) {
+      document.getElementById('stripe-error').textContent = 'Could not reach the payment server. Please try again or contact James directly.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+    if (!chargeResult.success) {
+      document.getElementById('stripe-error').textContent = chargeResult.error || 'Payment failed. Please check your card details and try again.';
+      btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+      return;
+    }
+    if (chargeResult.status === 'requires_action') {
+      const { error: confirmError } = await stripe.confirmCardPayment(chargeResult.client_secret);
+      if (confirmError) {
+        document.getElementById('stripe-error').textContent = confirmError.message;
+        btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+        return;
+      }
+    }
+    // Payment succeeded - clear the pending-hold flag on every slot just
+    // reserved, so it's now a permanent booking rather than something
+    // that could later be treated as an abandoned, stale hold. Genuinely
+    // awaited now, not fire-and-forget: send-confirmation-email.js
+    // verifies a real, confirmed booking exists before it sends
+    // anything, so this needs to have actually finished clearing the
+    // pending flag first, or that check would wrongly reject a
+    // completely legitimate, already-paid booking. Errors are still
+    // swallowed - a failure here shouldn't block the confirmation the
+    // student is about to see, it just means this step didn't win the
+    // race, not that anything is actually wrong.
+    await fetch('/.netlify/functions/confirm-reservation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slots: reservedSlots.map(s => ({ date: s.date, time: s.time })),
+        payment_intent_id: chargeResult.payment_intent_id,
+        durationMinutes: primaryDurationMinutes
+      })
+    }).catch(() => {});
+    // Payment succeeded, submit booking details to Netlify Forms
+    const lessons = lessonsForReserve;
+    const duration = document.getElementById('bookDuration') ? document.getElementById('bookDuration').value : '';
+    const phone = document.getElementById('bookPhone').value;
+    document.getElementById('hiddenTotal').value = document.getElementById('totalAmt').textContent;
+    const formData = new FormData();
+    formData.append('form-name', 'booking');
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('instrument', selectedInstrument);
+    formData.append('guitar_type', (selectedInstrument === 'Piano') ? '' : selectedGuitarType);
+    formData.append('date', date);
+    formData.append('time', time);
+    formData.append('duration', duration);
+    formData.append('lessons_count', lessons);
+    formData.append('all_lesson_dates', reservedSlots.map(s => s.date + ' ' + s.time).join(' | '));
+    formData.append('song_requests', document.getElementById('bookSongRequests').value.trim());
+    formData.append('genre_focus', document.getElementById('bookGenreFocus').value);
+    formData.append('theory_interest', document.getElementById('bookTheoryInterest').checked ? 'Yes' : 'No');
+    formData.append('lesson_goals_notes', document.getElementById('bookGoalsNotes').value.trim());
+    formData.append('total', document.getElementById('totalAmt').textContent);
+    fetch('/', { method: 'POST', body: formData }).catch(() => {});
+    // Send the confirmation email, fire-and-forget so a failure here
+    // never blocks or alarms the student, since payment already succeeded.
+    fetch('/.netlify/functions/send-confirmation-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        instrument: selectedInstrument,
+        guitar_type: (selectedInstrument === 'Piano') ? '' : selectedGuitarType,
+        date: date,
+        time: time,
+        slots: reservedSlots,
+        duration: duration,
+        lessons_count: lessons,
+        total: document.getElementById('totalAmt').textContent
+      })
+    }).catch(() => {});    
+
+    btn.textContent = 'Proceed to Payment'; btn.disabled = false;
+    document.getElementById('modalTitle').textContent = 'Booking Confirmed!';
+    if (isMultiLesson) {
+      document.getElementById('modalBody').textContent = 'Your payment went through and all ' + reservedSlots.length + ' lessons are booked. James will be in touch within 24 hours to confirm. Keep an eye on ' + email + ' for his message.';
+    } else {
+      const calTitle = (selectedInstrument || 'Music') + ' Lesson - MCQ Music';
+      document.getElementById('modalBody').innerHTML = 'Your payment went through and your lesson is booked for ' + date + ' at ' + time + '. James will be in touch within 24 hours to confirm your time. Keep an eye on ' + email + ' for his message.' +
+        calendarLinksHtml(calTitle, date, time, primaryDurationMinutes) +
+        '<br><br>Most students then lock in this same time every week or fortnight, no need to book each one individually. <a href="booking.html#subscribe" onclick="closeModal()" style="color:var(--gold);">Set up your regular slot</a>.';
+    }
+    document.getElementById('successModal').classList.add('open');fbq('track', 'Lead');  }
+
+  document.getElementById('groupDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('groupDate').max = getMaxBookingDate();
+
+  // ===== TRIAL LESSON =====
+  let selectedTrialInstrument = 'Guitar';
+  let selectedTrialGuitarType = 'Acoustic';
+  function selectTrialInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTrialInstrument = name;
+    const guitarGroup = document.getElementById('trialGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectTrialGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTrialGuitarType = type;
+  }
+  function updateTrialTotal() {
+    const price = parseInt(document.getElementById('trialDuration').value.split('|')[1], 10);
+    document.getElementById('trialTotalAmt').textContent = '$' + price;
+  }
+  // Fills the time dropdown with only genuinely free times for the
+  // chosen date and duration, same underlying getAvailableTimes logic
+  // used by the calendar and every other form on this page - not a
+  // simplified version of it.
+  function refreshTrialTimeOptions() {
+    const dateInput = document.getElementById('trialDate');
+    const timeSelect = document.getElementById('trialTime');
+    const durationMinutes = parseInt(document.getElementById('trialDuration').value.split('|')[0], 10);
+    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; return; }
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(dateInput.value, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = isClosedDate(dateInput.value) ? 'Closed on ' + closedDayName(dateInput.value) : 'No times free that day for this duration';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+  // Mirrors refreshSubscribeDurationOptions exactly, adapted for a
+  // specific date instead of a day-of-week - grays out (not removes)
+  // any duration that wouldn't actually fit at the currently chosen
+  // date and time, so an invalid combination can never be submitted in
+  // the first place, rather than being accepted and rejected only
+  // after the person picks it.
+  function refreshTrialDurationOptions() {
+    const dateInput = document.getElementById('trialDate');
+    const timeSelect = document.getElementById('trialTime');
+    const durationSelect = document.getElementById('trialDuration');
+    if (!dateInput || !timeSelect || !durationSelect) return;
+    const dateVal = dateInput.value;
+    const timeVal = timeSelect.value;
+    if (!dateVal || !timeVal) return;
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = getAvailableTimes(dateVal, minutes).includes(timeVal);
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '') + (valid ? '' : ' (unavailable at this time)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updateTrialTotal();
+  }
+  function handleTrialDateChange() { refreshTrialTimeOptions(); refreshTrialDurationOptions(); }
+  function handleTrialTimeChange() { refreshTrialDurationOptions(); }
+  function handleTrialDurationChange() { refreshTrialTimeOptions(); refreshTrialDurationOptions(); updateTrialTotal(); }
+  document.getElementById('trialDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('trialDate').max = getMaxBookingDate();
+
+  // ===== LESSON PACKAGE =====
+  let selectedPackageInstrument = 'Guitar';
+  let selectedPackageGuitarType = 'Acoustic';
+  function selectPackageInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPackageInstrument = name;
+    const guitarGroup = document.getElementById('packageGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectPackageGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPackageGuitarType = type;
+  }
+  function updatePackageTotal() {
+    const price = parseInt(document.getElementById('packageDuration').value.split('|')[1], 10);
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    document.getElementById('packageTotalAmt').textContent = '$' + (price * size);
+  }
+  // Refreshes just ONE date row's time dropdown - each row picks its
+  // own date, so each needs its own independent availability check
+  // against whatever the other rows have already picked, same
+  // conflict-aware getAvailableTimes logic used everywhere else on
+  // this page, not a simplified version of it.
+  function refreshPackageRowTimeOptions(rowIndex) {
+    const dateInput = document.getElementById('packageDate' + rowIndex);
+    const timeSelect = document.getElementById('packageTime' + rowIndex);
+    const durationMinutes = parseInt(document.getElementById('packageDuration').value.split('|')[0], 10);
+    if (!dateInput.value) { timeSelect.innerHTML = '<option value="">Choose a date first</option>'; refreshPackageDurationOptions(); return; }
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(dateInput.value, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = isClosedDate(dateInput.value) ? 'Closed on ' + closedDayName(dateInput.value) : 'No times free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+    refreshPackageDurationOptions();
+  }
+  function renderPackageDateRows() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const wrap = document.getElementById('packageDateRows');
+    wrap.innerHTML = '';
+    for (let i = 1; i <= size; i++) {
+      const row = document.createElement('div');
+      row.className = 'form-row';
+      row.innerHTML =
+        '<div class="form-group">' +
+          '<label class="form-label">Lesson ' + i + ' - Date</label>' +
+          '<input class="form-input" type="date" id="packageDate' + i + '" onchange="refreshPackageRowTimeOptions(' + i + ')" required>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Lesson ' + i + ' - Time</label>' +
+          '<select class="form-input" id="packageTime' + i + '" onchange="refreshPackageDurationOptions()" required><option value="">Choose a date first</option></select>' +
+        '</div>';
+      wrap.appendChild(row);
+      const dateInput = document.getElementById('packageDate' + i);
+      dateInput.min = new Date().toISOString().split('T')[0];
+      dateInput.max = getMaxPackageBookingDate();
+    }
+  }
+  // A package shares ONE duration across every lesson in it, so a
+  // duration only counts as valid here if it fits at EVERY row that
+  // currently has both a date and time chosen - rows still awaiting
+  // input are skipped rather than treated as a conflict, since nothing
+  // has actually been decided there yet.
+  function refreshPackageDurationOptions() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    const durationSelect = document.getElementById('packageDuration');
+    if (!durationSelect) return;
+    const filledRows = [];
+    for (let i = 1; i <= size; i++) {
+      const d = document.getElementById('packageDate' + i);
+      const t = document.getElementById('packageTime' + i);
+      if (d && t && d.value && t.value) filledRows.push({ date: d.value, time: t.value });
+    }
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = filledRows.every(r => getAvailableTimes(r.date, minutes).includes(r.time));
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at one or more chosen times)', '') + (valid ? '' : ' (unavailable at one or more chosen times)');
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updatePackageTotal();
+  }
+  function handlePackageSizeChange() { renderPackageDateRows(); refreshPackageDurationOptions(); updatePackageTotal(); }
+  function handlePackageDurationChange() {
+    const size = parseInt(document.getElementById('packageSize').value, 10);
+    for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
+    updatePackageTotal();
+  }
+  renderPackageDateRows();
+
+  // ===== SUBSCRIPTIONS =====
+  let selectedSubscribeInstrument = 'Guitar';
+  let selectedSubscribeGuitarType = 'Acoustic';
+  function selectSubscribeInstrument(btn, name) {
+    btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSubscribeInstrument = name;
+    const guitarGroup = document.getElementById('subGuitarTypeGroup');
+    if (guitarGroup) guitarGroup.style.display = (name === 'Piano') ? 'none' : 'block';
+  }
+  function selectSubGuitarType(btn, type) {
+    btn.closest('.instrument-grid').querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSubscribeGuitarType = type;
+  }
+
+  // Returns the nearest future date (starting tomorrow) that falls on the
+  // given day-of-week, used purely as a stand-in date to preview
+  // availability for a recurring slot against the existing calendar logic.
+  // The real, authoritative check (against every other subscriber, not
+  // just this one representative date) happens server-side in
+  // create-subscription.js at checkout time.
+  function getNextDateForDow(dow) {
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() !== dow) d.setDate(d.getDate() + 1);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  // Mirrors updateDurationAvailability() below, which already does
+  // exactly this for the one-off booking form - reuses getAvailableTimes
+  // directly rather than a second parallel conflict-checking
+  // implementation, so the two can never drift out of sync with each
+  // other. Grays out (rather than removes) any duration that wouldn't
+  // fit at the currently selected day/time, so it's visible but
+  // unselectable - the student can see 90 minutes exists as an option
+  // in general, just not right here.
+  // Subscribe shares ONE duration across every lesson-per-week slot,
+  // same situation as a package sharing one duration across every
+  // lesson in it - a duration only counts as valid here if it fits at
+  // the main slot AND every extra slot that currently has a day and
+  // time chosen, not just the main one on its own. Missing this for
+  // the extra slots specifically was the same gap package had before
+  // being fixed to check every row.
+  function refreshSubscribeDurationOptions() {
+    const daySelect = document.getElementById('subDay');
+    const timeSelect = document.getElementById('subTime');
+    const durationSelect = document.getElementById('subDuration');
+    if (!daySelect || !timeSelect || !durationSelect) return;
+    const dow = parseInt(daySelect.value, 10);
+    const timeVal = timeSelect.value;
+    if (!timeVal) return;
+    const slotsToCheck = [{ date: getNextDateForDow(dow), time: timeVal }];
+    document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row').forEach(row => {
+      const rDow = parseInt(row.querySelector('.sub-extra-dow').value, 10);
+      const rTime = row.querySelector('.sub-extra-time').value;
+      if (rTime) slotsToCheck.push({ date: getNextDateForDow(rDow), time: rTime });
+    });
+    let currentStillValid = false;
+    Array.from(durationSelect.options).forEach(opt => {
+      const minutes = parseInt(opt.value.split('|')[0], 10);
+      const valid = slotsToCheck.every(s => getAvailableTimes(s.date, minutes).includes(s.time));
+      opt.disabled = !valid;
+      opt.textContent = opt.textContent.replace(' (unavailable at this time)', '').replace(' (unavailable at one or more chosen times)', '') + (valid ? '' : (slotsToCheck.length > 1 ? ' (unavailable at one or more chosen times)' : ' (unavailable at this time)'));
+      if (opt.value === durationSelect.value && valid) currentStillValid = true;
+    });
+    if (!currentStillValid) {
+      const firstValid = Array.from(durationSelect.options).find(o => !o.disabled);
+      if (firstValid) durationSelect.value = firstValid.value;
+    }
+    updateSubscribeTotal();
+  }
+
+  function refreshSubscribeTimeOptions() {
+    const daySelect = document.getElementById('subDay');
+    const timeSelect = document.getElementById('subTime');
+    const durationSelect = document.getElementById('subDuration');
+    if (!daySelect || !timeSelect || !durationSelect) return;
+    const dow = parseInt(daySelect.value, 10);
+    const durationMinutes = parseInt(durationSelect.value.split('|')[0], 10) || 45;
+    const prevVal = timeSelect.value;
+    const previewDate = getNextDateForDow(dow);
+    const validTimes = getAvailableTimes(previewDate, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = ''; // explicit empty value - without this, a <option> with no
+                       // value attribute defaults its .value to its own text,
+                       // which is truthy and would slip past handleSubscribe's
+                       // "if (!time)" guard
+      opt.textContent = 'No times currently free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+  }
+
+  // Builds one day+time picker per additional lesson (lessonsPerWeek - 1
+  // of them), mirroring renderExtraDateRows for the one-off booking form
+  // - but day-of-week based, not a specific date, since these become
+  // their own recurring weekly (or fortnightly) subscriptions, not
+  // one-off dates.
+  function renderSubExtraSlotRows(count) {
+    const container = document.getElementById('subExtraSlotsContainer');
+    const group = document.getElementById('subExtraSlotsGroup');
+    const needed = Math.max(0, count - 1);
+    group.style.display = needed > 0 ? 'block' : 'none';
+    const existing = Array.from(container.querySelectorAll('.sub-extra-slot-row')).map(row => ({
+      dow: row.querySelector('.sub-extra-dow').value,
+      time: row.querySelector('.sub-extra-time').value
+    }));
+    container.innerHTML = '';
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    for (let i = 0; i < needed; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'sub-extra-slot-row';
+      wrap.style.cssText = 'margin-bottom:0.8rem;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;';
+      label.textContent = 'Lesson ' + (i + 2);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;';
+      const dowSelect = document.createElement('select');
+      dowSelect.className = 'form-input sub-extra-dow';
+      for (let d = 1; d <= 5; d++) {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = dayNames[d];
+        dowSelect.appendChild(opt);
+      }
+      const timeSelect = document.createElement('select');
+      timeSelect.className = 'form-input sub-extra-time';
+      ALL_TIMES.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (existing[i]) {
+        dowSelect.value = existing[i].dow;
+        timeSelect.value = existing[i].time;
+      }
+      dowSelect.addEventListener('change', refreshSubExtraSlotTimeOptions.bind(null, wrap));
+      timeSelect.addEventListener('change', () => { updateSubscribeTotal(); refreshSubscribeDurationOptions(); });
+      row.appendChild(dowSelect);
+      row.appendChild(timeSelect);
+      wrap.appendChild(label);
+      wrap.appendChild(row);
+      container.appendChild(wrap);
+      refreshSubExtraSlotTimeOptions(wrap);
+    }
+    updateSubscribeTotal();
+  }
+
+  // Filters an extra slot row's own time options to what's actually
+  // free for its chosen day, same underlying getAvailableTimes logic
+  // used everywhere else - each extra lesson gets the exact same
+  // graying-out protection the primary slot already has, not a
+  // simplified version of it.
+  function refreshSubExtraSlotTimeOptions(wrap) {
+    const dowSelect = wrap.querySelector('.sub-extra-dow');
+    const timeSelect = wrap.querySelector('.sub-extra-time');
+    const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10) || 45;
+    const dow = parseInt(dowSelect.value, 10);
+    const previewDate = getNextDateForDow(dow);
+    const prevVal = timeSelect.value;
+    const validTimes = getAvailableTimes(previewDate, durationMinutes);
+    timeSelect.innerHTML = '';
+    if (validTimes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No times currently free that day';
+      opt.disabled = true; opt.selected = true;
+      timeSelect.appendChild(opt);
+    } else {
+      validTimes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        timeSelect.appendChild(opt);
+      });
+      if (validTimes.includes(prevVal)) timeSelect.value = prevVal;
+    }
+    refreshSubscribeDurationOptions();
+  }
+
+  function handleSubLessonsPerWeekChange() {
+    const count = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    renderSubExtraSlotRows(count);
+    refreshSubscribeDurationOptions();
+  }
+
+  function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); refreshSubscribeDurationOptions(); }
+  function handleSubscribeDurationChange() {
+    refreshSubscribeTimeOptions();
+    refreshSubscribeDurationOptions();
+    document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row').forEach(refreshSubExtraSlotTimeOptions);
+    updateSubscribeTotal();
+  }
+  function handleSubscribeTimeChange() { refreshSubscribeDurationOptions(); }
+
+  function updateSubscribeTotal() {
+    const price = parseInt(document.getElementById('subDuration').value.split('|')[1], 10);
+    const freq = document.getElementById('subFrequency').value;
+    const freqLabel = freq === 'fortnightly' ? 'every fortnight' : 'every week';
+    const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    if (lessonsPerWeek > 1) {
+      document.getElementById('subTotalAmt').textContent = '$' + (price * lessonsPerWeek) + ' ' + freqLabel + ' ($' + price + ' × ' + lessonsPerWeek + ' lessons, as ' + lessonsPerWeek + ' separate enrollments)';
+    } else {
+      document.getElementById('subTotalAmt').textContent = '$' + price + ' ' + freqLabel;
+    }
+  }
+
+  // Keeps the "1" option's own label in sync with whichever frequency is
+  // currently selected, rather than a fixed word that could contradict
+  // the Frequency dropdown right next to it - e.g. showing "a single
+  // weekly slot" while Frequency itself says "Every fortnight".
+  function updateLessonsPerWeekLabel() {
+    const freq = document.getElementById('subFrequency').value;
+    const freqWord = freq === 'fortnightly' ? 'fortnightly' : 'weekly';
+    const singleOption = document.querySelector('#subLessonsPerWeek option[value="1"]');
+    if (singleOption) singleOption.textContent = '1 (a single ' + freqWord + ' slot)';
+  }
+
+  refreshSubscribeTimeOptions();
+  refreshSubscribeDurationOptions();
+  updateLessonsPerWeekLabel();
+
+  // Posts to create-subscription.js, which validates the slot against
+  // every existing subscriber and one-off booking server-side, then
+  // returns a Stripe Checkout URL to redirect to. Nothing is charged
+  // until the student completes checkout on Stripe's own page.
+  // Shared by both the single-slot and multi-slot paths - posts one
+  // slot to create-subscription.js and returns its result, without
+  // redirecting itself, so the caller decides what happens next.
+  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes) {
+    const resp = await fetch('/.netlify/functions/create-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentName: name,
+        studentEmail: email,
+        phone: phone,
+        instrument: instrument,
+        guitarType: (instrument === 'Piano') ? '' : guitarType,
+        dayOfWeek: dow,
+        time: time,
+        durationMinutes: durationMinutes,
+        frequency: frequency,
+        skillLevel: skillLevel,
+        songRequests: songRequests,
+        genreFocus: genreFocus,
+        theoryInterest: theoryInterest,
+        goalsNotes: goalsNotes
+      })
+    });
+    return await resp.json();
+  }
+
+  async function handleSubscribe(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('subName').value.trim();
+    const email = document.getElementById('subEmail').value.trim();
+    const phone = document.getElementById('subPhone').value.trim();
+    const dow = parseInt(document.getElementById('subDay').value, 10);
+    const time = document.getElementById('subTime').value;
+    const durationMinutes = parseInt(document.getElementById('subDuration').value.split('|')[0], 10);
+    const frequency = document.getElementById('subFrequency').value;
+    const lessonsPerWeek = parseInt(document.getElementById('subLessonsPerWeek').value, 10) || 1;
+    const skillLevel = document.getElementById('subSkillLevel').value;
+    const songRequests = document.getElementById('subSongRequests').value.trim();
+    const genreFocus = getMultiSelectValue('subGenreFocus');
+    const theoryInterest = document.getElementById('subTheoryInterest').value;
+    const goalsNotes = document.getElementById('subGoalsNotes').value.trim();
+    const errEl = document.getElementById('subError');
+    errEl.style.display = 'none'; errEl.textContent = '';
+    if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
+    if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
+    if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
+    if (isSlotTaken(getNextDateForDow(dow), time, durationMinutes)) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'That lesson length is not available at this time. Please choose a different duration or time.';
+      return false;
+    }
+
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const slots = [{ dow: dow, time: time, dayName: dayNames[dow] }];
+
+    if (lessonsPerWeek > 1) {
+      const extraRows = Array.from(document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row'));
+      for (const row of extraRows) {
+        const rDow = parseInt(row.querySelector('.sub-extra-dow').value, 10);
+        const rTime = row.querySelector('.sub-extra-time').value;
+        if (!rTime) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Please choose a time for every additional lesson, or no times are currently free on one of those days.';
+          return false;
+        }
+        if (isSlotTaken(getNextDateForDow(rDow), rTime, durationMinutes)) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'One of your additional lesson times is no longer available. Please double-check each day and time.';
+          return false;
+        }
+        // Two lessons can't legitimately land on the exact same day and
+        // overlapping time as each other within this same submission -
+        // each is checked against everyone else's bookings above, but
+        // not yet against each other.
+        const newStart = timeToMinutes(rTime);
+        const newEnd = newStart + durationMinutes;
+        const clashesWithAnother = slots.some(s => {
+          if (s.dow !== rDow) return false;
+          const sStart = timeToMinutes(s.time);
+          const sEnd = sStart + durationMinutes;
+          return newStart < sEnd && sStart < newEnd;
+        });
+        if (clashesWithAnother) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Two of your chosen lessons overlap with each other. Please choose different times.';
+          return false;
+        }
+        slots.push({ dow: rDow, time: rTime, dayName: dayNames[rDow] });
+      }
+    }
+
+    const btn = document.getElementById('subSubmitBtn');
+    btn.textContent = 'Redirecting to checkout…'; btn.disabled = true;
+
+    if (slots.length === 1) {
+      // Unchanged single-slot path, exactly as it worked before this
+      // feature existed.
+      try {
+        const result = await submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, selectedSubscribeInstrument, selectedSubscribeGuitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes);
+        if (result.success && result.url) {
+          // sessionStorage here is only ever read to build the post-checkout
+          // success message, not to send data anywhere - skillLevel and the
+          // others don't need to be in it, since they already reached
+          // create-subscription.js directly above via Stripe's own metadata.
+          try {
+            sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
+              instrument: selectedSubscribeInstrument, dow: dow, dayName: dayNames[dow], time: time,
+              frequency: frequency, durationMinutes: durationMinutes
+            }));
+          } catch (e) {}
+          window.location.href = result.url;
+        } else {
+          errEl.style.display = 'block';
+          errEl.textContent = result.error || 'That slot is no longer available. Please choose a different day or time.';
+          btn.textContent = 'Enroll →'; btn.disabled = false;
+          refreshSubscribeTimeOptions();
+          refreshSubscribeDurationOptions();
+        }
+      } catch (e) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+        btn.textContent = 'Enroll →'; btn.disabled = false;
+      }
+      return false;
+    }
+
+    // Multi-slot path: each lesson becomes its own separate
+    // subscription (see the design note above submitOneSubscriptionSlot
+    // for why - this preserves every pause/resume/conflict function
+    // already tested tonight completely untouched, rather than
+    // rebuilding all of it to understand a subscription with multiple
+    // slots). Starts the first one now; the rest are triggered one at a
+    // time as each Stripe Checkout completes and redirects back here,
+    // via startSubscribeQueueSlot below.
+    const queue = {
+      studentName: name, studentEmail: email, phone: phone,
+      instrument: selectedSubscribeInstrument, guitarType: selectedSubscribeGuitarType, frequency: frequency, durationMinutes: durationMinutes,
+      skillLevel: skillLevel, songRequests: songRequests, genreFocus: genreFocus, theoryInterest: theoryInterest, goalsNotes: goalsNotes,
+      slots: slots, completedSlots: [], currentIndex: 0
+    };
+    await startSubscribeQueueSlot(queue, 0);
+    return false;
+  }
+
+  // Submits ONE slot from a multi-lesson queue and redirects to its
+  // Checkout session, saving the queue's progress first so the
+  // ?subscribed=1 handler on return knows exactly where things stand.
+  async function startSubscribeQueueSlot(queue, index) {
+    const errEl = document.getElementById('subError');
+    const btn = document.getElementById('subSubmitBtn');
+    const s = queue.slots[index];
+    try {
+      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes);
+      if (result.success && result.url) {
+        queue.currentIndex = index;
+        try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
+        window.location.href = result.url;
+      } else {
+        // This specific lesson failed - anything earlier in the queue
+        // is already a confirmed, real subscription and stays that way,
+        // so this needs to say exactly that, not read like the whole
+        // signup failed.
+        try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e) {}
+        if (errEl) {
+          errEl.style.display = 'block';
+          errEl.textContent = (index === 0 ? '' : (index) + ' of ' + queue.slots.length + ' lesson(s) already confirmed. ') +
+            'Lesson ' + (index + 1) + ' (' + s.dayName + ' ' + s.time + ') could not be booked: ' + (result.error || 'that time is no longer available.') +
+            (index === 0 ? '' : ' The rest were not attempted - you can enroll for a replacement time separately whenever you\'re ready.');
+        }
+        if (btn) { btn.textContent = 'Enroll →'; btn.disabled = false; }
+      }
+    } catch (e) {
+      try { sessionStorage.removeItem('mcqMultiSubscribeQueue'); } catch (e2) {}
+      if (errEl) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not reach the server for lesson ' + (index + 1) + '. Please try again or contact James directly.';
+      }
+      if (btn) { btn.textContent = 'Enroll →'; btn.disabled = false; }
+    }
+  }
+
+  // MANAGE SUBSCRIPTION, self-service lookup, pause, reschedule, cancel
+  async function findMySubscriptions() {
+    const email = document.getElementById('manageSubEmail').value.trim();
+    const errEl = document.getElementById('manageSubError');
+    const resultsEl = document.getElementById('manageSubResults');
+    errEl.textContent = '';
+    resultsEl.innerHTML = '';
+    if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+    const btn = document.getElementById('findSubBtn');
+    btn.textContent = 'Searching…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/manage-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'lookup', email: email })
+      });
+      const result = await resp.json();
+      btn.textContent = 'Find My Enrollment'; btn.disabled = false;
+      if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
+      if (!result.subscriptions || result.subscriptions.length === 0) {
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No enrollment found for that email.</p>';
+        return;
+      }
+      result.subscriptions.forEach(sub => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;margin-bottom:0.6rem;';
+        // sub.dayOfWeek already comes back as a day name ("Monday"), not
+        // a number - manage-subscription.js converts it server-side.
+        const dayName = sub.dayOfWeek || '';
+        const freqLabel = sub.frequency === 'fortnightly' ? 'Fortnightly' : 'Weekly';
+        let statusLabel;
+        if (sub.cancelling) {
+          statusLabel = 'Cancelling, ends after next paid lesson';
+        } else if (sub.status === 'paused') {
+          statusLabel = 'Paused' + (sub.pausedUntil ? ', resumes automatically ' + sub.pausedUntil : '');
+        } else {
+          statusLabel = 'Active';
+        }
+        const info = document.createElement('div');
+        info.style.cssText = 'font-size:0.85rem;color:var(--cream);margin-bottom:0.7rem;';
+        info.textContent = (sub.instrument ? sub.instrument + ' · ' : '') + dayName + ' ' + sub.time + ' (' + sub.durationMinutes + ' min) · ' + freqLabel + ' · ' + statusLabel;
+        row.appendChild(info);
+        if (sub.summerPausePending) {
+          const summerNote = document.createElement('div');
+          summerNote.style.cssText = 'font-size:0.78rem;color:var(--gold-pale);margin-bottom:0.7rem;';
+          summerNote.textContent = 'Summer break booked: pauses ' + result.summerPauseStart + ', resumes automatically ' + sub.summerPauseEndDate + '.';
+          row.appendChild(summerNote);
+        }
+        if (!sub.cancelling) {
+          const rescheduleNote = document.createElement('div');
+          rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
+          rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from Manage Booking below, no need to pause or cancel.";
+          row.appendChild(rescheduleNote);
+        }
+        // Once cancelling, there's nothing further to do - no pause or
+        // cancel controls needed. Pausing has no self-service "resume
+        // now": manage-subscription.js only supports lookup/pause/cancel,
+        // a pause always resumes automatically on pausedUntil via Stripe's
+        // resumes_at, so a paused row shows status only, no button.
+        if (!sub.cancelling) {
+          const btnRow = document.createElement('div');
+          btnRow.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;';
+          if (sub.status !== 'paused') {
+            const weeksLeft = typeof sub.pauseWeeksRemaining === 'number' ? sub.pauseWeeksRemaining : 8;
+            if (weeksLeft > 0) {
+              const pauseSelect = document.createElement('select');
+              pauseSelect.className = 'form-input';
+              pauseSelect.style.cssText = 'padding:0.4rem 0.6rem;font-size:0.76rem;width:auto;';
+              for (let w = 1; w <= weeksLeft; w++) {
+                const opt = document.createElement('option');
+                opt.value = w; opt.textContent = w + (w === 1 ? ' week' : ' weeks');
+                pauseSelect.appendChild(opt);
+              }
+              const pauseBtn = document.createElement('button');
+              pauseBtn.className = 'btn-outline'; pauseBtn.type = 'button';
+              pauseBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+              pauseBtn.textContent = 'Pause';
+              pauseBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'pause', { weeks: parseInt(pauseSelect.value, 10) });
+              btnRow.appendChild(pauseSelect);
+              btnRow.appendChild(pauseBtn);
+            } else {
+              const usedUp = document.createElement('span');
+              usedUp.style.cssText = 'font-size:0.74rem;color:var(--muted);';
+              usedUp.textContent = "You've used all 8 pause weeks this year.";
+              btnRow.appendChild(usedUp);
+            }
+          }
+          if (sub.status === 'active') {
+            const freqBtn = document.createElement('button');
+            freqBtn.className = 'btn-outline'; freqBtn.type = 'button';
+            freqBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+            const otherFrequency = sub.frequency === 'fortnightly' ? 'weekly' : 'fortnightly';
+            freqBtn.textContent = 'Switch to ' + (otherFrequency === 'weekly' ? 'Weekly' : 'Fortnightly');
+            freqBtn.onclick = () => submitSubscriptionAction(email, sub.subscriptionId, 'changeFrequency', { newFrequency: otherFrequency });
+            btnRow.appendChild(freqBtn);
+          }
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn-outline'; cancelBtn.type = 'button';
+          cancelBtn.style.cssText = 'padding:0.4rem 0.9rem;font-size:0.76rem;';
+          cancelBtn.textContent = 'Cancel enrollment';
+          cancelBtn.onclick = () => confirmCancelSubscription(email, sub.subscriptionId, dayName + ' ' + sub.time);
+          btnRow.appendChild(cancelBtn);
+          row.appendChild(btnRow);
+        }
+        resultsEl.appendChild(row);
+      });
+    } catch (e) {
+      btn.textContent = 'Find My Enrollment'; btn.disabled = false;
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  async function submitSubscriptionAction(email, subscriptionId, action, extra) {
+    const errEl = document.getElementById('manageSubError');
+    errEl.textContent = '';
+    try {
+      const body = { email: email, subscriptionId: subscriptionId, action: action };
+      if (extra) Object.assign(body, extra);
+      const resp = await fetch('/.netlify/functions/manage-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await resp.json();
+      if (result.success) {
+        findMySubscriptions();
+      } else {
+        errEl.textContent = result.error || 'Could not update your enrollment. Please try again.';
+      }
+    } catch (e) {
+      errEl.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  // Reuses the same confirm modal as one-off booking cancellation, just
+  // rewiring its buttons for this action, same pattern as
+  // confirmCancelBooking above.
+  function confirmCancelSubscription(email, subscriptionId, label) {
+    document.getElementById('manageSubError').textContent = '';
+    document.getElementById('cancelConfirmBody').textContent = 'Cancelling your ' + label + ' enrollment keeps any lesson you\'ve already paid for, but stops future billing and frees the slot. Want to go ahead?';
+    document.getElementById('cancelConfirmModal').classList.add('open');
+    document.getElementById('cancelConfirmYesBtn').onclick = () => {
+      closeCancelConfirmModal();
+      submitSubscriptionAction(email, subscriptionId, 'cancel');
+    };
+    document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
+  }
+</script>
+</body>
+</html>
