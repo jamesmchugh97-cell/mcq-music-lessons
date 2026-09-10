@@ -394,7 +394,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="cal-detail-panel" id="calDetailPanel">
       <div class="cal-detail-heading" id="calDetailHeading"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Showing which times have at least 30 minutes free. Your actual lesson length is chosen in the enroll form below.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.9rem;">Each time shows the lesson lengths that actually fit in that spot. Pick one and the enroll form below is filled in for you.</p>
       <div class="time-slots-grid" id="timeSlotsGrid"></div>
     </div>
   </div>
@@ -1283,6 +1283,33 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     return bestFit;
   }
 
+  // Returns, for a given date, a map of time -> array of EVERY duration
+  // tier that fits there, shortest first. Deliberately a list rather
+  // than just the longest: the 30 minute gap rule means the set isn't
+  // always contiguous, so a slot can fit 30, 45, 60 and 90 but not 75,
+  // or fit 45 and nothing shorter. Saying "up to 90" would be wrong in
+  // both cases, so the calendar preview lists the real options instead.
+  function getFittingDurations(dateStr) {
+    const fits = {};
+    DURATION_TIERS.forEach(tier => {
+      getAvailableTimes(dateStr, tier.minutes).forEach(t => {
+        if (!fits[t]) fits[t] = [];
+        fits[t].push(tier);
+      });
+    });
+    return fits;
+  }
+
+  // Turns [30, 45, 60] into "30, 45 or 60 min" and [30] into "30 min".
+  function formatDurationList(tiers) {
+    const mins = tiers.map(x => x.minutes);
+    // Wide open slot: listing all five is noise, since on a quiet day
+    // that would be every chip on the row reading the same thing.
+    if (mins.length === DURATION_TIERS.length) return 'any length';
+    if (mins.length === 1) return mins[0] + ' min';
+    return mins.slice(0, -1).join(', ') + ' or ' + mins[mins.length - 1] + ' min';
+  }
+
   function renderCal() {
     document.getElementById('calMonthTitle').textContent = MONTHS[calMonth] + ' ' + calYear;
     const body = document.getElementById('calBody');
@@ -1383,8 +1410,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('calDetailHeading').textContent = MONTHS[calMonth] + ' ' + d + ': Available Times';
     const grid = document.getElementById('timeSlotsGrid');
     grid.innerHTML = '';
-    const bestFit = getAvailableTimesAnyDuration(key);
-    const availableTimes = dayTimes.filter(t => bestFit[t]);
+    const fits = getFittingDurations(key);
+    const availableTimes = dayTimes.filter(t => fits[t] && fits[t].length);
     if (availableTimes.length === 0) {
       const msg = document.createElement('p');
       msg.style.cssText = 'color:var(--muted);font-size:0.85rem;';
@@ -1393,10 +1420,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       return;
     }
     availableTimes.forEach(t => {
-      const tier = bestFit[t];
+      const tier = fits[t][0]; // shortest that fits, used to preselect the enroll form
       const btn = document.createElement('button');
       btn.className = 'time-slot-btn free';
-      btn.textContent = t + '  ·  Available';
+      btn.textContent = t + '  ·  ' + formatDurationList(fits[t]);
       btn.onclick = () => {
         const dow = new Date(key + 'T00:00:00').getDay();
         const subDaySelect = document.getElementById('subDay');
