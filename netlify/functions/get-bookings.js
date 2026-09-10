@@ -9,6 +9,7 @@ const { getStore } = require('@netlify/blobs');
 // look taken to every visitor until someone specifically tries to book
 // that exact time and triggers the release elsewhere.
 const { isStalePendingHold } = require('./subscription-helpers');
+const { listAllSubscriptions } = require('./subscription-helpers');
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
@@ -25,10 +26,39 @@ exports.handler = async function (event) {
         booked[record.date].push({ time: record.time, duration: record.duration || 45 });
       }
     }
+
+    // An active subscription holds its weekly slot indefinitely, but only
+    // the lesson Stripe has already invoiced exists as a dated record
+    // above. Without this, the calendar showed every later week as free
+    // even though every booking path on the server would refuse it, so
+    // people filled in the whole form only to be rejected at the end.
+    // Returned as recurring rules for the frontend to expand, rather than
+    // as thousands of dated entries. Paused subscriptions are deliberately
+    // left out: pausing is meant to free the slot up for that window.
+    const subscriptions = [];
+    try {
+      const all = await listAllSubscriptions();
+      all.forEach(record => {
+        if (!record || record.status !== 'active') return;
+        if (record.dayOfWeek === undefined || !record.time) return;
+        subscriptions.push({
+          dayOfWeek: parseInt(record.dayOfWeek, 10),
+          time: record.time,
+          duration: parseInt(record.durationMinutes, 10) || 45,
+          frequency: record.frequency || 'weekly',
+          anchorDate: record.nextLessonDate || null
+        });
+      });
+    } catch (subErr) {
+      // A failure here must not take the whole calendar down: dated
+      // bookings are still worth returning on their own.
+      console.error('[get-bookings] failed to load subscriptions:', subErr && subErr.message ? subErr.message : subErr);
+    }
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, booked })
+      body: JSON.stringify({ success: true, booked, subscriptions })
     };
   } catch (e) {
     return {
