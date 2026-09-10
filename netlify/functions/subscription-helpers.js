@@ -58,8 +58,14 @@ const PRICE_IDS = {
   '60_fortnightly': 'price_1U2Q9AAOM8tPKKgk3VG8itQN',
   '75_weekly': 'price_1U2QBIAOM8tPKKgkrNFPjDhZ',
   '75_fortnightly': 'price_1U2QBkAOM8tPKKgkMnVMuT2O',
-  '90_weekly': 'price_1U2QCNAOM8tPKKgkJUtWzyEL',
-  '90_fortnightly': 'price_1U2QCqAOM8tPKKgknCBOj1VG'
+  // Repointed 10 Sep 2026 when 90 min dropped from $130 to $120. Stripe
+  // prices are immutable once charged, so these are NEW price objects
+  // sitting alongside the old $130 ones (price_1U2QCNAOM8tPKKgkJUtWzyEL
+  // weekly and price_1U2QCqAOM8tPKKgknCBOj1VG fortnightly), which are
+  // left in place but unused. Both old prices had zero active
+  // subscriptions, so nobody needed migrating.
+  '90_weekly': 'price_1UE6ZxAOM8tPKKgkRLzqlPwr',
+  '90_fortnightly': 'price_1UE6aTAOM8tPKKgkozP5MP7f'
 };
 
 function subsStore() {
