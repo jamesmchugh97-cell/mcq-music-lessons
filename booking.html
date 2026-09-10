@@ -1690,6 +1690,37 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     }
   }
 
+  // Turns an active subscription into the actual dates it occupies, from
+  // today out to the same 12 month horizon the hardcoded roster uses.
+  // Fortnightly subscriptions align to anchorDate (the next invoiced
+  // lesson) so they land on the right alternating weeks, exactly like
+  // anchorDate works for the hardcoded fortnightly students.
+  function expandSubscription(sub, months) {
+    const dates = [];
+    if (sub.dayOfWeek === undefined || sub.dayOfWeek === null || !sub.time) return dates;
+    const start = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    const end = new Date(start.getFullYear(), start.getMonth() + months, start.getDate());
+    const anchor = sub.anchorDate ? new Date(sub.anchorDate + 'T00:00:00') : null;
+    const d = new Date(start);
+    while (d.getDay() !== sub.dayOfWeek) d.setDate(d.getDate() + 1);
+    while (d <= end) {
+      let include = true;
+      if (sub.frequency === 'fortnightly' && anchor) {
+        // Compared at midday, not midnight. Melbourne's daylight saving
+        // shift makes a true 14 day span measure 13.96 days in raw
+        // milliseconds across the changeover, which would drift the
+        // alternating weeks. Midday puts 12 hours of slack either side.
+        const a = Date.UTC(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), 12);
+        const b = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+        const days = Math.round((b - a) / 86400000);
+        include = (((days % 14) + 14) % 14) === 0;
+      }
+      if (include) dates.push(dKey(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setDate(d.getDate() + 7);
+    }
+    return dates;
+  }
+
   // Load real-time bookings from Netlify Blobs and merge them into BOOKED,
   // so slots booked live through the site show up immediately.
   async function loadLiveBookings() {
@@ -1705,7 +1736,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             }
           });
         }
+        (result.subscriptions || []).forEach(sub => {
+          expandSubscription(sub, 12).forEach(dateKey => {
+            if (!BOOKED[dateKey]) BOOKED[dateKey] = [];
+            if (!BOOKED[dateKey].some(b => b.time === sub.time)) {
+              BOOKED[dateKey].push({ time: sub.time, duration: sub.duration || 45 });
+            }
+          });
+        });
         renderCal();
+        renderDayDetailTimes();
         refreshSubscribeTimeOptions();
         refreshSubscribeDurationOptions();
       }
