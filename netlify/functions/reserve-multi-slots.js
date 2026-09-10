@@ -109,7 +109,7 @@ const RECURRING_STUDENTS = [
   { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Jacq',    dow: 2, time: '2:30 pm', duration: 60, frequency: 'fortnightly', anchorDate: '2026-08-18', pauseForHolidays: false },
-  { name: 'Cash',    dow: 2, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Cash',    dow: 2, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false  },
   { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
@@ -120,7 +120,7 @@ const RECURRING_STUDENTS = [
   { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
-  { name: 'Cash',    dow: 4, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: true  },
+  { name: 'Cash',    dow: 4, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false  },
   { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  }
