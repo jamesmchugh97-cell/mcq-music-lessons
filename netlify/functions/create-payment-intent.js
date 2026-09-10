@@ -24,7 +24,7 @@ const DURATION_PRICES_CENTS = {
   45: 7000,
   60: 8500,
   75: 10000,
-  90: 13000
+  90: 12000
 };
 
 exports.handler = async function (event) {

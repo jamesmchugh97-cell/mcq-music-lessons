@@ -40,7 +40,7 @@ const MIN_NOTICE_HOURS = 24;
 // Mirrors the pricing tiers used everywhere else on the site, so
 // subscription emails can quote the actual per-lesson price without
 // needing a live Stripe lookup.
-const PRICE_BY_DURATION = { '30': 50, '45': 70, '60': 85, '75': 100, '90': 130 };
+const PRICE_BY_DURATION = { '30': 50, '45': 70, '60': 85, '75': 100, '90': 120 };
 
 function bookingsStore() {
   return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
