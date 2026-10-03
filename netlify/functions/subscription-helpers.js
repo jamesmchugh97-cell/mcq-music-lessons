@@ -30,10 +30,20 @@ const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails befor
 // one copy stops being convenient duplication and starts being a real
 // risk of drifting out of sync with each other.
 const RESERVATION_HOLD_MINUTES = 20;
-function isStalePendingHold(record) {
+function isPendingHoldExpired(record) {
   if (!record || record.pendingPayment !== true || !record.reservedAt) return false;
   const ageMs = Date.now() - new Date(record.reservedAt).getTime();
   return ageMs > RESERVATION_HOLD_MINUTES * 60 * 1000;
+}
+// A hold that already has a Stripe payment attached (paymentIntentId,
+// stamped by create-payment-intent.js) is never treated as stale here,
+// even once it's old, since that payment may well have succeeded (e.g.
+// via 3D Secure) with only the browser's confirm step missing.
+// pending-hold-cleanup.js asks Stripe and resolves those properly:
+// confirms the booking if paid, releases it if not.
+function isStalePendingHold(record) {
+  if (!isPendingHoldExpired(record)) return false;
+  return !record.paymentIntentId;
 }
 
 // Victorian government school summer holidays, 2026-2027. A separate
@@ -624,5 +634,6 @@ module.exports = {
   PRICE_IDS,
   RESERVATION_HOLD_MINUTES,
   isStalePendingHold,
+  isPendingHoldExpired,
   escapeHtml
 };

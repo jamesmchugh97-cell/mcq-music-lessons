@@ -9,6 +9,8 @@
 const { getStore } = require('@netlify/blobs');
 const { createCalendarEvent, deleteCalendarEvent } = require('./google-calendar-helper');
 const { listBlockingSubscriptionsForDay, timeToMinutes: subTimeToMinutes, isStalePendingHold } = require('./subscription-helpers');
+const crypto = require('crypto');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const MIN_GAP_MINUTES = 30;
 const MIN_NOTICE_HOURS = 24;
@@ -108,7 +110,6 @@ function isSchoolHoliday(dateStr) {
 const RECURRING_STUDENTS = [
   { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
-  { name: 'Cash',    dow: 2, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false  },
   { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
@@ -118,7 +119,6 @@ const RECURRING_STUDENTS = [
   { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
-  { name: 'Cash',    dow: 4, time: '12:45 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false  },
   { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  }
@@ -247,7 +247,10 @@ exports.handler = async function (event) {
       const existing = [];
       for (const blob of blobs) {
         const record = await store.get(blob.key, { type: 'json' });
-        if (record && record.time) {
+        // An abandoned, expired checkout hold isn't a real booking - the
+        // calendar on the site already shows that time as free (see
+        // get-bookings.js), so it mustn't block a nearby time here either.
+        if (record && record.time && !isStalePendingHold(record)) {
           const start = timeToMinutes(record.time);
           existing.push({ time: record.time, duration: record.duration || 45, start: start, end: start + (record.duration || 45) });
         }
@@ -443,26 +446,72 @@ exports.handler = async function (event) {
     // confirm-reservation.js clears this flag once payment actually
     // succeeds, turning it into a permanent, real booking.
 
+    // Unique id for THIS request's writes. Used below to tell our own
+    // records apart from anyone else's, both when verifying and when
+    // rolling back (so a rollback can never delete someone else's slot).
+    const claimId = crypto.randomBytes(12).toString('hex');
     const written = [];
+    const writtenRecords = {};
+
+    async function rollBack() {
+      for (const k of written) {
+        try {
+          const current = await store.get(k, { type: 'json' });
+          if (current && current.claimId === claimId) {
+            await store.delete(k);
+            if (current.eventId) {
+              try { await deleteCalendarEvent(current.eventId); } catch (e) {}
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    const takenError = (s) => ({
+      statusCode: 200,
+      body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' was just booked by someone else a moment ago. Please pick a different time and try again.' })
+    });
+
     for (const s of slots) {
       const key = s.date + '_' + s.time;
 
       // If the existing record at this key is just a stale, unpaid hold
-      // from an earlier abandoned checkout, release it first so this
-      // request gets a fair shot at the slot via the same atomic write
-      // used for everyone else, rather than being blocked by a booking
-      // that was never actually completed. Separately: if the existing
-      // hold is unpaid AND belongs to this same email, release it
-      // regardless of age. That's the person whose payment just failed
-      // retrying with fixed card details; without this, their own
-      // first attempt's hold would block their retry with a baffling
-      // "just booked by someone else" for the full hold window. Only a
+      // from an earlier abandoned checkout, release it first. Separately:
+      // if the existing hold is unpaid AND belongs to this same email,
+      // release it regardless of age - that's the person whose payment
+      // just failed retrying with fixed card details. Only a
       // pendingPayment record can ever be released this way - a
       // confirmed, paid booking is never touched, even for the same
-      // email.
+      // email. If that same-email hold already has a Stripe payment
+      // attached, Stripe is asked first: if it actually went through
+      // (e.g. 3D Secure finished but the page never confirmed), the
+      // booking is confirmed instead of released, so they're never
+      // charged twice for the same lesson.
       try {
         const existing = await store.get(key, { type: 'json' });
         const sameOwnerRetry = !!(existing && existing.pendingPayment === true && email && existing.email && existing.email.trim().toLowerCase() === email.trim().toLowerCase());
+        if (sameOwnerRetry && existing.paymentIntentId) {
+          let piStatus = null;
+          try {
+            piStatus = (await stripe.paymentIntents.retrieve(existing.paymentIntentId)).status;
+          } catch (e) {
+            piStatus = 'unverifiable'; // can't check - safer not to risk a double charge
+          }
+          if (piStatus === 'succeeded' || piStatus === 'processing' || piStatus === 'unverifiable') {
+            if (piStatus === 'succeeded') {
+              try {
+                delete existing.pendingPayment;
+                delete existing.reservedAt;
+                await store.set(key, JSON.stringify(existing));
+              } catch (e) {}
+            }
+            await rollBack();
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: false, error: 'You already have ' + s.date + ' at ' + s.time + ' booked and paid for, so you won\'t be charged again. Check your email (and spam folder) for the confirmation, or contact James if anything looks wrong.' })
+            };
+          }
+        }
         if (isStalePendingHold(existing) || sameOwnerRetry) {
           await store.delete(key);
           if (existing.eventId) {
@@ -486,7 +535,8 @@ exports.handler = async function (event) {
         bookingType: bookingType,
         bookedAt: new Date().toISOString(),
         pendingPayment: true,
-        reservedAt: new Date().toISOString()
+        reservedAt: new Date().toISOString(),
+        claimId: claimId
       };
       let claimed = true;
       try {
@@ -496,46 +546,120 @@ exports.handler = async function (event) {
         claimed = false;
       }
       if (!claimed) {
-        for (const k of written) {
-          try { await store.delete(k); } catch (e) {}
-        }
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ success: false, error: s.date + ' at ' + s.time + ' was just booked by someone else a moment ago. Please pick a different time and try again.' })
-        };
+        await rollBack();
+        return takenError(s);
       }
       written.push(key);
+      writtenRecords[key] = record;
+    }
 
-      // Create the matching Google Calendar event now that the slot is
-      // safely claimed. This is best-effort: if Google's API is down or
-      // misconfigured, the booking itself must still succeed, so any
-      // failure here is swallowed rather than rolling back the booking.
-      // The returned eventId is saved back onto the same blob record so
-      // cancel-booking.js can look it up later to delete the event.
+    // FIRST IN, BEST DRESSED - verified after writing, not just before.
+    // The checks further up are "look, then write": two people booking
+    // at nearly the same moment can both look before either has
+    // written, both see the time as free, and both write. The atomic
+    // onlyIfNew write above only stops that when both chose the EXACT
+    // same start time - it can't stop overlapping-but-different times
+    // (e.g. 3:00 for an hour vs 3:30), and isn't guaranteed to be
+    // honoured by every version of the Blobs library either. So now
+    // that our records are written, re-read each affected day: if
+    // anything else that's actually live overlaps or crowds one of our
+    // lessons, or one of our records was overwritten, this request
+    // steps aside and rolls back. Whoever wrote first always sees a
+    // clean day and keeps their lesson; in the rare case both requests
+    // land in the same split second, both step aside and are asked to
+    // pick again - nobody is ever double-booked, and since this all
+    // happens before payment, nobody is charged.
+    for (const date in byDate) {
+      let dayRecords;
+      try {
+        const { blobs } = await store.list({ prefix: date + '_' });
+        dayRecords = [];
+        for (const blob of blobs) {
+          const rec = await store.get(blob.key, { type: 'json' });
+          if (rec) dayRecords.push({ key: blob.key, rec: rec });
+        }
+      } catch (verifyErr) {
+        console.error('[reserve-multi-slots] post-write verification failed to read', date, ':', verifyErr && verifyErr.message ? verifyErr.message : verifyErr);
+        await rollBack();
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Something went wrong confirming that time. Please try again.' }) };
+      }
+      for (const s of byDate[date]) {
+        const key = s.date + '_' + s.time;
+        const mine = dayRecords.find(d => d.key === key);
+        if (!mine || mine.rec.claimId !== claimId) {
+          await rollBack();
+          return takenError(s);
+        }
+        const start = timeToMinutes(s.time);
+        const end = start + durationMinutes;
+        for (const other of dayRecords) {
+          if (other.rec.claimId === claimId) continue; // one of ours
+          if (!other.rec.time || isStalePendingHold(other.rec)) continue;
+          const oStart = timeToMinutes(other.rec.time);
+          const oEnd = oStart + (other.rec.duration || 45);
+          const overlap = start < oEnd && oStart < end;
+          const gapBefore = start - oEnd;
+          const gapAfter = oStart - end;
+          const crowded = (gapBefore > 0 && gapBefore < MIN_GAP_MINUTES) || (gapAfter > 0 && gapAfter < MIN_GAP_MINUTES);
+          if (overlap || crowded) {
+            console.log('[reserve-multi-slots] post-write conflict at', key, 'with', other.key, '- stepping aside');
+            await rollBack();
+            return takenError(s);
+          }
+        }
+      }
+    }
+
+    // Create the matching Google Calendar events now that every slot is
+    // safely and verifiably ours. Best-effort: if Google's API is down
+    // or misconfigured, the booking itself must still succeed, so any
+    // failure here is swallowed rather than rolling back the booking.
+    // The returned eventId is saved back onto the same record so
+    // cancel-booking.js can look it up later to delete the event.
+    let lostDuringCalendar = null;
+    for (const key of written) {
+      const record = writtenRecords[key];
       try {
         console.log('[reserve-multi-slots] attempting calendar sync for', key);
-        const startMinutes = timeToMinutes(s.time);
+        const startMinutes = timeToMinutes(record.time);
         const endMinutes = startMinutes + durationMinutes;
-        const startDateTime = s.date + 'T' + minutesToIsoClock(startMinutes);
-        const endDateTime = s.date + 'T' + minutesToIsoClock(endMinutes);
         const eventId = await createCalendarEvent({
           studentName: name || 'Student',
-          startDateTime: startDateTime,
-          endDateTime: endDateTime,
+          startDateTime: record.date + 'T' + minutesToIsoClock(startMinutes),
+          endDateTime: record.date + 'T' + minutesToIsoClock(endMinutes),
           notes: calendarNotes,
           instrument: displayInstrument
         });
         if (eventId) {
-          record.eventId = eventId;
-          await store.set(key, JSON.stringify(record));
+          // Note every event created here in a small ledger, so the
+          // cleanup job can remove any event whose booking later turns
+          // out not to exist (see pending-hold-cleanup.js).
+          try {
+            const ledger = getStore({ name: 'calendar-ledger', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+            await ledger.set(eventId, JSON.stringify({ bookingKey: key, claimId: claimId, createdAt: new Date().toISOString() }));
+          } catch (e) {}
+          // Re-read rather than overwrite blindly: payment can't have
+          // started yet, but this keeps any other field intact.
+          const latest = await store.get(key, { type: 'json' });
+          if (latest && latest.claimId === claimId) {
+            latest.eventId = eventId;
+            await store.set(key, JSON.stringify(latest));
+          } else {
+            // Our hold was replaced by someone else's in the same split
+            // second - don't leave a stray event on James's calendar.
+            try { await deleteCalendarEvent(eventId); } catch (e) {}
+            lostDuringCalendar = record;
+          }
           console.log('[reserve-multi-slots] calendar sync succeeded for', key, 'eventId:', eventId);
         }
       } catch (calErr) {
-        // Booking still stands even if calendar sync fails, but log it
-        // visibly so failures show up in Netlify's function logs instead
-        // of vanishing silently.
         console.error('Google Calendar event creation failed for ' + key + ':', calErr && calErr.message ? calErr.message : calErr);
       }
+    }
+
+    if (lostDuringCalendar) {
+      await rollBack();
+      return takenError(lostDuringCalendar);
     }
 
     return { statusCode: 200, body: JSON.stringify({ success: true, slots: slots }) };

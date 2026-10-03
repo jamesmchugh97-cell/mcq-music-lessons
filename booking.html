@@ -1154,7 +1154,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   const RECURRING_STUDENTS = [
     { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false },
-    { name: 'Cash',    dow: 2, time: '12:45 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false  },
     { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
@@ -1164,7 +1163,6 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
     { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: false },
-    { name: 'Cash',    dow: 4, time: '12:45 pm', duration: 90, frequency: 'weekly',     pauseForHolidays: false  },
     { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30, frequency: 'weekly',     pauseForHolidays: true  },
     { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60, frequency: 'weekly',     pauseForHolidays: true  }
@@ -1934,7 +1932,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ durationMinutes: durationMinutes, payment_method_id: paymentMethod.id, email: email, description: 'Trial lesson - ' + selectedTrialInstrument })
+        body: JSON.stringify({ durationMinutes: durationMinutes, payment_method_id: paymentMethod.id, email: email, description: 'Trial lesson - ' + selectedTrialInstrument, slots: [{ date: date, time: time }] })
       });
       const chargeResult = await chargeResp.json();
       if (!chargeResult.success) {
@@ -2084,7 +2082,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const chargeResp = await fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ durationMinutes: durationMinutes, lessonCount: size, payment_method_id: paymentMethod.id, email: email, description: size + '-lesson package - ' + selectedPackageInstrument })
+        body: JSON.stringify({ durationMinutes: durationMinutes, lessonCount: size, payment_method_id: paymentMethod.id, email: email, description: size + '-lesson package - ' + selectedPackageInstrument, slots: slots })
       });
       const chargeResult = await chargeResp.json();
       if (!chargeResult.success) {
@@ -2648,7 +2646,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           lessonCount: reservedSlots.length,
           payment_method_id: paymentMethod.id,
           email: email,
-          description: selectedInstrument + ' lesson (' + date + ' ' + time + ')'
+          description: selectedInstrument + ' lesson (' + date + ' ' + time + ')',
+          slots: reservedSlots.map(s => ({ date: s.date, time: s.time }))
         })
       });
       chargeResult = await resp.json();
