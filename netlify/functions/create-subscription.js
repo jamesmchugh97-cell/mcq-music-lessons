@@ -55,7 +55,6 @@ function isWithinBusinessHoursForDow(dow, startMinutes, endMinutes) {
 const RECURRING_STUDENTS = [
   { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75 },
   { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90 },
-  { name: 'Angus',   dow: 2, time: '5:30 pm', duration: 30 },
   { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60 },
   { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60 },
   { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60 },
