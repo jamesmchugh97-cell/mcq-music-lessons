@@ -63,7 +63,7 @@ const RECURRING_STUDENTS = [
   { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30 },
   { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60 },
   { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60 },
-  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75 },
+  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 60 },
   { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30 },
   { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60 }
 ];
