@@ -29,7 +29,7 @@ const PAYMENT_REMINDER_AFTER_DAYS = 3; // days after a payment first fails befor
 // redeem-reschedule-credit.js - five places is exactly the point where
 // one copy stops being convenient duplication and starts being a real
 // risk of drifting out of sync with each other.
-const RESERVATION_HOLD_MINUTES = 20;
+const RESERVATION_HOLD_MINUTES = 10;
 function isPendingHoldExpired(record) {
   if (!record || record.pendingPayment !== true || !record.reservedAt) return false;
   const ageMs = Date.now() - new Date(record.reservedAt).getTime();
@@ -596,6 +596,7 @@ function inheritedPauseWeeksForNewSubscription(historyRecord) {
 }
 
 module.exports = {
+  melbourneEpochMs,
   MAX_PAUSE_WEEKS_PER_YEAR,
   PAYMENT_GRACE_PERIOD_DAYS,
   PAYMENT_REMINDER_AFTER_DAYS,

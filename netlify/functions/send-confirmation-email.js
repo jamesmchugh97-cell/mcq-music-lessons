@@ -17,6 +17,10 @@
 // invented names, dates, and amounts - which risks him becoming numb
 // to real ones over time.
 const { getStore } = require('@netlify/blobs');
+const crypto = require('crypto');
+function emailsSentStore() {
+  return getStore({ name: 'emails-sent', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+}
 function bookingsStore() {
   return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
 }
@@ -66,6 +70,7 @@ exports.handler = async function (event) {
   // same email before any email goes out.
   const store = bookingsStore();
   const emailLower = email.trim().toLowerCase();
+  let reservationId = null; // shared by every slot of one booking; used so the browser and the server never both send the email
   for (const s of slotList) {
     if (!s || !s.date || !s.time) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Could not verify this booking.' }) };
@@ -75,6 +80,48 @@ exports.handler = async function (event) {
     if (!record || record.pendingPayment === true || recordEmail !== emailLower) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Could not verify this booking.' }) };
     }
+    if (!reservationId && record.claimId) reservationId = record.claimId;
+  }
+
+  // ONE EMAIL PER BOOKING. Two things can now ask for this email: the
+  // student's browser (as before) and the server itself, when Stripe
+  // reports the payment (stripe-webhook.js) - which is what guarantees the
+  // email still goes out if the student closes the page right after
+  // paying. Whichever asks first claims the booking and sends; the other
+  // sees the claim and quietly skips. If the claimant then fails to send,
+  // it hands the claim back (below) so the other one can still try. If
+  // this check itself can't run, it sends anyway - a rare duplicate email
+  // is better than a missing one.
+  const sentStore = emailsSentStore();
+  let claimMark = null;
+  if (reservationId) {
+    try {
+      const existing = await sentStore.get(reservationId, { type: 'json' });
+      const abandoned = existing && !existing.done && existing.at && (Date.now() - new Date(existing.at).getTime() > 2 * 60 * 1000);
+      if (existing && !abandoned) {
+        return { statusCode: 200, body: JSON.stringify({ success: true, duplicate: true }) };
+      }
+      const mark = crypto.randomBytes(8).toString('hex');
+      await sentStore.set(reservationId, JSON.stringify({ mark: mark, at: new Date().toISOString(), done: false }));
+      const back = await sentStore.get(reservationId, { type: 'json' });
+      if (back && back.mark !== mark) {
+        return { statusCode: 200, body: JSON.stringify({ success: true, duplicate: true }) };
+      }
+      claimMark = mark;
+    } catch (claimErr) {
+      claimMark = null;
+    }
+  }
+  async function releaseClaim() {
+    if (!claimMark) return;
+    try {
+      const cur = await sentStore.get(reservationId, { type: 'json' });
+      if (cur && cur.mark === claimMark) await sentStore.delete(reservationId);
+    } catch (e) {}
+  }
+  async function markDone() {
+    if (!claimMark) return;
+    try { await sentStore.set(reservationId, JSON.stringify({ mark: claimMark, at: new Date().toISOString(), done: true })); } catch (e) {}
   }
 
   const lessonsCountNum = parseInt(lessons_count, 10) || slotList.length;
@@ -240,10 +287,13 @@ exports.handler = async function (event) {
     } catch (notifyErr) {}
 
     if (!resp.ok) {
+      await releaseClaim();
       return { statusCode: 200, body: JSON.stringify({ success: false, error: result.message || 'Failed to send email.' }) };
     }
+    await markDone();
     return { statusCode: 200, body: JSON.stringify({ success: true, id: result.id }) };
   } catch (err) {
+    await releaseClaim();
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }
 };

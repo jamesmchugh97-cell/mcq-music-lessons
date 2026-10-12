@@ -9,11 +9,18 @@
 // subscription and never writes a booking record itself.
 const Stripe = require('stripe');
 const { getStore } = require('@netlify/blobs');
-const { getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR, PRICE_IDS, listBlockingSubscriptionsForDay, isStalePendingHold } = require('./subscription-helpers');
+const { nextOccurrenceDate, melbourneEpochMs, getEmailHistory, inheritedPauseWeeksForNewSubscription, RESUBSCRIBE_GAP_DAYS, MAX_PAUSE_WEEKS_PER_YEAR, PRICE_IDS, listBlockingSubscriptionsForDay, isStalePendingHold } = require('./subscription-helpers');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const MIN_GAP_MINUTES = 30;
+const MIN_NOTICE_HOURS = 24;
+// A weekly slot may start later than usual when single lessons already
+// sit in it (see below), but not absurdly later: students pay for their
+// first lesson up front, so anything further out than this is refused
+// with a clear message rather than quietly taking their money for a
+// lesson months away.
+const MAX_START_DELAY_DAYS = 35;
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -163,33 +170,52 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already taken by another enrolled student. Please choose a different day or time.' }) };
   }
 
-  // Also check upcoming one-off Blobs bookings on that weekday, however
-  // far out they go, so a subscription can't be started on top of a
-  // slot someone already booked as a single lesson. One full scan of
-  // the store rather than looping day-by-day: a multi-lesson one-off
-  // booking has no fixed cap on how far out it can legitimately reach
-  // (weekly has none at all, fortnightly's own 5-lesson cap alone
-  // reaches 56 days out), so any fixed number of weeks here would
-  // eventually miss something rather than just being slower.
+  // Single (one-off) lessons already booked at this weekday and time.
+  // These used to block the enrollment outright - so a time could show
+  // as free on the booking page and then be refused at the last step,
+  // just because one person had a single lesson in that slot weeks away.
+  // Now a single lesson only ever blocks the weeks it actually occupies:
+  // the weekly slot simply starts the week AFTER the last single lesson
+  // in it, and that student keeps their lesson. First come, first
+  // served: whoever enrolls only gets the weeks nobody has booked.
+  // One full scan of the store rather than looping day-by-day: a
+  // multi-lesson one-off booking has no fixed cap on how far out it can
+  // reach, so any fixed number of weeks here would eventually miss
+  // something rather than just being slower.
+  let startDate = null; // date of the first lesson, handed to the webhook below
+  let normalFirst = null; // the first lesson date if no single lessons were in the way
   try {
     const store = getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
     const todayStr = new Date().toISOString().slice(0, 10);
     const { blobs } = await store.list();
+    const conflictDates = [];
     for (const blob of blobs) {
       const dateStr = blob.key.split('_')[0];
       if (!dateStr || dateStr < todayStr) continue;
       const d = new Date(dateStr + 'T00:00:00');
-      if (isNaN(d.getTime()) || d.getDay() !== dow) continue;
+      if (isNaN(d.getTime()) || d.getDay() !== Number(dow)) continue;
       const record = await store.get(blob.key, { type: 'json' });
       if (!record || !record.time || isStalePendingHold(record)) continue;
       const exStart = timeToMinutes(record.time);
       const exEnd = exStart + (record.duration || 45);
       const overlap = startMinutes < exEnd && exStart < endMinutes;
-      if (overlap) {
-        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'That slot is already booked on ' + dateStr + '. Please choose a different day or time.' }) };
+      if (overlap) conflictDates.push(dateStr);
+    }
+    normalFirst = nextOccurrenceDate(Number(dow), time, MIN_NOTICE_HOURS, null);
+    startDate = normalFirst;
+    const lastConflict = conflictDates.sort().pop();
+    if (normalFirst && lastConflict && lastConflict >= normalFirst) {
+      startDate = nextOccurrenceDate(Number(dow), time, MIN_NOTICE_HOURS, lastConflict);
+      const delayDays = Math.round((new Date(startDate + 'T00:00:00') - new Date(normalFirst + 'T00:00:00')) / 86400000);
+      if (delayDays > MAX_START_DELAY_DAYS) {
+        const nice = (ds) => new Date(ds + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Single lessons are already booked at that time until ' + nice(lastConflict) + ', so a weekly slot there could not start until ' + nice(startDate) + '. Please choose a different day or time, or contact James.' }) };
       }
     }
   } catch (checkErr) {
+    // Fails open, as before: the webhook re-checks after payment and
+    // refunds if the slot turns out to be taken.
+    startDate = null;
     console.error('[create-subscription] conflict check failed:', checkErr && checkErr.message ? checkErr.message : checkErr);
   }
 
@@ -205,7 +231,7 @@ exports.handler = async function (event) {
   // paying, let me know and I'll match it exactly.
   try {
     const siteUrl = process.env.URL || 'https://mcqmusiclessons.com.au';
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       mode: 'subscription',
       customer_email: studentEmail,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -229,12 +255,91 @@ exports.handler = async function (event) {
           songRequests: (songRequests || '').slice(0, 300),
           genreFocus: (genreFocus || '').slice(0, 200),
           theoryInterest: theoryInterest || '',
-          goalsNotes: (goalsNotes || '').slice(0, 450)
+          goalsNotes: (goalsNotes || '').slice(0, 450),
+          // First lesson date, so stripe-webhook.js books THIS date rather
+          // than working it out again (it would not know about single
+          // lessons that pushed the start back).
+          ...(startDate ? { startDate: startDate } : {})
         }
       },
       success_url: siteUrl + '/booking.html?subscribed=1#subscribe',
       cancel_url: siteUrl + '/booking.html#subscribe'
-    });
+    };
+    // WHEN STUDENTS ARE CHARGED: a few days before each lesson, not at the
+    // moment they enroll. Stripe charges a subscription on a fixed rhythm
+    // (every 7 or 14 days) from its first charge, so what matters is
+    // choosing that first charge date well:
+    //   - first lesson comfortably far away: nothing is charged today; the
+    //     first charge is 3 days before the first lesson, and every charge
+    //     after that is 3 days before its lesson too ('later').
+    //   - first lesson too close for that (Stripe needs a charge date a few
+    //     days ahead): they pay for the first lesson today, and the regular
+    //     billing starts 3 days before their second lesson ('now').
+    // If anything here can't be worked out safely, it quietly falls back to
+    // the plain billing this used to do (charge now, then every 7/14 days).
+    const CHARGE_DAYS_BEFORE = 3;
+    const addDays = (ds, n) => { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+    const niceDay = (ds) => new Date(ds + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+    let billingPlan = null;
+    if (startDate) {
+      try {
+        const interval = frequency === 'fortnightly' ? 14 : 7;
+        const nowSecs = Math.floor(Date.now() / 1000);
+        const chargeSecs = (ds) => Math.floor(melbourneEpochMs(ds, '9:00 am') / 1000);
+        // Stripe needs a trial to end well in the future; stay clear of both edges.
+        const usable = (secs) => (secs - nowSecs) > 3 * 86400 && (secs - nowSecs) < 120 * 86400;
+        const firstCharge = addDays(startDate, -CHARGE_DAYS_BEFORE);
+        if (usable(chargeSecs(firstCharge))) {
+          billingPlan = { mode: 'later', trialEnd: chargeSecs(firstCharge), billingStartDate: firstCharge };
+        } else {
+          const secondCharge = addDays(addDays(startDate, interval), -CHARGE_DAYS_BEFORE);
+          if (usable(chargeSecs(secondCharge))) {
+            const recurringPrice = await stripe.prices.retrieve(priceId);
+            if (recurringPrice && recurringPrice.unit_amount > 0 && recurringPrice.currency === 'aud') {
+              billingPlan = { mode: 'now', trialEnd: chargeSecs(secondCharge), billingStartDate: secondCharge, unitAmount: recurringPrice.unit_amount };
+            }
+          }
+        }
+      } catch (planErr) {
+        billingPlan = null;
+        console.error('[create-subscription] custom billing not used:', planErr && planErr.message ? planErr.message : planErr);
+      }
+    }
+    if (billingPlan) {
+      sessionParams.subscription_data.trial_end = billingPlan.trialEnd;
+      sessionParams.subscription_data.metadata.billingStartDate = billingPlan.billingStartDate;
+      if (billingPlan.mode === 'later') {
+        sessionParams.subscription_data.metadata.firstPayment = 'later';
+        // Also on the session itself, so stripe-webhook.js can tell from
+        // checkout.session.completed that this one needs setting up now.
+        sessionParams.metadata = { mcq_first_payment: 'later' };
+      } else {
+        sessionParams.line_items.push({
+          price_data: { currency: 'aud', unit_amount: billingPlan.unitAmount, product_data: { name: 'First lesson (' + niceDay(startDate) + ')' } },
+          quantity: 1
+        });
+      }
+    }
+
+    // Tells the student their actual first lesson date on the payment page
+    // itself, before they pay (it can be a week or two out when a single
+    // lesson already sits in the slot).
+    if (startDate) {
+      const niceStart = new Date(startDate + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+      let billingLine = '';
+      if (billingPlan && billingPlan.mode === 'later') billingLine = ' You will not be charged today: your first payment is taken on ' + niceDay(billingPlan.billingStartDate) + ', then a few days before each lesson.';
+      else if (billingPlan) billingLine = ' You pay for it today, then your next payment is taken on ' + niceDay(billingPlan.billingStartDate) + ', a few days before each lesson.';
+      sessionParams.custom_text = { submit: { message: 'Your first lesson is ' + niceStart + ' at ' + time + '.' + billingLine } };
+    }
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams);
+    } catch (firstErr) {
+      // Never let the extra text be the reason someone can't enroll.
+      if (!sessionParams.custom_text) throw firstErr;
+      delete sessionParams.custom_text;
+      session = await stripe.checkout.sessions.create(sessionParams);
+    }
 
     return {
       statusCode: 200,

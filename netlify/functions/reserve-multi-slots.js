@@ -532,6 +532,13 @@ exports.handler = async function (event) {
         guitarType: (guitar_type && instrument !== 'Piano') ? guitar_type : '',
         skillLevel: skill_level,
         bookingType: bookingType,
+        // Kept on the record so the confirmation email can be sent from
+        // the server (stripe-webhook.js) with the same details the
+        // student's browser would have sent.
+        songRequests: (song_requests || '').slice(0, 300),
+        genreFocus: (genre_focus || '').slice(0, 200),
+        theoryInterest: theory_interest || '',
+        goalsNotes: (lesson_goals_notes || '').slice(0, 450),
         bookedAt: new Date().toISOString(),
         pendingPayment: true,
         reservedAt: new Date().toISOString(),

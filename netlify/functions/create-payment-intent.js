@@ -34,6 +34,14 @@ function bookingsStore() {
 }
 function normEmail(e) { return (e || '').trim().toLowerCase(); }
 
+function slotMetadata(slots, email, maxLessons) {
+  if (!Array.isArray(slots) || slots.length === 0 || !email) return undefined;
+  const keys = slots.slice(0, maxLessons).filter(s => s && s.date && s.time).map(s => s.date + '_' + s.time);
+  const joined = keys.join('|');
+  if (!keys.length || joined.length > 450) return undefined;
+  return { mcq_slots: joined, mcq_email: String(email).trim().slice(0, 200) };
+}
+
 // BEFORE charging: every slot this payment is for must currently be
 // held, unpaid, by this same email. Catches the rare case where two
 // people grabbed the exact same time in the same split second and the
@@ -62,7 +70,7 @@ async function checkSlotsHeld(slots, email) {
 // making a follow-up call to confirm-reservation after the charge; if
 // they closed the tab, lost signal or the page errored in that gap, a
 // PAID booking stayed marked as an unpaid hold and was deleted (with
-// its calendar event) by pending-hold-cleanup 20-50 minutes later,
+// its calendar event) by pending-hold-cleanup 10-20 minutes later,
 // reopening the slot to someone else. Stamping the paymentIntentId on
 // each hold also lets the cleanup job check with Stripe before
 // releasing anything (covers 3D Secure, where success only happens
@@ -78,7 +86,11 @@ async function linkAndConfirmSlots(slots, email, paymentIntent, maxLessons) {
     if (!s || !s.date || !s.time) continue;
     const key = s.date + '_' + s.time;
     const record = await store.get(key, { type: 'json' });
-    if (!record || normEmail(record.email) !== normEmail(email) || record.pendingPayment !== true) return false;
+    if (!record || normEmail(record.email) !== normEmail(email)) return false;
+    // Already confirmed for this very payment (Stripe's notification can
+    // arrive before this function finishes): still ours, nothing to do.
+    if (record.pendingPayment !== true && record.paymentIntentId !== paymentIntent.id) return false;
+    if (record.pendingPayment !== true) continue;
     mine.push({ key, record });
   }
   const succeeded = paymentIntent.status === 'succeeded';
@@ -185,6 +197,13 @@ exports.handler = async function (event) {
       confirm: true,
       receipt_email: email || undefined,
       description: description || 'MCQ Music Lessons booking',
+      // Tags this payment with the lesson slots it is for, so Stripe's
+      // payment_intent.succeeded notification (stripe-webhook.js) can
+      // confirm the booking and send the emails from the server, even if
+      // the student's browser never gets to do it. Stripe caps each
+      // metadata value at 500 characters, so it is left off (and the
+      // browser path still works as before) if it would not fit.
+      metadata: slotMetadata(slots, email, count),
       automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
     });
     let stillMine = true;

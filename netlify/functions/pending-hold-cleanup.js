@@ -145,4 +145,4 @@ async function run() {
   return { statusCode: 200, body: 'ok' };
 }
 
-exports.handler = schedule('*/30 * * * *', run);
+exports.handler = schedule('*/10 * * * *', run);

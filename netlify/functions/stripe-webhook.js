@@ -35,6 +35,8 @@ const {
   escapeHtml
 } = require('./subscription-helpers');
 
+const { handler: sendConfirmationEmail } = require('./send-confirmation-email');
+
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const MIN_NOTICE_HOURS = 24;
 // Mirrors the pricing tiers used everywhere else on the site, so
@@ -140,6 +142,142 @@ async function oneOffBookingConflict(dateStr, time, durationMinutes) {
   return false;
 }
 
+// One-off lessons, packages and trial lessons (not weekly enrollments,
+// which are handled by invoice.payment_succeeded below). Stripe tells us
+// the moment a lesson payment succeeds, so the booking is confirmed and
+// the emails go out from here - the student's browser is no longer the
+// only thing that can do it, so closing the tab right after paying
+// can't leave a paid booking half-finished.
+//   - every slot still this student's -> confirm it and send the emails
+//   - none of them still theirs (the hold was released and someone else
+//     took the time, e.g. a bank check that took too long) -> refund in
+//     full and tell the student and James
+//   - some but not all (packages) -> confirm what is theirs and alert
+//     James to sort out the rest, since splitting a payment is his call
+async function handleLessonPaymentSucceeded(pi) {
+  const meta = pi.metadata || {};
+  if (!meta.mcq_slots || !meta.mcq_email) return; // not one of these payments (e.g. a subscription invoice)
+  const keys = String(meta.mcq_slots).split('|').filter(Boolean);
+  const payerEmail = String(meta.mcq_email).trim();
+  const payerLower = payerEmail.toLowerCase();
+  if (!keys.length) return;
+
+  const store = bookingsStore();
+  const mine = [];
+  const notMine = [];
+  for (const key of keys) {
+    const record = await store.get(key, { type: 'json' });
+    const sameEmail = record && (record.email || '').trim().toLowerCase() === payerLower;
+    // A record carrying a DIFFERENT payment's id belongs to someone else's attempt.
+    const otherPayment = record && record.paymentIntentId && record.paymentIntentId !== pi.id;
+    if (sameEmail && !otherPayment) mine.push({ key, record }); else notMine.push(key);
+  }
+
+  const niceSlot = (key) => {
+    const i = key.indexOf('_');
+    return formatFriendlyDate(key.slice(0, i)) + ' at ' + key.slice(i + 1);
+  };
+
+  if (mine.length === 0) {
+    try {
+      await stripe.refunds.create({ payment_intent: pi.id }, { idempotencyKey: 'mcq-lost-slot-' + pi.id });
+    } catch (refundErr) {
+      console.error('[stripe-webhook] REFUND FAILED for lost-slot payment', pi.id, '- refund manually in Stripe:', refundErr && refundErr.message ? refundErr.message : refundErr);
+    }
+    await sendEmail(
+      payerEmail,
+      'MCQ Music Lessons: your payment has been refunded',
+      '<p>Hi,</p><p>Sorry about this: the time you booked (' + escapeHtml(keys.map(niceSlot).join('; ')) + ') was released while your payment was still being completed, and has since been taken by someone else. Your payment has been <strong>fully refunded</strong> and should reach your card within 5-10 business days.</p><p>You are welcome to <a href="https://mcqmusiclessons.com.au/booking.html#calendar" style="color:#c9942a;">book another time</a> - or just reply to this email and James will help.</p>'
+    );
+    await sendEmail(
+      JAMES_EMAIL,
+      'Refunded a payment: time was taken (' + payerEmail + ')',
+      '<p>A payment from <strong>' + escapeHtml(payerEmail) + '</strong> succeeded after the time they booked (' + escapeHtml(keys.map(niceSlot).join('; ')) + ') had been released and given to someone else. It was refunded automatically and they were emailed. Payment: ' + escapeHtml(pi.id) + '.</p>'
+    );
+    return;
+  }
+
+  // Confirm what is theirs (safe to repeat - Stripe can deliver an event twice).
+  let confirmedNow = 0;
+  for (const m of mine) {
+    if (m.record.pendingPayment || m.record.paymentIntentId !== pi.id) {
+      delete m.record.pendingPayment;
+      delete m.record.reservedAt;
+      m.record.paymentIntentId = pi.id;
+      await store.set(m.key, JSON.stringify(m.record));
+      confirmedNow++;
+    }
+  }
+  if (confirmedNow > 0) {
+    // Keeps the browser's own confirm step (confirm-reservation.js) from counting these twice.
+    try {
+      const cStore = getStore({ name: 'payment-confirmations', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+      const existing = await cStore.get(pi.id, { type: 'json' });
+      const already = (existing && existing.confirmedCount) || 0;
+      if (already < mine.length) await cStore.set(pi.id, JSON.stringify({ confirmedCount: mine.length }));
+    } catch (e) {}
+  }
+
+  if (notMine.length > 0) {
+    await sendEmail(
+      JAMES_EMAIL,
+      'ACTION NEEDED: a package payment is missing some lessons (' + payerEmail + ')',
+      '<p><strong>' + escapeHtml(payerEmail) + '</strong> paid for ' + keys.length + ' lesson(s) but ' + notMine.length + ' of them are no longer theirs: ' + escapeHtml(notMine.map(niceSlot).join('; ')) + '. The other ' + mine.length + ' are confirmed. No confirmation email was sent to them. You may need to give a partial refund or rebook them. Payment: ' + escapeHtml(pi.id) + '.</p>'
+    );
+    return;
+  }
+
+  const first = mine[0].record;
+  const dollars = pi.amount / 100;
+  await sendConfirmationEmail({
+    httpMethod: 'POST',
+    body: JSON.stringify({
+      name: first.name,
+      email: first.email,
+      instrument: first.instrument,
+      guitar_type: first.guitarType,
+      date: first.date,
+      time: first.time,
+      duration: first.duration,
+      lessons_count: mine.length,
+      total: '$' + (Number.isInteger(dollars) ? dollars : dollars.toFixed(2)),
+      slots: mine.map(m => ({ date: m.record.date, time: m.record.time })),
+      skill_level: first.skillLevel,
+      song_requests: first.songRequests,
+      genre_focus: first.genreFocus,
+      theory_interest: first.theoryInterest,
+      lesson_goals_notes: first.goalsNotes
+    })
+  });
+}
+
+async function claimFirstSetup(subscriptionId) {
+  try {
+    const locks = getStore({ name: 'subscription-setup-locks', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
+    const existing = await locks.get(subscriptionId, { type: 'json' });
+    if (existing && existing.at && Date.now() - new Date(existing.at).getTime() < 5 * 60 * 1000) return false;
+    const mark = require('crypto').randomBytes(8).toString('hex');
+    await locks.set(subscriptionId, JSON.stringify({ mark: mark, at: new Date().toISOString() }));
+    const back = await locks.get(subscriptionId, { type: 'json' });
+    return !back || back.mark === mark;
+  } catch (e) {
+    return true; // can't check: setting up twice is better than never
+  }
+}
+
+function validBillingDate(str) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(str || '') && !isNaN(new Date(str + 'T00:00:00').getTime());
+}
+
+function validStartDate(str, dow) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str || '')) return null;
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d.getTime()) || d.getDay() !== dow) return null;
+  const daysAway = (d.getTime() - Date.now()) / 86400000;
+  if (daysAway < 0 || daysAway > 60) return null;
+  return str;
+}
+
 exports.handler = async function (event) {
   const sig = event.headers['stripe-signature'];
   let stripeEvent;
@@ -152,16 +290,42 @@ exports.handler = async function (event) {
   }
 
   try {
-    if (stripeEvent.type === 'invoice.payment_succeeded') {
-      const invoice = stripeEvent.data.object;
+    // Enrollments where the first payment is taken a few days before the
+    // first lesson (see create-subscription.js) start with nothing to pay,
+    // so there is no real payment to react to at sign-up. Their set-up is
+    // triggered by checkout.session.completed instead, which treats it
+    // exactly like a first invoice. Setting up is safe to trigger from
+    // either event (or both): once a record exists, repeats are ignored.
+    let synthesizedFirst = null;
+    if (stripeEvent.type === 'checkout.session.completed') {
+      const sess = stripeEvent.data.object;
+      if (sess && sess.mode === 'subscription' && sess.subscription && sess.metadata && sess.metadata.mcq_first_payment === 'later') {
+        synthesizedFirst = { id: 'cs_' + sess.id, subscription: sess.subscription, billing_reason: 'subscription_create', amount_paid: 0, payment_intent: null };
+      }
+    }
+
+    if (stripeEvent.type === 'invoice.payment_succeeded' || synthesizedFirst) {
+      const invoice = synthesizedFirst || stripeEvent.data.object;
       const subscriptionId = invoice.subscription || (invoice.parent && invoice.parent.subscription_details && invoice.parent.subscription_details.subscription);
       if (!subscriptionId) return { statusCode: 200, body: 'ok' };
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const meta = subscription.metadata || {};
-      const isFirstInvoice = invoice.billing_reason === 'subscription_create';
-
+      const firstPaymentLater = meta.firstPayment === 'later';
       let record = await getSubscriptionRecord(subscriptionId);
+      // Normally the first invoice. A 'pay later' enrollment whose set-up
+      // somehow hasn't happened yet is also set up when its first real
+      // payment arrives - late is far better than never.
+      const isFirstInvoice = invoice.billing_reason === 'subscription_create' || (firstPaymentLater && !record);
+
+      // Already set up (the same sign-up reported by more than one event,
+      // or Stripe repeating one): nothing more to do - without this a
+      // repeat would book the lesson and send the emails a second time.
+      if (isFirstInvoice && record) return { statusCode: 200, body: 'ok' };
+      // Two events can report the same sign-up within milliseconds of each
+      // other, both before either has written the record - only the first
+      // one to claim it sets things up.
+      if (isFirstInvoice && !(await claimFirstSetup(subscriptionId))) return { statusCode: 200, body: 'ok' };
 
       if (isFirstInvoice) {
         // First payment just succeeded via Checkout. Do one final
@@ -223,13 +387,17 @@ exports.handler = async function (event) {
         } catch (claimErr) {
           console.error('[stripe-webhook] slot claim check failed:', claimErr && claimErr.message ? claimErr.message : claimErr);
         }
-        const lessonDate = nextOccurrenceDate(dow, meta.time, MIN_NOTICE_HOURS, null);
+        // The first lesson date chosen when checkout was created (it can be
+        // later than the usual one if single lessons were in the way);
+        // falls back to working it out afresh if it is missing or no
+        // longer sensible, e.g. checkout was left open for a long time.
+        const lessonDate = validStartDate(meta.startDate, dow) || nextOccurrenceDate(dow, meta.time, MIN_NOTICE_HOURS, null);
         const freeFromOtherSubs = claimedSlot && await slotStillFree(dow, meta.time, meta.durationMinutes, subscriptionId);
         const freeFromOneOffs = claimedSlot && (lessonDate ? !(await oneOffBookingConflict(lessonDate, meta.time, meta.durationMinutes)) : true);
         if (!claimedSlot || !freeFromOtherSubs || !freeFromOneOffs) {
           console.error('[stripe-webhook] slot taken between checkout and payment for sub ' + subscriptionId + ', refunding and cancelling.');
           try {
-            await stripe.refunds.create({ payment_intent: invoice.payment_intent });
+            if (invoice.payment_intent) await stripe.refunds.create({ payment_intent: invoice.payment_intent });
           } catch (refundErr) {
             console.error('[stripe-webhook] refund failed:', refundErr && refundErr.message ? refundErr.message : refundErr);
           }
@@ -273,6 +441,10 @@ exports.handler = async function (event) {
           pauseYear: currentYear(),
           createdAt: new Date().toISOString()
         };
+        // Set only while the first payment is still to come, so that payment
+        // (which is for the lesson booked just below) doesn't also book the
+        // NEXT lesson. Every payment after it books the next lesson as usual.
+        if (firstPaymentLater && (invoice.amount_paid || 0) === 0) record.firstPaymentPending = true;
         await saveSubscriptionRecord(subscriptionId, record);
 
         if (lessonDate) {
@@ -292,7 +464,7 @@ exports.handler = async function (event) {
         await sendEmail(
           meta.studentEmail,
           'MCQ Music Lessons: your ' + meta.frequency + ' enrollment is confirmed',
-          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson enrollment is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p><p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your enrollment. For a longer break, you can pause (up to 8 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Enrollment</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
+          '<p>Hi ' + escapeHtml(meta.studentName) + ',</p><p>Welcome to your ' + meta.frequency + ' lessons with MCQ Music!</p><p>Your ' + meta.frequency + ' ' + meta.durationMinutes + ' minute ' + displayInstrument + ' lesson enrollment is confirmed for ' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow] + 's at ' + meta.time + (price ? ', $' + price + ' per lesson' : '') + '. Your next lesson is ' + formatFriendlyDate(lessonDate) + '.</p>' + (meta.billingStartDate && validBillingDate(meta.billingStartDate) ? (firstPaymentLater && record.firstPaymentPending ? '<p>You have not been charged yet. Your first payment will be taken on ' + formatFriendlyDate(meta.billingStartDate) + ', and after that a few days before each lesson.</p>' : '<p>Your first lesson has been paid for. Your next payment will be taken on ' + formatFriendlyDate(meta.billingStartDate) + ', and after that a few days before each lesson.</p>') : '') + '<p>Lessons are at 84 Nelson Rd, South Melbourne VIC 3205.</p>' + gcalLinkHtml + '<p>Can\'t make a particular lesson? With 24+ hours\' notice you can reschedule just that one from <a href="https://mcqmusiclessons.com.au/booking.html#manage">Manage Booking</a>, no need to touch your enrollment. For a longer break, you can pause (up to 8 weeks a year) or cancel any time from your <a href="https://mcqmusiclessons.com.au/booking.html#manage-subscription">Manage Enrollment</a> page.</p><p style="font-size:0.85em;color:#666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p><p>James</p>'
         );
         await sendEmail(
           JAMES_EMAIL,
@@ -333,6 +505,14 @@ exports.handler = async function (event) {
         // unrelated failure. Harmless no-op if neither was set.
         record.paymentFailedAt = null;
         record.paymentFailureReminderSent = false;
+        // The first payment of a 'pay later' enrollment: it pays for the
+        // lesson that was booked at sign-up, so there is no next lesson to
+        // book yet - only the payment itself to record.
+        if (record.firstPaymentPending) {
+          delete record.firstPaymentPending;
+          await saveSubscriptionRecord(subscriptionId, record);
+          return { statusCode: 200, body: 'ok' };
+        }
         // Uses nextRenewalDate (one full billing interval - 7 or 14
         // days depending on frequency - after the previous lesson),
         // not nextOccurrenceDate (which would always land 7 days later
@@ -379,6 +559,10 @@ exports.handler = async function (event) {
           );
         }
       }
+    }
+
+    if (stripeEvent.type === 'payment_intent.succeeded') {
+      await handleLessonPaymentSucceeded(stripeEvent.data.object);
     }
 
     if (stripeEvent.type === 'customer.subscription.deleted') {
