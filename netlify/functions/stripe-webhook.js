@@ -397,7 +397,17 @@ exports.handler = async function (event) {
         if (!claimedSlot || !freeFromOtherSubs || !freeFromOneOffs) {
           console.error('[stripe-webhook] slot taken between checkout and payment for sub ' + subscriptionId + ', refunding and cancelling.');
           try {
-            if (invoice.payment_intent) await stripe.refunds.create({ payment_intent: invoice.payment_intent });
+            // Newer Stripe API versions no longer put payment_intent on the
+            // invoice in the event itself (this account's webhook is on
+            // one), so look the invoice up if it isn't there - otherwise a
+            // real payment would never actually be refunded here.
+            let refundPi = invoice.payment_intent;
+            if (!refundPi && (invoice.amount_paid || 0) > 0 && invoice.id) {
+              const fullInvoice = await stripe.invoices.retrieve(invoice.id);
+              refundPi = fullInvoice && fullInvoice.payment_intent;
+            }
+            if (refundPi) await stripe.refunds.create({ payment_intent: refundPi });
+            else if ((invoice.amount_paid || 0) > 0) console.error('[stripe-webhook] could not find the payment to refund for invoice', invoice.id, '- refund manually in Stripe');
           } catch (refundErr) {
             console.error('[stripe-webhook] refund failed:', refundErr && refundErr.message ? refundErr.message : refundErr);
           }
