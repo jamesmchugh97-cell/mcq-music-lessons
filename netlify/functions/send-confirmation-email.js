@@ -103,6 +103,11 @@ exports.handler = async function (event) {
       }
       const mark = crypto.randomBytes(8).toString('hex');
       await sentStore.set(reservationId, JSON.stringify({ mark: mark, at: new Date().toISOString(), done: false }));
+      // Short pause before reading back, so that if both sides claim within
+      // the same instant they both see the SAME final winner afterwards
+      // (the last write), and only that one sends. Without it, each could
+      // read back its own claim just before the other overwrote it.
+      await new Promise(resolve => setTimeout(resolve, 250));
       const back = await sentStore.get(reservationId, { type: 'json' });
       if (back && back.mark !== mark) {
         return { statusCode: 200, body: JSON.stringify({ success: true, duplicate: true }) };

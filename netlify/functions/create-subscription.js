@@ -64,14 +64,14 @@ const RECURRING_STUDENTS = [
   { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90 },
   { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60 },
   { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60 },
-  { name: 'Tilly',   dow: 2, time: '8:15 pm', duration: 60 },
   { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60 },
   { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45 },
   { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30 },
   { name: 'Alex',    dow: 3, time: '6:00 pm', duration: 60 },
   { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60 },
-  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 60 },
-  { name: 'Odie',    dow: 4, time: '6:15 pm', duration: 30 },
+  { name: 'Meja',    dow: 4, time: '4:30 pm', duration: 75 },
+  { name: 'Odie',    dow: 4, time: '5:45 pm', duration: 30 },
+  { name: 'Will',     dow: 4, time: '6:15 pm', duration: 30 },
   { name: 'Javin',   dow: 4, time: '6:45 pm', duration: 60 }
 ];
 
