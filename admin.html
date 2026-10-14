@@ -46,7 +46,102 @@
   </div>
 </section>
 
+<section style="padding-top:1rem;">
+  <div class="section-inner" style="max-width:520px;">
+    <h2 class="section-title">Move a student's <em>start date</em></h2>
+    <p class="section-sub">For an enrolled student who wants to start on a later date than the one they were booked for. Press Preview first: it shows exactly what will change and changes nothing. Their first lesson is treated as already paid, and their next charge is 3 days before their second lesson (or the date you choose).</p>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Student's email</label>
+        <input type="email" id="moveEmail" class="form-input" placeholder="student@example.com" oninput="movePlanChanged()">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">New first lesson date</label>
+          <input type="date" id="moveDate" class="form-input" onchange="movePlanChanged()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Charge again from (optional)</label>
+          <input type="date" id="moveCharge" class="form-input" onchange="movePlanChanged()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin password</label>
+        <input type="password" id="movePassword" class="form-input" placeholder="Password">
+      </div>
+      <div id="moveMessage" style="font-size:0.85rem;margin-bottom:0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <button type="button" class="btn-outline" onclick="moveRun('preview')" id="movePreviewBtn" style="width:100%;text-align:center;margin-bottom:0.6rem;">Preview (changes nothing)</button>
+      <button type="button" class="btn-primary" onclick="moveRun('apply')" id="moveApplyBtn" style="width:100%;text-align:center;" disabled>Apply these changes</button>
+    </div>
+  </div>
+</section>
+
 <script>
+  // ===== Move a student's start date =====
+  let movePreviewOk = false;
+  function movePlanChanged() {
+    movePreviewOk = false;
+    document.getElementById('moveApplyBtn').disabled = true;
+  }
+  function moveSetMessage(text, isError) {
+    const el = document.getElementById('moveMessage');
+    el.textContent = text;
+    el.style.color = isError ? '#f87171' : 'var(--cream)';
+  }
+  function moveDescribe(plan) {
+    const nice = (d) => formatFriendly(d);
+    const lines = [];
+    lines.push(plan.student + ' (' + plan.email + ')');
+    lines.push('Slot: ' + plan.lessonSlot);
+    lines.push('Now: ' + plan.currentStatus + (plan.currentNextLesson ? ', next lesson ' + plan.currentNextLesson : ''));
+    lines.push('New first lesson: ' + nice(plan.newFirstLesson) + ' (already paid)');
+    lines.push('Second lesson: ' + nice(plan.secondLesson));
+    lines.push('Next charge: ' + nice(plan.stripe.nextChargeDate) + ' at ' + plan.stripe.nextChargeAt + (plan.stripe.clearPause ? ' (their pause is also cleared)' : ''));
+    lines.push('Old lessons removed from calendar: ' + (plan.lessonsToRemoveFromCalendar.length ? plan.lessonsToRemoveFromCalendar.join(', ') : 'none'));
+    lines.push('Unused reschedule credits cancelled: ' + plan.unusedRescheduleCreditsToVoid);
+    return lines.join('\n');
+  }
+  async function moveRun(action) {
+    const email = document.getElementById('moveEmail').value.trim();
+    const newStartDate = document.getElementById('moveDate').value;
+    const chargeFrom = document.getElementById('moveCharge').value;
+    const password = document.getElementById('movePassword').value;
+    if (!email || !newStartDate) { moveSetMessage('Please enter the student\'s email and the new first lesson date.', true); return; }
+    if (!password) { moveSetMessage('Please enter the admin password.', true); return; }
+    if (action === 'apply' && !movePreviewOk) { moveSetMessage('Please press Preview first.', true); return; }
+    const btnP = document.getElementById('movePreviewBtn');
+    const btnA = document.getElementById('moveApplyBtn');
+    btnP.disabled = true; btnA.disabled = true;
+    moveSetMessage(action === 'preview' ? 'Checking...' : 'Applying...', false);
+    try {
+      const resp = await fetch('/.netlify/functions/admin-restart-enrollment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, email: email, newStartDate: newStartDate, chargeFrom: chargeFrom || undefined, password: password })
+      });
+      const data = await resp.json();
+      if (!data.success) {
+        movePreviewOk = false;
+        moveSetMessage(data.error || 'Something went wrong.', true);
+        btnP.disabled = false;
+        return;
+      }
+      if (action === 'preview') {
+        movePreviewOk = true;
+        moveSetMessage('PREVIEW - nothing has been changed yet:\n' + moveDescribe(data.plan), false);
+        btnP.disabled = false; btnA.disabled = false;
+      } else {
+        movePreviewOk = false;
+        moveSetMessage('DONE:\n' + moveDescribe(data.plan) + (data.warnings && data.warnings.length ? '\n\nNeeds a manual check:\n' + data.warnings.join('\n') : '\n\nThe student and you have both been emailed.'), false);
+        btnP.disabled = false;
+      }
+    } catch (e) {
+      moveSetMessage('Could not reach the server. Nothing was changed - please try again.', true);
+      btnP.disabled = false;
+    }
+  }
+
   function formatFriendly(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
     return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

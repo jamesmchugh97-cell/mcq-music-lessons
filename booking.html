@@ -520,6 +520,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </select>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Start from</label>
+        <select class="form-input" id="subStartFrom" onchange="handleSubscribeStartChange()">
+          <option value="">As soon as possible</option>
+        </select>
+      </div>
       <details class="optional-details">
         <summary>+ Add song requests, genre, or notes (optional)</summary>
         <div class="optional-details-body">
@@ -877,6 +883,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function getMaxBookingDate() {
     const d = new Date(TODAY);
     d.setDate(d.getDate() + 30);
+    return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  // Trial (single) lessons can be booked 3 months ahead, same as packages.
+  function getMaxTrialBookingDate() {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() + 90);
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
   }
   // Separate from getMaxBookingDate above - packages are specifically
@@ -1844,7 +1856,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (details) {
       const rrule = 'RRULE:FREQ=WEEKLY' + (details.frequency === 'fortnightly' ? ';INTERVAL=2' : '');
       const calTitle = (details.instrument || 'Music') + ' Lesson - MCQ Music';
-      const startDate = getNextDateForDow(details.dow);
+      const startDate = getNextDateForDow(details.dow, details.startFrom || '');
       document.getElementById('modalBody').innerHTML = 'Your ' + details.frequency + ' ' + details.instrument + ' lesson is locked in for ' + details.dayName + 's at ' + details.time + '. A confirmation email is on its way. You can pause or cancel any time from the Manage Enrollment section on this page.' +
         calendarLinksHtml(calTitle, startDate, details.time, details.durationMinutes || 45, rrule);
     } else {
@@ -1888,7 +1900,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
     if (!date || !time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a date and time.'; return false; }
     if (isClosedDate(date)) { errEl.style.display = 'block'; errEl.textContent = 'James is closed on ' + closedDayName(date) + '. Please choose a different day.'; return false; }
-    if (date > getMaxBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to a month in advance.'; return false; }
+    if (date > getMaxTrialBookingDate()) { errEl.style.display = 'block'; errEl.textContent = 'Bookings can only be made up to 3 months in advance.'; return false; }
     if (isSlotTaken(date, time, durationMinutes)) { errEl.style.display = 'block'; errEl.textContent = 'That time is no longer available. Please choose a different time.'; return false; }
     if (!stripe || !trialCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
 
@@ -2534,7 +2546,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!name || !email || !date) { alert('Please fill in your name, email, and date.'); return; }
     document.getElementById('stripe-error').textContent = '';
     if (isPastDate(date)) { document.getElementById('stripe-error').textContent = 'That date has already passed. Please choose an upcoming date.'; return; }
-    if (date > getMaxBookingDate()) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to a month in advance. For anything more ongoing, set up an enrollment instead.'; return; }
+    if (date > ((parseInt(document.getElementById('bookLessons').value, 10) || 1) > 1 ? getMaxBookingDate() : getMaxTrialBookingDate())) { document.getElementById('stripe-error').textContent = 'Bookings can only be made up to ' + ((parseInt(document.getElementById('bookLessons').value, 10) || 1) > 1 ? 'a month' : '3 months') + ' in advance. For anything more ongoing, set up an enrollment instead.'; return; }
     if (isClosedDate(date)) { document.getElementById('stripe-error').textContent = 'Sorry, James is closed on ' + closedDayName(date) + '.'; return; }
     if (hoursUntilSlot(date, time) < MIN_NOTICE_HOURS) { document.getElementById('stripe-error').textContent = 'Bookings need at least 24 hours\' notice. Please choose a later time.'; return; }
     const primaryDurationMinutes = parseInt(document.getElementById('bookDuration').value.split('|')[0], 10) || 45;
@@ -2823,7 +2835,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   function handleTrialTimeChange() { refreshTrialDurationOptions(); }
   function handleTrialDurationChange() { refreshTrialTimeOptions(); refreshTrialDurationOptions(); updateTrialTotal(); }
   document.getElementById('trialDate').min = new Date().toISOString().split('T')[0];
-  document.getElementById('trialDate').max = getMaxBookingDate();
+  document.getElementById('trialDate').max = getMaxTrialBookingDate();
 
   // ===== LESSON PACKAGE =====
   let selectedPackageInstrument = 'Guitar';
@@ -2955,11 +2967,40 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // The real, authoritative check (against every other subscriber, not
   // just this one representative date) happens server-side in
   // create-subscription.js at checkout time.
-  function getNextDateForDow(dow) {
+  function getNextDateForDow(dow, startFromOverride) {
     const d = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
     d.setDate(d.getDate() + 1);
+    // If the student chose a later "Start from" week, the first lesson is
+    // the first matching weekday on or after that week, so every
+    // availability check on this form looks at that date instead.
+    const startSel = document.getElementById('subStartFrom');
+    const startVal = (startFromOverride !== undefined) ? startFromOverride : (startSel ? startSel.value : '');
+    if (startVal) {
+      const chosen = new Date(startVal + 'T00:00:00');
+      if (!isNaN(chosen.getTime()) && chosen > d) d.setTime(chosen.getTime());
+    }
     while (d.getDay() !== dow) d.setDate(d.getDate() + 1);
     return dKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  // Fills the "Start from" list with the next 13 weeks (3 months, Mondays), so a
+  // student can start in a later week instead of always the first
+  // available one. The server turns the chosen week into each lesson's
+  // actual first date.
+  function populateSubscribeStartOptions() {
+    const sel = document.getElementById('subStartFrom');
+    if (!sel) return;
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() !== 1) d.setDate(d.getDate() + 1); // next Monday
+    for (let i = 0; i < 13; i++) {
+      const opt = document.createElement('option');
+      opt.value = dKey(d.getFullYear(), d.getMonth(), d.getDate());
+      opt.textContent = 'Week of Monday ' + d.getDate() + ' ' + months[d.getMonth()];
+      sel.appendChild(opt);
+      d.setDate(d.getDate() + 7);
+    }
   }
 
   // Mirrors updateDurationAvailability() below, which already does
@@ -3129,6 +3170,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   function handleSubscribeDayChange() { refreshSubscribeTimeOptions(); refreshSubscribeDurationOptions(); }
+  function handleSubscribeStartChange() {
+    refreshSubscribeTimeOptions();
+    refreshSubscribeDurationOptions();
+    document.querySelectorAll('#subExtraSlotsContainer .sub-extra-slot-row').forEach(refreshSubExtraSlotTimeOptions);
+  }
   function handleSubscribeDurationChange() {
     refreshSubscribeTimeOptions();
     refreshSubscribeDurationOptions();
@@ -3160,6 +3206,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (singleOption) singleOption.textContent = '1 (a single ' + freqWord + ' slot)';
   }
 
+  populateSubscribeStartOptions();
   refreshSubscribeTimeOptions();
   refreshSubscribeDurationOptions();
   updateLessonsPerWeekLabel();
@@ -3189,7 +3236,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         songRequests: songRequests,
         genreFocus: genreFocus,
         theoryInterest: theoryInterest,
-        goalsNotes: goalsNotes
+        goalsNotes: goalsNotes,
+        startFrom: (document.getElementById('subStartFrom') || {}).value || ''
       })
     });
     return await resp.json();
@@ -3276,7 +3324,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           try {
             sessionStorage.setItem('mcqSubscribePending', JSON.stringify({
               instrument: selectedSubscribeInstrument, dow: dow, dayName: dayNames[dow], time: time,
-              frequency: frequency, durationMinutes: durationMinutes
+              frequency: frequency, durationMinutes: durationMinutes,
+              startFrom: (document.getElementById('subStartFrom') || {}).value || ''
             }));
           } catch (e) {}
           window.location.href = result.url;

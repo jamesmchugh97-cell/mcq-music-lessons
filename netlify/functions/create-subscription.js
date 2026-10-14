@@ -21,6 +21,9 @@ const MIN_NOTICE_HOURS = 24;
 // with a clear message rather than quietly taking their money for a
 // lesson months away.
 const MAX_START_DELAY_DAYS = 35;
+// How far ahead a student may choose to start (the "Start from" week on the
+// booking page).
+const MAX_START_AHEAD_DAYS = 91; // 13 weeks - 3 months, same as lessons and packages
 
 function timeToMinutes(t) {
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -97,7 +100,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
 
-  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes } = body;
+  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, startFrom } = body;
 
   if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency || !skillLevel) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required enrollment details.' }) };
@@ -202,6 +205,20 @@ exports.handler = async function (event) {
       if (overlap) conflictDates.push(dateStr);
     }
     normalFirst = nextOccurrenceDate(Number(dow), time, MIN_NOTICE_HOURS, null);
+    // A later start chosen by the student ("Start from" week on the booking
+    // page): the first lesson is the first matching weekday on or after that
+    // date. From here on, normalFirst simply means "the earliest this
+    // enrollment is allowed to start", so single lessons that get in the way
+    // push the start back from THAT date, exactly as they always did.
+    if (startFrom && /^\d{4}-\d{2}-\d{2}$/.test(String(startFrom))) {
+      const aheadDays = (new Date(startFrom + 'T00:00:00') - new Date(todayStr + 'T00:00:00')) / 86400000;
+      if (aheadDays > MAX_START_AHEAD_DAYS) {
+        return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose a start date within the next 3 months.' }) };
+      }
+      const dayBefore = new Date(startFrom + 'T00:00:00Z'); dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+      const chosenFirst = nextOccurrenceDate(Number(dow), time, MIN_NOTICE_HOURS, dayBefore.toISOString().slice(0, 10));
+      if (chosenFirst && normalFirst && chosenFirst > normalFirst) normalFirst = chosenFirst;
+    }
     startDate = normalFirst;
     const lastConflict = conflictDates.sort().pop();
     if (normalFirst && lastConflict && lastConflict >= normalFirst) {
@@ -287,7 +304,7 @@ exports.handler = async function (event) {
         const nowSecs = Math.floor(Date.now() / 1000);
         const chargeSecs = (ds) => Math.floor(melbourneEpochMs(ds, '9:00 am') / 1000);
         // Stripe needs a trial to end well in the future; stay clear of both edges.
-        const usable = (secs) => (secs - nowSecs) > 3 * 86400 && (secs - nowSecs) < 120 * 86400;
+        const usable = (secs) => (secs - nowSecs) > 3 * 86400 && (secs - nowSecs) < 200 * 86400;
         const firstCharge = addDays(startDate, -CHARGE_DAYS_BEFORE);
         if (usable(chargeSecs(firstCharge))) {
           billingPlan = { mode: 'later', trialEnd: chargeSecs(firstCharge), billingStartDate: firstCharge };

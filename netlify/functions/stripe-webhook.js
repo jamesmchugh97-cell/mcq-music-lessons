@@ -274,7 +274,7 @@ function validStartDate(str, dow) {
   const d = new Date(str + 'T00:00:00');
   if (isNaN(d.getTime()) || d.getDay() !== dow) return null;
   const daysAway = (d.getTime() - Date.now()) / 86400000;
-  if (daysAway < 0 || daysAway > 60) return null;
+  if (daysAway < 0 || daysAway > 200) return null;
   return str;
 }
 
@@ -455,6 +455,9 @@ exports.handler = async function (event) {
         // (which is for the lesson booked just below) doesn't also book the
         // NEXT lesson. Every payment after it books the next lesson as usual.
         if (firstPaymentLater && (invoice.amount_paid || 0) === 0) record.firstPaymentPending = true;
+        // Lets one-off bookings use this slot on dates BEFORE the enrollment
+        // actually starts (see reserve-multi-slots.js).
+        if (lessonDate) record.startDate = lessonDate;
         await saveSubscriptionRecord(subscriptionId, record);
 
         if (lessonDate) {

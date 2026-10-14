@@ -267,7 +267,9 @@ exports.handler = async function (event) {
       // paying subscriber's lesson. A 'paused' subscription is correctly
       // excluded here since the whole point of pausing is to free the
       // slot for that window.
-      const blockingSubs = await listBlockingSubscriptionsForDay(dow);
+      // An enrollment that hasn't started yet (a later "Start from" week)
+      // doesn't hold the slot on dates before its first lesson.
+      const blockingSubs = (await listBlockingSubscriptionsForDay(dow)).filter(sub => !sub.startDate || sub.startDate <= date);
       blockingSubs.forEach(sub => {
         const start = subTimeToMinutes(sub.time);
         const dur = parseInt(sub.durationMinutes, 10);
@@ -338,12 +340,15 @@ exports.handler = async function (event) {
     // whole point of paying upfront for 5 or 10 lessons is picking
     // dates that suit an irregular schedule over that longer window,
     // not being squeezed into the same 30 days as a single trial.
-    const MAX_ADVANCE_BOOKING_DAYS = (bookingType === 'package') ? 90 : 30;
+    // Trial lessons used to stop at 30 days; they now go the full 3 months
+    // like packages (nothing else in this function depends on the window
+    // being 30 days: a single trial lesson skips the pattern checks below).
+    const MAX_ADVANCE_BOOKING_DAYS = 90;
     {
       const todayStr = todayDateKey();
       for (const s of slots) {
         if (daysBetweenDates(todayStr, s.date) > MAX_ADVANCE_BOOKING_DAYS) {
-          const windowDesc = (bookingType === 'package') ? 'more than 3 months away. Package lessons can only be booked up to 3 months ahead' : 'more than 30 days away. One-off lessons can only be booked up to a month ahead';
+          const windowDesc = 'more than 3 months away. Lessons can only be booked up to 3 months ahead';
           return {
             statusCode: 200,
             body: JSON.stringify({ success: false, error: s.date + ' is ' + windowDesc + ' - for anything more ongoing, set up a subscription from the Subscribe section instead.' })

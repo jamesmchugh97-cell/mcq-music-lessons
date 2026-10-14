@@ -204,7 +204,8 @@ exports.handler = async function (event) {
       existing.push({ time: rb.time, start: s, end: s + rb.duration });
     });
 
-    const blockingSubs = await listBlockingSubscriptionsForDay(dow);
+    // An enrollment that hasn't started yet doesn't hold the slot on dates before its first lesson.
+    const blockingSubs = (await listBlockingSubscriptionsForDay(dow)).filter(sub => !sub.startDate || sub.startDate <= date);
     blockingSubs.forEach(sub => {
       const s = subTimeToMinutes(sub.time);
       const dur = parseInt(sub.durationMinutes, 10);
