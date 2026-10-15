@@ -111,7 +111,7 @@ const RECURRING_STUDENTS = [
   { name: 'Meja',    dow: 1, time: '4:00 pm', duration: 75, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Nick',    dow: 1, time: '6:00 pm', duration: 90, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Maria',   dow: 2, time: '6:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: true  },
-  { name: 'Emma',    dow: 2, time: '7:15 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
+  { name: 'Emma',    dow: 2, time: '7:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60, frequency: 'weekly',      pauseForHolidays: false },
   { name: 'Hugo',    dow: 3, time: '3:45 pm', duration: 45, frequency: 'weekly',      pauseForHolidays: true  },
   { name: 'Anya',    dow: 3, time: '5:15 pm', duration: 30, frequency: 'weekly',      pauseForHolidays: true  },
@@ -157,6 +157,9 @@ function buildCalendarNotes({ instrument, email, skillLevel, songRequests, genre
   if (goalsNotes) lines.push('Notes: ' + goalsNotes);
   return lines.join('\n');
 }
+
+// Exposed so the admin schedule view (admin-list-enrollments.js) reads the same roster instead of keeping another copy.
+exports.RECURRING_STUDENTS = RECURRING_STUDENTS;
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {

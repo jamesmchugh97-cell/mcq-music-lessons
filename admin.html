@@ -77,7 +77,72 @@
   </div>
 </section>
 
+<section style="padding-top:1rem;">
+  <div class="section-inner" style="max-width:640px;">
+    <h2 class="section-title">Who's <em>booked in</em></h2>
+    <p class="section-sub">Your whole week in one place: the regular students built into the booking system, everyone enrolled online, the free gaps, and where a full hour fits. It only shows information - it never changes anything. Any warnings (like someone counted twice) appear first.</p>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label class="form-label">Admin password</label>
+        <input type="password" id="whoPassword" class="form-input" placeholder="Password">
+      </div>
+      <button type="button" class="btn-primary" onclick="whoLoad()" id="whoBtn" style="width:100%;text-align:center;">Show who's booked in</button>
+      <div id="whoOutput" style="font-size:0.85rem;line-height:1.7;margin-top:1rem;white-space:pre-wrap;color:var(--cream);"></div>
+    </div>
+  </div>
+</section>
+
 <script>
+  // ===== Who's booked in =====
+  function whoText(data) {
+    const out = [];
+    if (data.warnings && data.warnings.length) {
+      out.push('CHECK THESE FIRST');
+      data.warnings.forEach(w => out.push('  - ' + w));
+      out.push('');
+    }
+    data.week.forEach(day => {
+      out.push(day.day.toUpperCase());
+      if (day.lessons.length === 0) out.push('  (nobody booked in)');
+      day.lessons.forEach(l => {
+        out.push('  ' + l.from + ' to ' + l.to + '   ' + l.name + '  (' + l.source + ', ' + l.frequency + (l.note ? ', ' + l.note : '') + ')');
+      });
+      out.push('  Free: ' + (day.freeGaps.length ? day.freeGaps.map(g => g.from + ' to ' + g.to + ' (' + g.minutes + ' min)').join(', ') : 'nothing'));
+      out.push('  A full hour fits starting: ' + (day.fullHourStarts.length ? day.fullHourStarts.join('; ') : 'nowhere'));
+      out.push('');
+    });
+    const paused = data.onlineEnrollments.filter(e => e.status === 'paused');
+    if (paused.length) {
+      out.push('PAUSED ENROLMENTS (their slot is free while paused)');
+      paused.forEach(e => out.push('  ' + e.name + ': ' + e.day + ' ' + e.time + ', paused until ' + (e.pausedUntil || '?')));
+      out.push('');
+    }
+    out.push('SINGLE LESSONS AND PACKAGES COMING UP');
+    if (!data.upcomingSingles.length) out.push('  (none)');
+    data.upcomingSingles.forEach(b => out.push('  ' + formatFriendly(b.date) + ', ' + b.time + ', ' + b.minutes + ' min   ' + (b.name || '(no name)') + (b.type ? ' (' + b.type + ')' : '')));
+    return out.join('\n');
+  }
+  async function whoLoad() {
+    const password = document.getElementById('whoPassword').value;
+    const box = document.getElementById('whoOutput');
+    const btn = document.getElementById('whoBtn');
+    if (!password) { box.style.color = '#f87171'; box.textContent = 'Please enter the admin password.'; return; }
+    btn.disabled = true; box.style.color = 'var(--cream)'; box.textContent = 'Loading...';
+    try {
+      const resp = await fetch('/.netlify/functions/admin-list-enrollments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password })
+      });
+      const data = await resp.json();
+      if (!data.success) { box.style.color = '#f87171'; box.textContent = data.error || 'Something went wrong.'; }
+      else { box.textContent = whoText(data); }
+    } catch (e) {
+      box.style.color = '#f87171'; box.textContent = 'Could not reach the server. Please try again.';
+    }
+    btn.disabled = false;
+  }
   // ===== Move a student's start date =====
   let movePreviewOk = false;
   function movePlanChanged() {

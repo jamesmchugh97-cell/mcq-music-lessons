@@ -46,7 +46,11 @@ exports.handler = async function (event) {
           time: record.time,
           duration: parseInt(record.durationMinutes, 10) || 45,
           frequency: record.frequency || 'weekly',
-          anchorDate: record.nextLessonDate || null
+          anchorDate: record.nextLessonDate || null,
+          // Not blocked on dates before the enrollment actually starts
+          // (see reserve-multi-slots.js, which lets one-off bookings use the
+          // slot until then) - the calendar has to match what the server allows.
+          startDate: record.startDate || null
         });
       });
     } catch (subErr) {
