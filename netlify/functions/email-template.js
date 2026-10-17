@@ -82,7 +82,7 @@ function voucherCertificate(v) {
         '1. Go to <a href="' + esc(v.redeemUrl || (SITE + '/booking.html#package')) + '" style="color:' + C.goldDark + ';font-weight:bold;">mcqmusiclessons.com.au/booking.html#package</a> and enter the code above.<br>' +
         '2. Choose a date and time for each lesson. Book them all at once, or a few at a time, whenever suits (up to 3 months ahead each time).<br>' +
         '3. That&rsquo;s it &mdash; nothing more to pay. Lessons are at ' + esc(ADDRESS) + '.<br>' +
-        '<span style="color:' + C.muted + ';">Lost this link? Go to mcqmusiclessons.com.au, tap &ldquo;Use a Gift Voucher&rdquo; and enter your code. The code is all you need.</span>' +
+        '<span style="color:' + C.muted + ';">Lost this link? Go to mcqmusiclessons.com.au/vouchers.html, tap &ldquo;Use my voucher&rdquo; and enter your code. The code is all you need.</span>' +
       '</div>' +
     '</td></tr></table></td></tr></table>';
 }
@@ -121,7 +121,7 @@ function giftVoucherEmail(voucher) {
     '  CODE: ' + voucher.code,
     '  Valid until ' + niceDay(voucher.expiresAt), '',
     'To use it: go to ' + SITE + '/booking.html#package, enter the code, and choose a date and time for each lesson (all at once or a few at a time, up to 3 months ahead each time). Nothing more to pay.',
-    'Lost the link? Go to mcqmusiclessons.com.au, tap "Use a Gift Voucher" and enter the code. The code is all you need.', '',
+    'Lost the link? Go to mcqmusiclessons.com.au/vouchers.html, tap "Use my voucher" and enter the code. The code is all you need.', '',
     'Print-friendly voucher: ' + printUrl,
     'Book the lessons: ' + redeemUrl, '',
     'Anyone with the code can use it, so keep it safe until you give it. Lessons can be moved or cancelled with at least 24 hours\' notice.',
