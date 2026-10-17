@@ -20,7 +20,8 @@
 // admin tools.
 const { getStore } = require('@netlify/blobs');
 const { listAllSubscriptions, timeToMinutes } = require('./subscription-helpers');
-const { RECURRING_STUDENTS } = require('./reserve-multi-slots');
+const { RECURRING_STUDENTS, SCHOOL_HOLIDAY_RANGES } = require('./reserve-multi-slots');
+const { listVouchers, lessonsRemaining } = require('./voucher-helpers');
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const OPEN_MINUTES = 12 * 60;
@@ -65,6 +66,88 @@ async function recordFailedAttempt(ip) {
 
 async function clearFailedAttempts(ip) {
   try { await store('admin-auth-attempts').delete('ip_' + ip); } catch (e) {}
+}
+
+// Today's date in Melbourne (the server itself runs in UTC, which is a
+// different calendar day for the first 11 hours of every Melbourne day).
+function melbourneToday() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function dowOf(dateStr) {
+  return new Date(dateStr + 'T00:00:00Z').getUTCDay();
+}
+function daysBetween(a, b) {
+  return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000);
+}
+function isSchoolHoliday(dateStr) {
+  return (SCHOOL_HOLIDAY_RANGES || []).some(r => dateStr >= r[0] && dateStr <= r[1]);
+}
+
+// The next 14 days as an agenda: real dated lessons where they exist, plus
+// each student's usual slot where they don't:
+//   - bookings (single lessons, packages, and the next paid lesson of each
+//     enrolled student) are definite and shown as they are;
+//   - hard-coded regulars come every week (they have no dated records);
+//   - enrolled students' later weeks are projected from their weekly or
+//     fortnightly pattern, but only AFTER their last booked lesson, so a
+//     lesson that was cancelled is not brought back, and a paused
+//     enrollment shows nothing.
+function buildAgenda(todayStr, bookingRecords, subscriptionRecords) {
+  const days = [];
+  for (let i = 0; i < 14; i++) days.push(addDays(todayStr, i));
+  const byDate = {};
+  days.forEach(d => { byDate[d] = []; });
+
+  bookingRecords.forEach(rec => {
+    if (!byDate[rec.date] || rec.pendingPayment === true || !rec.time) return;
+    const start = timeToMinutes(rec.time);
+    const dur = rec.duration || 45;
+    byDate[rec.date].push({
+      start: start, end: start + dur, name: rec.name || '(no name)',
+      source: rec.subscriptionId ? 'enrolled online' : (rec.bookingType === 'package' ? 'package lesson' : 'single lesson'),
+      projected: false
+    });
+  });
+
+  days.forEach(date => {
+    const dow = dowOf(date);
+    (RECURRING_STUDENTS || []).forEach(r => {
+      if (r.dow !== dow) return;
+      if (r.pauseForHolidays && isSchoolHoliday(date)) return;
+      if (r.frequency === 'fortnightly' && r.anchorDate && daysBetween(r.anchorDate, date) % 14 !== 0) return;
+      const start = timeToMinutes(r.time);
+      byDate[date].push({ start: start, end: start + r.duration, name: r.name, source: 'regular', projected: false });
+    });
+  });
+
+  subscriptionRecords.forEach(rec => {
+    if (rec.status !== 'active' || !rec.time) return;
+    const dow = parseInt(rec.dayOfWeek, 10);
+    const start = timeToMinutes(rec.time);
+    const dur = parseInt(rec.durationMinutes, 10) || 45;
+    days.forEach(date => {
+      if (dowOf(date) !== dow) return;
+      if (rec.startDate && date < rec.startDate) return;
+      if (rec.nextLessonDate && date <= rec.nextLessonDate) return; // that week is covered by its booking (or was cancelled)
+      if (rec.frequency === 'fortnightly' && rec.nextLessonDate && daysBetween(rec.nextLessonDate, date) % 14 !== 0) return;
+      byDate[date].push({ start: start, end: start + dur, name: rec.studentName || '(no name)', source: 'enrolled online', projected: true });
+    });
+  });
+
+  return days
+    .filter(date => { const w = dowOf(date); return (w >= 1 && w <= 5) || byDate[date].length > 0; })
+    .map(date => ({
+      date: date,
+      lessons: byDate[date].sort((a, b) => a.start - b.start).map(it => ({
+        from: fmt(it.start), to: fmt(it.end), startMinutes: it.start, endMinutes: it.end,
+        minutes: it.end - it.start, name: it.name, source: it.source, projected: it.projected
+      }))
+    }));
 }
 
 function fail(status, message) {
@@ -143,7 +226,7 @@ exports.handler = async function (event) {
   await clearFailedAttempts(callerIp);
 
   try {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = melbourneToday();
     const perDay = { 1: [], 2: [], 3: [], 4: [], 5: [] };
     const warnings = [];
 
@@ -206,18 +289,34 @@ exports.handler = async function (event) {
     const bookings = store('bookings');
     const { blobs } = await bookings.list();
     const singles = [];
+    const agendaBookings = [];
     for (const blob of blobs) {
       const dateStr = blob.key.split('_')[0];
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || dateStr < todayStr) continue;
       const rec = await bookings.get(blob.key, { type: 'json' });
+      if (rec && dateStr <= addDays(todayStr, 13)) agendaBookings.push(Object.assign({}, rec, { date: rec.date || dateStr }));
       if (!rec || rec.subscriptionId) continue;             // lessons of enrolled students are shown above
       if (rec.pendingPayment === true) continue;            // unpaid holds are not bookings
       singles.push({ date: rec.date || dateStr, time: rec.time, minutes: rec.duration || 45, name: rec.name || '', email: rec.email || '', type: rec.bookingType || '' });
     }
     singles.sort((a, b) => (a.date + ' ' + String(timeToMinutes(a.time)).padStart(4, '0')).localeCompare(b.date + ' ' + String(timeToMinutes(b.time)).padStart(4, '0')));
 
+    // gift vouchers: lessons already paid for and not yet booked
+    let vouchers = [];
+    try {
+      vouchers = (await listVouchers()).map(v => ({
+        code: v.code, status: v.status || 'active', lessonsTotal: v.lessonsTotal, lessonsRemaining: lessonsRemaining(v),
+        durationMinutes: v.durationMinutes, buyerName: v.buyerName || '', buyerEmail: v.buyerEmail || '', recipientName: v.recipientName || '',
+        purchasedAt: v.purchasedAt, expiresAt: v.expiresAt,
+        bookedLessons: (v.redemptions || []).reduce((all, r) => all.concat(r.dates || []), [])
+      })).sort((a, b) => String(b.purchasedAt).localeCompare(String(a.purchasedAt)));
+    } catch (e) {
+      console.error('[admin-list-enrollments] could not list vouchers:', e && e.message ? e.message : e);
+    }
+
     const week = [1, 2, 3, 4, 5].map(d => buildDay(d, perDay[d]));
-    return { statusCode: 200, body: JSON.stringify({ success: true, week: week, onlineEnrollments: online, upcomingSingles: singles, warnings: warnings }) };
+    const agenda = buildAgenda(todayStr, agendaBookings, (all || []));
+    return { statusCode: 200, body: JSON.stringify({ success: true, today: todayStr, agenda: agenda, week: week, onlineEnrollments: online, upcomingSingles: singles, vouchers: vouchers, warnings: warnings }) };
   } catch (err) {
     console.error('[admin-list-enrollments] error:', err && err.message ? err.message : err);
     return fail(500, 'Something went wrong loading the schedule.');

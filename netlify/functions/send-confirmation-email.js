@@ -265,7 +265,7 @@ exports.handler = async function (event) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com',
         to: [email],
         subject: emailSubject,
         html: emailHtml
@@ -283,7 +283,7 @@ exports.handler = async function (event) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+          from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com',
           to: ['jamesmcqmusic@gmail.com'],
           subject: 'New booking: ' + name + (isMulti ? ' (' + lessonsCountNum + ' lessons)' : ''),
           html: jamesHtml

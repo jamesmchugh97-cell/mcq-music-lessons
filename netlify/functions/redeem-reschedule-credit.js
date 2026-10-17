@@ -125,7 +125,7 @@ async function sendEmail(to, subject, html) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com',
         to: [to],
         subject: subject,
         html: html
@@ -235,6 +235,7 @@ exports.handler = async function (event) {
       name: credit.name,
       email: credit.email,
       rescheduledFrom: credit.originalDate + ' ' + credit.originalTime,
+      ...(credit.voucherCode ? { voucherCode: credit.voucherCode } : {}),
       bookedAt: new Date().toISOString()
     };
     const writeResult = await bookingsStore.set(key, JSON.stringify(record), { onlyIfNew: true });

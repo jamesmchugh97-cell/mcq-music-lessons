@@ -1,0 +1,14 @@
+{
+  "name": "My Schedule",
+  "short_name": "Schedule",
+  "description": "James's lesson schedule",
+  "start_url": "/schedule.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1321",
+  "theme_color": "#0d1321",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,5 +1,5 @@
 // pending-hold-cleanup.js
-// Netlify SCHEDULED function, runs every 30 minutes. Proactively sweeps
+// Netlify SCHEDULED function, runs every 10 minutes. Proactively sweeps
 // every booking record in the store looking for stale, abandoned
 // pending-payment holds (see isStalePendingHold in
 // subscription-helpers.js) and cleans up both the booking record AND
@@ -18,6 +18,7 @@
 const { schedule } = require('@netlify/functions');
 const { getStore } = require('@netlify/blobs');
 const { isStalePendingHold, isPendingHoldExpired, escapeHtml } = require('./subscription-helpers');
+const { vouchersStore, lessonsRemaining } = require('./voucher-helpers');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
@@ -27,7 +28,7 @@ async function notifyJames(subject, html) {
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', to: [JAMES_EMAIL], subject: subject, html: html })
+      body: JSON.stringify({ from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com', to: [JAMES_EMAIL], subject: subject, html: html })
     });
   } catch (e) {
     console.error('[pending-hold-cleanup] notify failed:', e && e.message ? e.message : e);
@@ -55,8 +56,39 @@ function bookingsStore() {
   return getStore({ name: 'bookings', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
 }
 
+// Safety net for gift vouchers. redeem-voucher.js confirms the lessons first and
+// counts them against the voucher second. If a request were ever cut off in between
+// (a slow calendar, a time limit), the lessons would be booked but not yet counted.
+// Booked lessons are the source of truth, so this adds the missing entry to the
+// voucher (after waiting 15 minutes, so it never races a booking still in progress)
+// and tells James. Only lessons booked straight from a voucher count: lessons moved by
+// a reschedule link carry no claim id, and cancelled lessons are simply not in the list.
+async function reconcileVoucherLessons(groups) {
+  const vstore = vouchersStore();
+  for (const g of Object.values(groups)) {
+    try {
+      const v = await vstore.get(g.code, { type: 'json' });
+      if (!v) continue;
+      if ((v.redemptions || []).some(r => r.claimId === g.claimId)) continue; // already counted
+      v.redemptions = v.redemptions || [];
+      v.redemptions.push({ claimId: g.claimId, at: new Date().toISOString(), lessons: g.dates.length, dates: g.dates.slice().sort(), name: g.name, email: (g.email || '').toLowerCase(), reconciled: true });
+      await vstore.set(g.code, JSON.stringify(v));
+      const used = v.redemptions.reduce((n, r) => n + (r.lessons || 0), 0);
+      console.log('[pending-hold-cleanup] counted', g.dates.length, 'voucher lesson(s) that were booked but never counted against', g.code);
+      await notifyJames(
+        'Voucher corrected: ' + g.code,
+        '<p>' + g.dates.length + ' lesson(s) booked by ' + escapeHtml(g.name || 'a student') + ' (' + escapeHtml(g.email || '') + ') on gift voucher <strong>' + escapeHtml(g.code) + '</strong> had not been counted against it (a booking request was probably cut off part way). I have counted them now.</p>' +
+        '<p>The voucher now has <strong>' + lessonsRemaining(v) + '</strong> lesson(s) left.' + (used > v.lessonsTotal ? ' <strong>It has been used ' + (used - v.lessonsTotal) + ' lesson(s) beyond what was paid for</strong> - you may want to check.' : '') + '</p>'
+      );
+    } catch (e) {
+      console.error('[pending-hold-cleanup] voucher reconcile failed for', g.code, ':', e && e.message ? e.message : e);
+    }
+  }
+}
+
 async function run() {
   const store = bookingsStore();
+  const voucherGroups = {};
   let swept = 0;
   let checked = 0;
   try {
@@ -69,6 +101,12 @@ async function run() {
       } catch (e) {
         console.error('[pending-hold-cleanup] failed to read', blob.key, ':', e && e.message ? e.message : e);
         continue;
+      }
+      if (record && record.voucherCode && record.claimId && record.pendingPayment !== true && !record.rescheduledFrom &&
+          record.bookedAt && Date.now() - new Date(record.bookedAt).getTime() > 15 * 60 * 1000) {
+        const gk = record.voucherCode + '|' + record.claimId;
+        if (!voucherGroups[gk]) voucherGroups[gk] = { code: record.voucherCode, claimId: record.claimId, name: record.name, email: record.email, dates: [] };
+        voucherGroups[gk].dates.push(record.date + ' ' + record.time);
       }
       if (record && record.paymentIntentId && isPendingHoldExpired(record)) {
         const outcome = await paymentOutcome(record.paymentIntentId);
@@ -111,6 +149,8 @@ async function run() {
     console.error('[pending-hold-cleanup] failed to list bookings store:', e && e.message ? e.message : e);
   }
   console.log('[pending-hold-cleanup] checked', checked, 'records, swept', swept, 'stale holds');
+
+  await reconcileVoucherLessons(voucherGroups);
 
   // Orphaned calendar events: every event reserve-multi-slots creates is
   // noted in the calendar-ledger store. Once an entry is an hour old,

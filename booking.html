@@ -242,6 +242,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <p class="section-eyebrow">Lesson Package</p>
     <h2 class="section-title">Buy a <em>lesson package</em></h2>
     <p class="section-sub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
+    <p class="section-sub" style="margin-top:-0.4rem;">Buying for someone else? <a href="gift.html" style="color:var(--gold);">Give a gift voucher</a> - they choose their own dates later.</p>
+    <div class="booking-form" id="voucherBox" style="margin-bottom:1rem;">
+      <label class="form-label" for="voucherCodeInput">Have a gift voucher?</label>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <input class="form-input" type="text" id="voucherCodeInput" placeholder="MCQ-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:200px;" onkeydown="if(event.key==='Enter'){event.preventDefault();applyVoucher();}">
+        <button type="button" class="btn-outline" id="voucherApplyBtn" onclick="applyVoucher()">Apply voucher</button>
+        <button type="button" class="btn-outline" id="voucherClearBtn" onclick="clearVoucher()" style="display:none;">Remove voucher</button>
+      </div>
+      <p id="voucherMsg" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1em;"></p>
+    </div>
     <form class="booking-form" id="packageForm" onsubmit="return handlePackageBooking(event)">
       <div class="form-row">
         <div class="form-group">
@@ -2054,6 +2064,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       seen.add(key);
     }
 
+    if (activeVoucher) {
+      return await submitVoucherBooking(slots, name, email, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, errEl);
+    }
+
     if (!stripe || !packageCardElement) { errEl.style.display = 'block'; errEl.textContent = 'Payment not configured. Contact James directly.'; return false; }
 
     const btn = document.getElementById('packageSubmitBtn');
@@ -2840,6 +2854,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
   // ===== LESSON PACKAGE =====
   let selectedPackageInstrument = 'Guitar';
+  let activeVoucher = null; // set while a gift voucher is applied on the package form (see GIFT VOUCHERS below)
   let selectedPackageGuitarType = 'Acoustic';
   function selectPackageInstrument(btn, name) {
     btn.parentElement.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
@@ -2854,6 +2869,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     selectedPackageGuitarType = type;
   }
   function updatePackageTotal() {
+    if (activeVoucher) { document.getElementById('packageTotalAmt').textContent = 'Paid by gift voucher'; return; }
     const price = parseInt(document.getElementById('packageDuration').value.split('|')[1], 10);
     const size = parseInt(document.getElementById('packageSize').value, 10);
     document.getElementById('packageTotalAmt').textContent = '$' + (price * size);
@@ -2924,6 +2940,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const t = document.getElementById('packageTime' + i);
       if (d && t && d.value && t.value) filledRows.push({ date: d.value, time: t.value });
     }
+    // A gift voucher fixes the lesson length, so it must never switch by itself.
+    if (activeVoucher) { updatePackageTotal(); return; }
     let currentStillValid = false;
     Array.from(durationSelect.options).forEach(opt => {
       const minutes = parseInt(opt.value.split('|')[0], 10);
@@ -2945,6 +2963,118 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     updatePackageTotal();
   }
   renderPackageDateRows();
+
+  // ===== GIFT VOUCHERS =====
+  // A voucher is a prepaid package someone bought as a gift. Entering its code
+  // here turns the package form into "book your lessons" - no card, any number
+  // of lessons up to what is left - and the booking goes to redeem-voucher.js.
+  function setVoucherMsg(text, isError) {
+    const el = document.getElementById('voucherMsg');
+    el.textContent = text;
+    el.style.color = isError ? '#f87171' : 'var(--cream)';
+  }
+  function configureVoucherMode(v) {
+    activeVoucher = v;
+    const sizeSel = document.getElementById('packageSize');
+    sizeSel.innerHTML = '';
+    const max = Math.min(v.lessonsRemaining, 10);
+    for (let n = 1; n <= max; n++) {
+      const o = document.createElement('option');
+      o.value = String(n); o.textContent = n + (n === 1 ? ' lesson' : ' lessons');
+      sizeSel.appendChild(o);
+    }
+    sizeSel.value = String(max);
+    const durSel = document.getElementById('packageDuration');
+    const match = Array.from(durSel.options).find(o => parseInt(o.value.split('|')[0], 10) === v.durationMinutes);
+    if (match) { match.disabled = false; durSel.value = match.value; }
+    durSel.disabled = true;
+    const cardGroup = document.getElementById('package-stripe-card-element').parentElement;
+    cardGroup.style.display = 'none';
+    document.getElementById('packageSubmitBtn').textContent = 'Book my lessons →';
+    document.getElementById('voucherApplyBtn').style.display = 'none';
+    document.getElementById('voucherClearBtn').style.display = 'inline-block';
+    document.getElementById('voucherCodeInput').value = v.code;
+    document.getElementById('voucherCodeInput').readOnly = true;
+    const nameEl = document.getElementById('packageName');
+    if (nameEl && !nameEl.value && v.recipientName) nameEl.value = v.recipientName;
+    setVoucherMsg('Gift voucher applied' + (v.fromName ? ' (from ' + v.fromName + ')' : '') + ': ' + v.lessonsRemaining + ' x ' + v.durationMinutes + '-minute lesson' + (v.lessonsRemaining === 1 ? '' : 's') + ' left. Choose a date and time for each lesson below - you can book them all now or just a few.', false);
+    handlePackageSizeChange();
+  }
+  function clearVoucher() {
+    activeVoucher = null;
+    const sizeSel = document.getElementById('packageSize');
+    sizeSel.innerHTML = '<option value="5">5 lessons</option><option value="10">10 lessons</option>';
+    document.getElementById('packageDuration').disabled = false;
+    document.getElementById('package-stripe-card-element').parentElement.style.display = '';
+    document.getElementById('packageSubmitBtn').textContent = 'Buy Package →';
+    document.getElementById('voucherApplyBtn').style.display = '';
+    document.getElementById('voucherClearBtn').style.display = 'none';
+    document.getElementById('voucherCodeInput').readOnly = false;
+    document.getElementById('voucherCodeInput').value = '';
+    setVoucherMsg('', false);
+    handlePackageSizeChange();
+  }
+  async function applyVoucher() {
+    const code = document.getElementById('voucherCodeInput').value.trim();
+    if (!code) { setVoucherMsg('Please enter your voucher code.', true); return; }
+    const btn = document.getElementById('voucherApplyBtn');
+    btn.disabled = true; setVoucherMsg('Checking...', false);
+    try {
+      const resp = await fetch('/.netlify/functions/get-voucher', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code }) });
+      const data = await resp.json();
+      if (!data.success) { setVoucherMsg(data.error || 'Could not check that code.', true); }
+      else if (data.voucher.void) { setVoucherMsg('This voucher is no longer valid. Please contact James.', true); }
+      else if (data.voucher.expired) { setVoucherMsg('This voucher has expired. Please contact James.', true); }
+      else if (data.voucher.lessonsRemaining <= 0) { setVoucherMsg('All the lessons on this voucher have already been booked.', true); }
+      else { configureVoucherMode(data.voucher); }
+    } catch (e) {
+      setVoucherMsg('Could not reach the server. Please try again.', true);
+    }
+    btn.disabled = false;
+  }
+  async function submitVoucherBooking(slots, name, email, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, errEl) {
+    const btn = document.getElementById('packageSubmitBtn');
+    btn.textContent = 'Booking…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/.netlify/functions/redeem-voucher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: activeVoucher.code, slots: slots, name: name, email: email,
+          instrument: selectedPackageInstrument,
+          guitar_type: (selectedPackageInstrument === 'Piano') ? '' : selectedPackageGuitarType,
+          skill_level: skillLevel, song_requests: songRequests, genre_focus: genreFocus,
+          theory_interest: theoryInterest, lesson_goals_notes: goalsNotes
+        })
+      });
+      const result = await resp.json();
+      if (!result.success) {
+        errEl.style.display = 'block';
+        errEl.textContent = result.error || 'Those lessons could not be booked. Please try again.';
+        btn.textContent = 'Book my lessons →'; btn.disabled = false;
+        const size = parseInt(document.getElementById('packageSize').value, 10);
+        for (let i = 1; i <= size; i++) refreshPackageRowTimeOptions(i);
+        return false;
+      }
+      const slotsListHtml = slots.map(s => '<li>' + s.date + ' at ' + s.time + '</li>').join('');
+      const left = result.lessonsRemaining;
+      document.getElementById('modalTitle').textContent = 'Lessons Booked!';
+      document.getElementById('modalBody').innerHTML = 'Your ' + (slots.length === 1 ? 'lesson is' : slots.length + ' lessons are') + ' booked with your gift voucher. A confirmation email is on its way.<br><br><ul style="text-align:left;max-width:320px;margin:0 auto;">' + slotsListHtml + '</ul><br>' + (left > 0 ? 'You have ' + left + ' lesson' + (left === 1 ? '' : 's') + ' left on your voucher - use the same code whenever you are ready to book ' + (left === 1 ? 'it' : 'them') + '.' : 'That was the last lesson on your voucher.');
+      document.getElementById('successModal').classList.add('open');
+      btn.disabled = false;
+      if (left > 0) { activeVoucher.lessonsRemaining = left; configureVoucherMode(activeVoucher); }
+      else { clearVoucher(); document.getElementById('packageForm').reset(); }
+    } catch (e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not reach the server. Please try again or contact James directly.';
+      btn.textContent = 'Book my lessons →'; btn.disabled = false;
+    }
+    return false;
+  }
+  (function () {
+    const fromLink = new URLSearchParams(window.location.search).get('voucher');
+    if (fromLink) { document.getElementById('voucherCodeInput').value = fromLink; applyVoucher(); }
+  })();
 
   // ===== SUBSCRIPTIONS =====
   let selectedSubscribeInstrument = 'Guitar';

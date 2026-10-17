@@ -36,6 +36,8 @@ const {
 } = require('./subscription-helpers');
 
 const { handler: sendConfirmationEmail } = require('./send-confirmation-email');
+const voucherHelpers = require('./voucher-helpers');
+const emailTemplate = require('./email-template');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const MIN_NOTICE_HOURS = 24;
@@ -82,7 +84,7 @@ function buildGoogleCalendarLink(title, dateStr, timeStr, durationMinutes, frequ
   return 'https://calendar.google.com/calendar/render?' + params.toString();
 }
 
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, text) {
   try {
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -91,10 +93,11 @@ async function sendEmail(to, subject, html) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com',
         to: [to],
         subject: subject,
-        html: html
+        html: html,
+        ...(text ? { text: text } : {})
       })
     });
   } catch (e) {
@@ -251,6 +254,83 @@ async function handleLessonPaymentSucceeded(pi) {
   });
 }
 
+// A gift voucher has been paid for (see create-gift-checkout.js): make the
+// voucher, store it, and email the buyer their code. Safe to run more than
+// once for the same payment - Stripe can report a checkout more than once, so
+// each checkout session claims itself first and only the first one makes a
+// voucher.
+async function handleGiftPurchase(sess) {
+  const meta = sess.metadata || {};
+  if (meta.mcq_gift !== '1' || sess.payment_status !== 'paid') return;
+  const lessonCount = parseInt(meta.lessonCount, 10);
+  const durationMinutes = parseInt(meta.durationMinutes, 10);
+  const expected = voucherHelpers.voucherPriceCents(lessonCount, durationMinutes);
+  if (!expected || sess.amount_total !== expected) {
+    console.error('[stripe-webhook] gift payment amount did not match for session', sess.id, 'expected', expected, 'got', sess.amount_total);
+    await sendEmail(JAMES_EMAIL, 'ACTION NEEDED: a gift voucher payment did not match its price',
+      '<p>A gift voucher payment came through for an amount that does not match the voucher chosen, so <strong>no voucher was made</strong>. Checkout session: ' + escapeHtml(sess.id) + '. Amount paid: ' + escapeHtml(String(sess.amount_total)) + ' cents. Buyer: ' + escapeHtml(meta.buyerEmail || '') + '. Please check it in Stripe.</p>');
+    return;
+  }
+
+  const index = voucherHelpers.sessionIndexStore();
+  const mark = require('crypto').randomBytes(8).toString('hex');
+  const already = await index.get(sess.id, { type: 'json' });
+  // Done already (the voucher exists), or another delivery is part way through making it right now
+  // (claimed in the last 2 minutes). A claim older than that with no voucher means an earlier
+  // attempt was cut off before finishing, so this delivery completes it instead of giving up -
+  // otherwise a paid-for voucher could silently never be made.
+  if (already && (already.code || (already.at && Date.now() - new Date(already.at).getTime() < 2 * 60 * 1000))) return;
+  await index.set(sess.id, JSON.stringify({ mark: mark, at: new Date().toISOString() }));
+  await new Promise(resolve => setTimeout(resolve, 250));
+  const back = await index.get(sess.id, { type: 'json' });
+  if (back && back.mark !== mark) return; // another delivery of the same payment got there first
+  // The earlier attempt may have saved the voucher just before being cut off: never make a second one.
+  try {
+    const existingVouchers = await voucherHelpers.listVouchers();
+    const found = existingVouchers.find(v => v.sessionId === sess.id);
+    if (found) { await index.set(sess.id, JSON.stringify({ mark: mark, code: found.code, at: new Date().toISOString() })); return; }
+  } catch (e) {}
+
+  const vouchers = voucherHelpers.vouchersStore();
+  let code = null;
+  for (let i = 0; i < 6; i++) {
+    const candidate = voucherHelpers.generateCode();
+    if (!(await vouchers.get(candidate, { type: 'json' }))) { code = candidate; break; }
+  }
+  if (!code) {
+    await sendEmail(JAMES_EMAIL, 'ACTION NEEDED: could not make a gift voucher', '<p>A gift voucher payment succeeded but a code could not be generated. Checkout session: ' + escapeHtml(sess.id) + '. Buyer: ' + escapeHtml(meta.buyerEmail || '') + '.</p>');
+    return;
+  }
+  const nowMs = Date.now();
+  const voucher = {
+    code: code,
+    status: 'active',
+    lessonsTotal: lessonCount,
+    durationMinutes: durationMinutes,
+    pricePaidCents: sess.amount_total,
+    buyerName: meta.buyerName || '',
+    buyerEmail: (meta.buyerEmail || '').toLowerCase(),
+    recipientName: meta.recipientName || '',
+    message: meta.message || '',
+    purchasedAt: new Date(nowMs).toISOString(),
+    expiresAt: voucherHelpers.expiryDateFrom(nowMs),
+    paymentIntentId: typeof sess.payment_intent === 'string' ? sess.payment_intent : null,
+    sessionId: sess.id,
+    redemptions: []
+  };
+  await voucherHelpers.saveVoucher(voucher);
+  await index.set(sess.id, JSON.stringify({ mark: mark, code: code, at: new Date().toISOString() }));
+
+  // The buyer gets the voucher itself (printable, right in the email); James gets the sale details.
+  const buyerMail = emailTemplate.giftVoucherEmail(voucher);
+  await sendEmail(voucher.buyerEmail, buyerMail.subject, buyerMail.html, buyerMail.text);
+  const jamesMail = emailTemplate.giftSoldEmailForJames(voucher);
+  await sendEmail(JAMES_EMAIL, jamesMail.subject, jamesMail.html, jamesMail.text);
+}
+
+// Used by the gift-voucher-reconcile job as well, which is safe: making a voucher for a payment that already has one does nothing.
+exports.handleGiftPurchase = handleGiftPurchase;
+
 async function claimFirstSetup(subscriptionId) {
   try {
     const locks = getStore({ name: 'subscription-setup-locks', siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN });
@@ -299,6 +379,21 @@ exports.handler = async function (event) {
     let synthesizedFirst = null;
     if (stripeEvent.type === 'checkout.session.completed') {
       const sess = stripeEvent.data.object;
+      if (sess && sess.metadata && sess.metadata.mcq_gift === '1') {
+        try {
+          await handleGiftPurchase(sess);
+        } catch (giftErr) {
+          // This function deliberately answers Stripe with "ok" even on errors (see the end of
+          // this file), so Stripe will NOT try again by itself. A buyer who has paid and has no
+          // voucher is the one failure that must never go unnoticed, so say so loudly. The
+          // 15-minute gift-voucher-reconcile job will also try again on its own.
+          console.error('[stripe-webhook] gift voucher could not be made for', sess.id, ':', giftErr && giftErr.message ? giftErr.message : giftErr);
+          const m = sess.metadata || {};
+          await sendEmail(JAMES_EMAIL, 'ACTION NEEDED: a gift voucher was paid for but could not be made',
+            '<p><strong>' + escapeHtml(m.buyerName || 'A buyer') + '</strong> (' + escapeHtml(m.buyerEmail || '') + ') paid for a gift voucher (' + escapeHtml(m.lessonCount || '?') + ' x ' + escapeHtml(m.durationMinutes || '?') + ' min), but the voucher could not be made just now. Checkout session: ' + escapeHtml(sess.id) + '.</p>' +
+            '<p>The system will try again by itself within about 15 minutes, and you will get the usual "Gift voucher sold" email when it works. If you have not had that after half an hour, make the voucher by hand on your admin page (Gift vouchers section).</p>');
+        }
+      }
       if (sess && sess.mode === 'subscription' && sess.subscription && sess.metadata && sess.metadata.mcq_first_payment === 'later') {
         synthesizedFirst = { id: 'cs_' + sess.id, subscription: sess.subscription, billing_reason: 'subscription_create', amount_paid: 0, payment_intent: null };
       }

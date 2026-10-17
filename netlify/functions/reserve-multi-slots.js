@@ -160,6 +160,7 @@ function buildCalendarNotes({ instrument, email, skillLevel, songRequests, genre
 
 // Exposed so the admin schedule view (admin-list-enrollments.js) reads the same roster instead of keeping another copy.
 exports.RECURRING_STUDENTS = RECURRING_STUDENTS;
+exports.SCHOOL_HOLIDAY_RANGES = SCHOOL_HOLIDAY_RANGES;
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
@@ -192,7 +193,12 @@ exports.handler = async function (event) {
   // client-supplied "mode" flag, so it can't be bypassed by
   // hand-crafting a request.
   const VALID_SLOT_COUNTS = [1, 5, 10];
-  if (!VALID_SLOT_COUNTS.includes(slots.length)) {
+  // Gift voucher redemptions (redeem-voucher.js) are the one exception: a
+  // voucher can be used a few lessons at a time. The flag lives on the
+  // server-side event object, which a browser request can never set, so
+  // nobody can use it to skip the usual rules or the payment step.
+  const internalVoucher = event.__internalVoucher === true;
+  if (internalVoucher ? (slots.length < 1 || slots.length > 10) : !VALID_SLOT_COUNTS.includes(slots.length)) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Bookings must be a single trial lesson, or a 5 or 10 lesson package. For an ongoing slot, please subscribe instead.' }) };
   }
   const bookingType = slots.length === 1 ? 'trial' : 'package';
@@ -676,7 +682,8 @@ exports.handler = async function (event) {
       return takenError(lostDuringCalendar);
     }
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, slots: slots }) };
+    // claimId is handed back only to redeem-voucher.js, so it can finish (or undo) exactly this booking.
+    return { statusCode: 200, body: JSON.stringify(Object.assign({ success: true, slots: slots }, internalVoucher ? { claimId: claimId } : {})) };
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ success: false, error: err.message }) };
   }

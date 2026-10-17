@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>My Schedule</title>
+<link rel="manifest" href="schedule.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My Schedule">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0d1321">
+<style>
+  :root {
+    --navy: #0d1321; --navy-card: #1a2540; --navy-border: #243050;
+    --gold: #c9942a; --gold-light: #e0b060; --cream: #e8e0d0; --muted: #8090a8;
+    --red: #f87171; --green: #6ee7a0;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; background: var(--navy); color: var(--cream);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px 48px; }
+  h1 { font-size: 1.35rem; margin: 0; font-weight: 650; letter-spacing: 0.01em; }
+  h1 span { color: var(--gold); }
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 10px; gap: 10px; }
+  .top-actions { display: flex; gap: 8px; }
+  button {
+    font: inherit; color: var(--cream); background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  }
+  button.primary { background: var(--gold); color: #1a1405; border-color: var(--gold); font-weight: 650; }
+  button.small { padding: 6px 11px; font-size: 0.85rem; }
+  button:disabled { opacity: 0.55; }
+  .muted { color: var(--muted); font-size: 0.85rem; }
+
+  /* lock screen */
+  #lock { padding-top: 12vh; }
+  #lock .card { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 16px; padding: 22px; }
+  #lock p { margin: 0 0 14px; }
+  input[type=password] {
+    width: 100%; font: inherit; font-size: 1rem; color: var(--cream); background: var(--navy);
+    border: 1px solid var(--navy-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;
+  }
+  label.check { display: flex; align-items: center; gap: 10px; margin: 2px 0 16px; font-size: 0.92rem; color: var(--cream); }
+  label.check input { width: 18px; height: 18px; }
+  .error { color: var(--red); margin: 0 0 12px; min-height: 1.2em; font-size: 0.92rem; }
+
+  /* tabs */
+  .tabs { display: flex; background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 12px; padding: 3px; margin: 6px 0 14px; position: sticky; top: 0; z-index: 5; }
+  .tabs button { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 9px 4px; font-size: 0.92rem; color: var(--muted); }
+  .tabs button.on { background: var(--navy); color: var(--gold-light); font-weight: 650; }
+
+  /* warnings */
+  details.warn { background: #3a1f24; border: 1px solid #6b2b33; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+  details.warn summary { cursor: pointer; color: var(--red); font-weight: 600; }
+  details.warn p { margin: 8px 0 0; font-size: 0.9rem; }
+
+  /* agenda */
+  .day { margin-bottom: 18px; }
+  .day-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 6px; }
+  .day-head h2 { font-size: 1rem; margin: 0; color: var(--gold-light); font-weight: 650; }
+  .day-head .count { color: var(--muted); font-size: 0.82rem; }
+  .lesson {
+    display: flex; gap: 12px; align-items: flex-start; background: var(--navy-card);
+    border: 1px solid var(--navy-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
+  }
+  .lesson .time { min-width: 86px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .lesson .time small { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+  .lesson .who { flex: 1; }
+  .lesson .who .name { font-weight: 600; }
+  .tag { display: inline-block; font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--navy-border); color: var(--muted); margin-top: 2px; }
+  .tag.online { color: var(--green); border-color: #2d6b4a; }
+  .tag.single { color: var(--gold-light); border-color: #7a5a1c; }
+  .lesson.done { opacity: 0.45; }
+  .lesson.now { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+  .free { color: var(--muted); font-size: 0.9rem; padding: 4px 2px 0; }
+
+  /* usual week */
+  .gaps { margin: 6px 2px 0; font-size: 0.88rem; color: var(--muted); }
+  .gaps b { color: var(--cream); font-weight: 600; }
+  .row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--navy-border); }
+  .row:last-child { border-bottom: 0; }
+  .section-label { margin: 18px 2px 8px; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .hint { background: var(--navy-card); border: 1px dashed var(--navy-border); border-radius: 12px; padding: 10px 14px; font-size: 0.88rem; color: var(--muted); margin-top: 22px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Lock screen -->
+  <div id="lock" hidden>
+    <h1 style="margin-bottom:18px;">My <span>Schedule</span></h1>
+    <div class="card">
+      <p class="muted">Enter your admin password to see your lessons.</p>
+      <input type="password" id="pw" placeholder="Admin password" autocomplete="current-password">
+      <label class="check"><input type="checkbox" id="remember" checked> Remember on this phone</label>
+      <div class="error" id="lockError"></div>
+      <button class="primary" id="openBtn" style="width:100%;">Open my schedule</button>
+    </div>
+    <div class="hint">To put this on your home screen: in Safari tap the Share button, then <b>Add to Home Screen</b>. (On Android Chrome: the menu, then <b>Add to Home screen</b>.)</div>
+  </div>
+
+  <!-- Main -->
+  <div id="main" hidden>
+    <div class="top">
+      <div>
+        <h1>My <span>Schedule</span></h1>
+        <div class="muted" id="updated"></div>
+      </div>
+      <div class="top-actions">
+        <button class="small" id="refreshBtn">Refresh</button>
+        <button class="small" id="lockBtn">Lock</button>
+      </div>
+    </div>
+
+    <div id="warnBox"></div>
+
+    <div class="tabs" id="tabs">
+      <button data-tab="agenda" class="on">Agenda</button>
+      <button data-tab="week">Usual week</button>
+      <button data-tab="online">Online</button>
+    </div>
+
+    <div id="tab-agenda"></div>
+    <div id="tab-week" hidden></div>
+    <div id="tab-online" hidden></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const KEY = 'mcqSchedulePw';
+    const ENDPOINT = '/.netlify/functions/admin-list-enrollments';
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let password = '';
+    let lastLoaded = 0;
+    let data = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    // Small helper: build an element with text (never HTML, so names are always safe to show).
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined && text !== null) e.textContent = text;
+      return e;
+    }
+
+    function storedPassword() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
+    function storePassword(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+    function forgetPassword() { try { localStorage.removeItem(KEY); } catch (e) {} }
+
+    function showLock(message) {
+      $('main').hidden = true;
+      $('lock').hidden = false;
+      $('lockError').textContent = message || '';
+      $('pw').value = '';
+      password = '';
+    }
+
+    function todayLocal() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function dayLabel(dateStr, todayStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const t = new Date(todayStr + 'T00:00:00');
+      const diff = Math.round((d - t) / 86400000);
+      const base = DAY_NAMES[d.getDay()].slice(0, 3) + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+      if (diff === 0) return 'Today · ' + base;
+      if (diff === 1) return 'Tomorrow · ' + base;
+      return base;
+    }
+
+    function tagFor(source) {
+      if (source === 'enrolled online') return el('span', 'tag online', 'enrolled online');
+      if (source === 'single lesson' || source === 'package lesson') return el('span', 'tag single', source);
+      return el('span', 'tag', source);
+    }
+
+    function lessonCard(l, isToday, nowMin) {
+      const card = el('div', 'lesson');
+      if (isToday && l.endMinutes <= nowMin) card.classList.add('done');
+      if (isToday && l.startMinutes <= nowMin && nowMin < l.endMinutes) card.classList.add('now');
+      const time = el('div', 'time', l.from);
+      time.appendChild(el('small', null, 'to ' + l.to + ' · ' + l.minutes + ' min'));
+      const who = el('div', 'who');
+      who.appendChild(el('div', 'name', l.name));
+      who.appendChild(tagFor(l.source));
+      card.appendChild(time);
+      card.appendChild(who);
+      return card;
+    }
+
+    function renderAgenda() {
+      const box = $('tab-agenda');
+      box.textContent = '';
+      const todayStr = todayLocal();
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      (data.agenda || []).forEach(day => {
+        const wrap = el('div', 'day');
+        const head = el('div', 'day-head');
+        head.appendChild(el('h2', null, dayLabel(day.date, todayStr)));
+        head.appendChild(el('span', 'count', day.lessons.length ? day.lessons.length + (day.lessons.length === 1 ? ' lesson' : ' lessons') : ''));
+        wrap.appendChild(head);
+        if (day.lessons.length === 0) wrap.appendChild(el('div', 'free', 'Free day'));
+        day.lessons.forEach(l => wrap.appendChild(lessonCard(l, day.date === todayStr, nowMin)));
+        box.appendChild(wrap);
+      });
+      box.appendChild(el('div', 'hint', 'Lessons for later weeks are each student\'s usual slot. A lesson that has been moved or cancelled shows up once it\'s booked.'));
+    }
+
+    function renderWeek() {
+      const box = $('tab-week');
+      box.textContent = '';
+      (data.week || []).forEach(day => {
+        const wrap = el('div', 'day');
+        const head = el('div', 'day-head');
+        head.appendChild(el('h2', null, day.day));
+        wrap.appendChild(head);
+        if (day.lessons.length === 0) wrap.appendChild(el('div', 'free', 'Nobody booked in'));
+        day.lessons.forEach(l => {
+          const card = el('div', 'lesson');
+          const time = el('div', 'time', l.from);
+          time.appendChild(el('small', null, 'to ' + l.to + ' · ' + l.minutes + ' min'));
+          const who = el('div', 'who');
+          who.appendChild(el('div', 'name', l.name));
+          who.appendChild(tagFor(l.source.indexOf('online') !== -1 ? 'enrolled online' : 'regular'));
+          if (l.frequency && l.frequency !== 'weekly') who.appendChild(el('span', 'tag', l.frequency));
+          if (l.note) who.appendChild(el('span', 'tag', l.note));
+          card.appendChild(time); card.appendChild(who);
+          wrap.appendChild(card);
+        });
+        const gaps = el('div', 'gaps');
+        const g = el('div');
+        g.appendChild(el('b', null, 'Free: '));
+        g.appendChild(document.createTextNode(day.freeGaps.length ? day.freeGaps.map(x => x.from + ' to ' + x.to + ' (' + x.minutes + ' min)').join(', ') : 'nothing'));
+        gaps.appendChild(g);
+        const h = el('div');
+        h.appendChild(el('b', null, 'A full hour fits starting: '));
+        h.appendChild(document.createTextNode(day.fullHourStarts.length ? day.fullHourStarts.join('; ') : 'nowhere'));
+        gaps.appendChild(h);
+        wrap.appendChild(gaps);
+        box.appendChild(wrap);
+      });
+    }
+
+    function renderOnline() {
+      const box = $('tab-online');
+      box.textContent = '';
+      box.appendChild(el('div', 'section-label', 'Enrolled online'));
+      const list = data.onlineEnrollments || [];
+      if (!list.length) box.appendChild(el('div', 'free', 'Nobody enrolled online yet.'));
+      list.forEach(e => {
+        const row = el('div', 'row');
+        const left = el('div');
+        left.appendChild(el('div', 'name', e.name));
+        left.appendChild(el('div', 'muted', e.day + ' ' + e.time + ' · ' + e.minutes + ' min · ' + e.frequency));
+        const right = el('div', 'muted');
+        right.style.textAlign = 'right';
+        if (e.status === 'paused') right.textContent = 'paused' + (e.pausedUntil ? ' until ' + e.pausedUntil : '');
+        else if (e.startDate && e.startDate > todayLocal()) right.textContent = 'starts ' + e.startDate;
+        else right.textContent = 'active';
+        row.appendChild(left); row.appendChild(right);
+        box.appendChild(row);
+      });
+      box.appendChild(el('div', 'section-label', 'Gift vouchers'));
+      const vs = (data.vouchers || []).slice().sort((a, b) => (b.lessonsRemaining > 0) - (a.lessonsRemaining > 0));
+      if (!vs.length) box.appendChild(el('div', 'free', 'No vouchers sold yet.'));
+      vs.forEach(v => {
+        const row = el('div', 'row');
+        const left = el('div');
+        left.appendChild(el('div', 'name', (v.recipientName || 'Voucher') + (v.buyerName ? ' (from ' + v.buyerName + ')' : '')));
+        left.appendChild(el('div', 'muted', v.code + ' · ' + v.lessonsTotal + ' x ' + v.durationMinutes + ' min' + (v.buyerEmail ? ' · ' + v.buyerEmail : '')));
+        const right = el('div', 'muted');
+        right.style.textAlign = 'right';
+        right.textContent = v.status === 'void' ? 'void' : v.lessonsRemaining + ' left';
+        row.appendChild(left); row.appendChild(right);
+        box.appendChild(row);
+      });
+      box.appendChild(el('div', 'section-label', 'Single lessons and packages'));
+      const singles = data.upcomingSingles || [];
+      if (!singles.length) box.appendChild(el('div', 'free', 'None coming up.'));
+      singles.forEach(b => {
+        const row = el('div', 'row');
+        const left = el('div');
+        left.appendChild(el('div', 'name', b.name || '(no name)'));
+        left.appendChild(el('div', 'muted', dayLabel(b.date, todayLocal()) + ' · ' + b.time + ' · ' + b.minutes + ' min'));
+        row.appendChild(left);
+        if (b.type) row.appendChild(el('div', 'muted', b.type));
+        box.appendChild(row);
+      });
+    }
+
+    function renderWarnings() {
+      const box = $('warnBox');
+      box.textContent = '';
+      const w = data.warnings || [];
+      if (!w.length) return;
+      const d = el('details', 'warn');
+      d.appendChild(el('summary', null, w.length + (w.length === 1 ? ' thing' : ' things') + ' to check'));
+      w.forEach(x => d.appendChild(el('p', null, x)));
+      box.appendChild(d);
+    }
+
+    function renderAll() {
+      renderWarnings();
+      renderAgenda();
+      renderWeek();
+      renderOnline();
+      const t = new Date();
+      $('updated').textContent = 'Updated ' + t.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    async function load(isFirst) {
+      const btn = $('refreshBtn');
+      btn.disabled = true;
+      try {
+        const resp = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: password })
+        });
+        const result = await resp.json();
+        if (!result.success) {
+          if (resp.status === 401 || resp.status === 429) { forgetPassword(); showLock(result.error || 'Incorrect password.'); }
+          else if (isFirst) showLock(result.error || 'Something went wrong.');
+          else $('updated').textContent = 'Could not refresh: ' + (result.error || 'try again');
+          btn.disabled = false;
+          return;
+        }
+        data = result;
+        lastLoaded = Date.now();
+        $('lock').hidden = true;
+        $('main').hidden = false;
+        renderAll();
+      } catch (e) {
+        if (isFirst && !data) showLock('Could not reach the server. Check your connection and try again.');
+        else $('updated').textContent = 'No connection - showing the last loaded schedule';
+      }
+      btn.disabled = false;
+    }
+
+    // tabs
+    $('tabs').addEventListener('click', (ev) => {
+      const t = ev.target.getAttribute && ev.target.getAttribute('data-tab');
+      if (!t) return;
+      Array.prototype.forEach.call($('tabs').children, b => b.classList.toggle('on', b === ev.target));
+      ['agenda', 'week', 'online'].forEach(name => { $('tab-' + name).hidden = (name !== t); });
+      window.scrollTo(0, 0);
+    });
+
+    $('openBtn').addEventListener('click', () => {
+      const v = $('pw').value;
+      if (!v) { $('lockError').textContent = 'Please enter the password.'; return; }
+      password = v;
+      if ($('remember').checked) storePassword(v);
+      $('lockError').textContent = '';
+      load(true);
+    });
+    $('pw').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') $('openBtn').click(); });
+    $('refreshBtn').addEventListener('click', () => load(false));
+    $('lockBtn').addEventListener('click', () => { forgetPassword(); data = null; showLock(''); });
+
+    // Refresh by itself when the app is reopened after a couple of minutes.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && password && Date.now() - lastLoaded > 2 * 60 * 1000) load(false);
+    });
+
+    // start
+    const saved = storedPassword();
+    if (saved) { password = saved; load(true); } else { showLock(''); }
+  })();
+</script>
+</body>
+</html>

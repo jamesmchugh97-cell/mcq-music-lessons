@@ -101,7 +101,7 @@ async function sendEmail(to, subject, html) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>',
+        from: 'MCQ Music Lessons <booking@mcqmusiclessons.com.au>', reply_to: 'jamesmcqmusic@gmail.com',
         to: [to],
         subject: subject,
         html: html
@@ -211,6 +211,7 @@ exports.handler = async function (event) {
           weekEnd: weekEnd,
           originalDate: date,
           originalTime: time,
+          ...(record.voucherCode ? { voucherCode: record.voucherCode } : {}),
           used: false,
           createdAt: new Date().toISOString()
         });
@@ -227,6 +228,10 @@ exports.handler = async function (event) {
       ? '<p style="text-align:center;margin:24px 0;"><a href="https://mcqmusiclessons.com.au/booking.html?reschedule=' + rescheduleToken + '#reschedulePanel" style="background:#c9942a;color:#1a1a1a;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;">Rebook within the next 2 weeks (no charge) &rarr;</a></p>'
       : '';
 
+    // A lesson booked with a gift voucher is cancelled by exactly the same rules as any other
+    // lesson (24+ hours' notice = a free reschedule, otherwise it is lost). Only the wording
+    // changes: nobody is charged a "lesson fee" - the lesson simply counts as used on the voucher.
+    const isVoucherLesson = !!record.voucherCode;
     const studentName = record.name || 'there';
     const safeStudentName = escapeHtml(studentName);
     const safeEmail = escapeHtml(email);
@@ -240,10 +245,10 @@ exports.handler = async function (event) {
       '<p>Your lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong> has been cancelled as requested.</p>' +
       rebookButtonHtml +
       '<p>' + (eligible
-        ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Friday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, this lesson won't be refunded."
+        ? "You've got 24+ hours' notice, so you can move this lesson to a new time yourself, any day over the next two weeks (Monday through Friday), with no extra charge, no need to contact James. If you don't rebook within that fortnight, " + (isVoucherLesson ? "this lesson will count as used on your gift voucher." : "this lesson won't be refunded.") + ""
         : (alreadyRescheduledOnce
-          ? "This lesson had already been rescheduled once, so it's not eligible for a further free reschedule. The full lesson fee applies and no rebooking is available."
-          : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available.")) + '</p>' +
+          ? (isVoucherLesson ? "This lesson had already been rescheduled once, so it can't be moved again. It counts as used on your gift voucher and can't be rebooked." : "This lesson had already been rescheduled once, so it's not eligible for a further free reschedule. The full lesson fee applies and no rebooking is available.")
+          : (isVoucherLesson ? "As this was cancelled with less than 24 hours' notice, it counts as used on your gift voucher and can't be rebooked." : "As this was cancelled with less than 24 hours' notice, the full lesson fee applies and no rebooking is available."))) + '</p>' +
       '<p style="font-size:0.85em;color:#666;">Questions? Reply to this email or call 0499 232 898.</p>' +
       // Invisible per-email marker: Gmail auto-collapses content it
       // recognises as a repeated "signature" across emails from the same
@@ -259,7 +264,7 @@ exports.handler = async function (event) {
     const jamesHtml =
       '<div style="font-family:-apple-system,sans-serif;">' +
       '<h3>Lesson cancelled</h3>' +
-      '<p><strong>' + safeStudentName + '</strong> (' + safeEmail + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.</p>' +
+      '<p><strong>' + safeStudentName + '</strong> (' + safeEmail + ') cancelled their lesson on <strong>' + formatFriendlyDate(date) + ' at ' + time + '</strong>.' + (isVoucherLesson ? ' (A gift voucher lesson - voucher ' + escapeHtml(record.voucherCode) + '.)' : '') + '</p>' +
       '<p>Notice given: ' + hoursUntil.toFixed(1) + ' hours (' + (eligible ? 'eligible for a free self-service reschedule within the next fortnight' : (alreadyRescheduledOnce ? 'already used its one free reschedule, no further rebooking, full fee applies' : 'within 24 hours, no rebooking, full fee applies')) + ').</p>' +
       '</div>';
     await sendEmail('jamesmcqmusic@gmail.com', 'Booking cancelled: ' + studentName + ', ' + date + ' ' + time, jamesHtml);

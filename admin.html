@@ -93,7 +93,80 @@
   </div>
 </section>
 
+<section style="padding-top:1rem;">
+  <div class="section-inner" style="max-width:560px;">
+    <h2 class="section-title">Gift <em>vouchers</em></h2>
+    <p class="section-sub">Make a voucher by hand (for one sold in person, or if an online purchase ever fails to produce one), email it again, or cancel one. Online purchases make their own voucher automatically - you don't need this for those.</p>
+
+    <div class="booking-form">
+      <p class="form-label" style="margin-bottom:0.8rem;">Make a voucher</p>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Buyer's name</label><input type="text" id="gvBuyerName" class="form-input" maxlength="80"></div>
+        <div class="form-group"><label class="form-label">Buyer's email</label><input type="email" id="gvBuyerEmail" class="form-input" maxlength="200"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Who is it for? (optional)</label><input type="text" id="gvRecipient" class="form-input" maxlength="80"></div>
+      <div class="form-group"><label class="form-label">Message on the voucher (optional)</label><textarea id="gvMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Lessons</label><select id="gvCount" class="form-input"><option value="5">5 lessons</option><option value="10">10 lessons</option></select></div>
+        <div class="form-group"><label class="form-label">Lesson length</label><select id="gvDuration" class="form-input"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option><option value="60">60 minutes</option><option value="75">75 minutes</option><option value="90">90 minutes</option></select></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);margin-bottom:0.8rem;"><input type="checkbox" id="gvEmail" checked> Email the voucher to the buyer</label>
+      <div class="form-group"><label class="form-label">Admin password</label><input type="password" id="gvPassword" class="form-input" placeholder="Password"></div>
+      <div id="gvMessageOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <button type="button" class="btn-primary" onclick="gvMake()" id="gvMakeBtn" style="width:100%;text-align:center;">Make the voucher</button>
+
+      <p class="form-label" style="margin:1.6rem 0 0.8rem;">Already have a code? Email it again or cancel it</p>
+      <div class="form-group"><label class="form-label">Voucher code</label><input type="text" id="gvCode" class="form-input" placeholder="MCQ-XXXX-XXXX-XXXX" autocapitalize="characters"></div>
+      <div class="form-group"><label class="form-label">Send to a different email (optional - otherwise the buyer's)</label><input type="email" id="gvToEmail" class="form-input"></div>
+      <div id="gvMessageOut2" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <button type="button" class="btn-outline" onclick="gvResend()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Email this voucher again</button>
+      <button type="button" class="btn-outline" onclick="gvVoid()" style="width:100%;text-align:center;">Cancel this voucher (it can no longer be used)</button>
+    </div>
+  </div>
+</section>
+
 <script>
+  // ===== Gift vouchers (by hand) =====
+  function gvOut(id, text, isError) { const el = document.getElementById(id); el.textContent = text; el.style.color = isError ? '#f87171' : 'var(--cream)'; }
+  async function gvCall(payload, outId) {
+    const password = document.getElementById('gvPassword').value;
+    if (!password) { gvOut(outId, 'Please enter the admin password.', true); return null; }
+    try {
+      const resp = await fetch('/.netlify/functions/admin-voucher', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ password: password }, payload)) });
+      const data = await resp.json();
+      if (!data.success) { gvOut(outId, data.error || 'Something went wrong.', true); return null; }
+      return data;
+    } catch (e) { gvOut(outId, 'Could not reach the server. Nothing was changed - please try again.', true); return null; }
+  }
+  async function gvMake() {
+    const btn = document.getElementById('gvMakeBtn'); btn.disabled = true; gvOut('gvMessageOut', 'Making the voucher...', false);
+    const data = await gvCall({
+      action: 'create',
+      buyerName: document.getElementById('gvBuyerName').value, buyerEmail: document.getElementById('gvBuyerEmail').value,
+      recipientName: document.getElementById('gvRecipient').value, message: document.getElementById('gvMessage').value,
+      lessonCount: document.getElementById('gvCount').value, durationMinutes: document.getElementById('gvDuration').value,
+      sendEmail: document.getElementById('gvEmail').checked
+    }, 'gvMessageOut');
+    if (data) {
+      gvOut('gvMessageOut', 'DONE. Code: ' + data.code + '\n' + (data.emailed ? 'It has been emailed to the buyer.' : (document.getElementById('gvEmail').checked ? 'The email could not be sent - use "Email this voucher again" below.' : 'Not emailed (you chose not to).')) + '\nPrintable voucher: ' + data.printUrl, false);
+      document.getElementById('gvCode').value = data.code;
+    }
+    btn.disabled = false;
+  }
+  async function gvResend() {
+    const code = document.getElementById('gvCode').value.trim();
+    if (!code) { gvOut('gvMessageOut2', 'Please enter the voucher code.', true); return; }
+    gvOut('gvMessageOut2', 'Sending...', false);
+    const data = await gvCall({ action: 'resend', code: code, toEmail: document.getElementById('gvToEmail').value }, 'gvMessageOut2');
+    if (data) gvOut('gvMessageOut2', (data.emailed ? 'Sent to ' + data.sentTo : 'The email could not be sent') + '. ' + data.lessonsRemaining + ' lesson(s) left on this voucher.', !data.emailed);
+  }
+  async function gvVoid() {
+    const code = document.getElementById('gvCode').value.trim();
+    if (!code) { gvOut('gvMessageOut2', 'Please enter the voucher code.', true); return; }
+    if (!window.confirm('Cancel voucher ' + code + '? Lessons already booked stay booked, but no more can be booked with it.')) return;
+    const data = await gvCall({ action: 'void', code: code }, 'gvMessageOut2');
+    if (data) gvOut('gvMessageOut2', 'Voucher ' + data.code + ' is cancelled.', false);
+  }
   // ===== Who's booked in =====
   function whoText(data) {
     const out = [];
@@ -118,6 +191,11 @@
       paused.forEach(e => out.push('  ' + e.name + ': ' + e.day + ' ' + e.time + ', paused until ' + (e.pausedUntil || '?')));
       out.push('');
     }
+    out.push('GIFT VOUCHERS (paid for, lessons not yet all booked are shown first)');
+    const vs = (data.vouchers || []).slice().sort((a, b) => (b.lessonsRemaining > 0) - (a.lessonsRemaining > 0));
+    if (!vs.length) out.push('  (none sold yet)');
+    vs.forEach(v => out.push('  ' + v.code + '  ' + v.lessonsTotal + ' x ' + v.durationMinutes + ' min, ' + v.lessonsRemaining + ' left' + (v.status === 'void' ? ' (VOID)' : '') + '  for ' + (v.recipientName || '?') + ' from ' + (v.buyerName || '?') + (v.buyerEmail ? ' (' + v.buyerEmail + ')' : '') + ', expires ' + v.expiresAt));
+    out.push('');
     out.push('SINGLE LESSONS AND PACKAGES COMING UP');
     if (!data.upcomingSingles.length) out.push('  (none)');
     data.upcomingSingles.forEach(b => out.push('  ' + formatFriendly(b.date) + ', ' + b.time + ', ' + b.minutes + ' min   ' + (b.name || '(no name)') + (b.type ? ' (' + b.type + ')' : '')));
