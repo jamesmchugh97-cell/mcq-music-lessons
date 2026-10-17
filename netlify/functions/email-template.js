@@ -81,7 +81,8 @@ function voucherCertificate(v) {
         '<strong style="color:' + C.ink + ';">How to use this voucher</strong><br>' +
         '1. Go to <a href="' + esc(v.redeemUrl || (SITE + '/booking.html#package')) + '" style="color:' + C.goldDark + ';font-weight:bold;">mcqmusiclessons.com.au/booking.html#package</a> and enter the code above.<br>' +
         '2. Choose a date and time for each lesson. Book them all at once, or a few at a time, whenever suits (up to 3 months ahead each time).<br>' +
-        '3. That&rsquo;s it &mdash; nothing more to pay. Lessons are at ' + esc(ADDRESS) + '.' +
+        '3. That&rsquo;s it &mdash; nothing more to pay. Lessons are at ' + esc(ADDRESS) + '.<br>' +
+        '<span style="color:' + C.muted + ';">Lost this link? Go to mcqmusiclessons.com.au, tap &ldquo;Use a Gift Voucher&rdquo; and enter your code. The code is all you need.</span>' +
       '</div>' +
     '</td></tr></table></td></tr></table>';
 }
@@ -119,7 +120,8 @@ function giftVoucherEmail(voucher) {
     voucher.message ? '  Message: "' + voucher.message + '"' : null,
     '  CODE: ' + voucher.code,
     '  Valid until ' + niceDay(voucher.expiresAt), '',
-    'To use it: go to ' + SITE + '/booking.html#package, enter the code, and choose a date and time for each lesson (all at once or a few at a time, up to 3 months ahead each time). Nothing more to pay.', '',
+    'To use it: go to ' + SITE + '/booking.html#package, enter the code, and choose a date and time for each lesson (all at once or a few at a time, up to 3 months ahead each time). Nothing more to pay.',
+    'Lost the link? Go to mcqmusiclessons.com.au, tap "Use a Gift Voucher" and enter the code. The code is all you need.', '',
     'Print-friendly voucher: ' + printUrl,
     'Book the lessons: ' + redeemUrl, '',
     'Anyone with the code can use it, so keep it safe until you give it. Lessons can be moved or cancelled with at least 24 hours\' notice.',
@@ -173,7 +175,7 @@ function lessonsBookedEmail(o) {
     (o.left > 0
       ? p('You have <strong>' + o.left + ' lesson' + (o.left === 1 ? '' : 's') + ' left</strong> on your voucher. Whenever you&rsquo;re ready to book ' + (o.left === 1 ? 'it' : 'them') + ', use the button below (your code is <strong style="white-space:nowrap;">' + esc(o.code) + '</strong>).') + button(redeemUrl, 'Book my remaining lessons', true)
       : p('That was the last lesson on your voucher &mdash; enjoy it! If you&rsquo;d like to keep going, just reply and we&rsquo;ll set up a regular time.')) +
-    p('Need to move or cancel a lesson? Use <a href="' + SITE + '/booking.html#manage" style="color:' + C.goldDark + ';">Manage Booking</a> with at least 24 hours&rsquo; notice. Or just reply to this email.') +
+    p('Need to move or cancel a lesson? Use <a href="' + SITE + '/booking.html#manage" style="color:' + C.goldDark + ';">My Lessons</a> with at least 24 hours&rsquo; notice. Or just reply to this email.') +
     p('See you soon,<br><strong>James</strong>');
   const html = wrap({ title: subject, preheader: n + (n === 1 ? ' lesson' : ' lessons') + ' booked' + (sorted[0] ? ', starting ' + niceDay(sorted[0].date) + ' at ' + sorted[0].time : '') + '.', bodyHtml: body });
   const text = [

@@ -229,7 +229,7 @@ exports.handler = async function (event) {
       </p>
       <p style="font-size: 0.85em; color: #666;">Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</p>
       <p style="text-align:center;margin-top:16px;">
-        <a href="https://mcqmusiclessons.com.au/booking.html?manage_email=${encodeURIComponent(email)}#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">Reschedule or cancel this lesson</a>
+        <a href="https://mcqmusiclessons.com.au/booking.html?manage_email=${encodeURIComponent(email)}#manage" style="color:#c9942a;font-size:0.85em;text-decoration:underline;">See all your lessons, or reschedule or cancel</a>
       </p>
     </div>
   `;
