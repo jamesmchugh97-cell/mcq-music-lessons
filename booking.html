@@ -54,7 +54,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="about.html">About</a></li>
       <li><a href="pricing.html#pricing">Pricing</a></li>
       <li><a href="faq.html">FAQ</a></li>
-      <li><a href="booking.html#manage">Manage Booking</a></li>
+      <li><a href="booking.html#manage">My Lessons</a></li>
       <li><a href="booking.html#calendar" class="nav-cta">Enroll</a></li>
     </ul>
     <div class="nav-social">
@@ -78,8 +78,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="pricing.html#reviews" onclick="toggleMenu()">Reviews</a>
   <a href="about.html" onclick="toggleMenu()">About</a>
   <a href="pricing.html#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="gift.html" onclick="toggleMenu()">Gift Vouchers</a>
+  <a href="booking.html#package" onclick="toggleMenu()">Use a Gift Voucher</a>
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
-  <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
+  <a href="booking.html#manage" onclick="toggleMenu()">My Lessons</a>
   <a href="booking.html#calendar" onclick="toggleMenu()">Enroll</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -244,13 +246,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <p class="section-sub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
     <p class="section-sub" style="margin-top:-0.4rem;">Buying for someone else? <a href="gift.html" style="color:var(--gold);">Give a gift voucher</a> - they choose their own dates later.</p>
     <div class="booking-form" id="voucherBox" style="margin-bottom:1rem;">
-      <label class="form-label" for="voucherCodeInput">Have a gift voucher?</label>
+      <label class="form-label" for="voucherCodeInput">Have a gift voucher? Enter your code to book your lessons</label>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
         <input class="form-input" type="text" id="voucherCodeInput" placeholder="MCQ-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:200px;" onkeydown="if(event.key==='Enter'){event.preventDefault();applyVoucher();}">
         <button type="button" class="btn-outline" id="voucherApplyBtn" onclick="applyVoucher()">Apply voucher</button>
         <button type="button" class="btn-outline" id="voucherClearBtn" onclick="clearVoucher()" style="display:none;">Remove voucher</button>
       </div>
-      <p id="voucherMsg" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1em;"></p>
+      <p id="voucherMsg" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1em;color:var(--muted);">Your lessons are already paid for, so there's nothing to pay. Enter the code, then choose a date and time for each lesson below.</p>
     </div>
     <form class="booking-form" id="packageForm" onsubmit="return handlePackageBooking(event)">
       <div class="form-row">
@@ -694,9 +696,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <section id="manage">
   <div class="section-inner">
-    <p class="section-eyebrow">Manage Booking</p>
-    <h2 class="section-title">Need to <em>reschedule or cancel?</em></h2>
-    <p class="section-sub">Enter the email you booked with to find your upcoming lessons, reschedule, or cancel, all yourself, no need to message James.</p>
+    <p class="section-eyebrow">My Lessons</p>
+    <h2 class="section-title">See when you're <em>booked in</em></h2>
+    <p class="section-sub">Enter the email you booked with to see your upcoming lessons. You can reschedule or cancel from here too, no need to message James.</p>
     <div class="booking-form">
       <div class="form-group">
         <label class="form-label">Your Email</label>
@@ -762,7 +764,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <footer>
   <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
-  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="privacy.html">Privacy Policy</a></p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="gift.html">Gift Vouchers</a> · <a href="booking.html#package">Use a Gift Voucher</a> · <a href="privacy.html">Privacy Policy</a></p>
 </footer>
 
 <div class="modal-overlay" id="successModal">
@@ -2270,6 +2272,25 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
 
   // MANAGE BOOKING, self-service lookup and cancellation
+  // Dates read the way people say them: "Wednesday 4 November", with the year only when it isn't this year.
+  function friendlyLessonDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return dateStr;
+    const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString('en-AU', opts);
+  }
+
+  function addMyLessonsHeading(container, text) {
+    const h = document.createElement('p');
+    h.style.cssText = 'font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:1.1rem 0 0.5rem;';
+    h.textContent = text;
+    container.appendChild(h);
+  }
+
+  // "My Lessons": one place to see when you're booked in. Shows your regular weekly
+  // or fortnightly slot (if you're enrolled) and every upcoming lesson, with
+  // Reschedule and Cancel on each lesson.
   async function findMyBookings() {
     const email = document.getElementById('manageEmail').value.trim();
     const errEl = document.getElementById('manageError');
@@ -2280,20 +2301,70 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const btn = document.getElementById('findBookingsBtn');
     btn.textContent = 'Searching…'; btn.disabled = true;
     try {
-      const resp = await fetch('/.netlify/functions/find-bookings?email=' + encodeURIComponent(email));
-      const result = await resp.json();
+      const [bookResp, subResp] = await Promise.all([
+        fetch('/.netlify/functions/find-bookings?email=' + encodeURIComponent(email)),
+        fetch('/.netlify/functions/manage-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'lookup', email: email })
+        }).catch(() => null)
+      ]);
+      const result = await bookResp.json();
+      let subs = [];
+      try {
+        const sr = subResp ? await subResp.json() : null;
+        if (sr && sr.success && Array.isArray(sr.subscriptions)) subs = sr.subscriptions;
+      } catch (e) {}
       btn.textContent = 'Find My Lessons'; btn.disabled = false;
       if (!result.success) { errEl.textContent = result.error || 'Something went wrong.'; return; }
-      if (!result.bookings || result.bookings.length === 0) {
-        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No upcoming lessons found for that email.</p>';
+      const bookings = result.bookings || [];
+      if (bookings.length === 0 && subs.length === 0) {
+        resultsEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">We couldn\'t find any upcoming lessons for that email. Please check the spelling and use the same email you booked with. Still stuck? Just message James.</p>';
         return;
       }
-      result.bookings.forEach(b => {
+
+      if (subs.length > 0) {
+        addMyLessonsHeading(resultsEl, 'Your regular lessons');
+        subs.forEach(sub => {
+          const card = document.createElement('div');
+          card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.6rem;gap:0.75rem;flex-wrap:wrap;';
+          const info = document.createElement('div');
+          info.style.cssText = 'font-size:0.85rem;color:var(--cream);';
+          const dayName = sub.dayOfWeek || '';
+          const when = sub.frequency === 'fortnightly' ? 'Every second ' + dayName : dayName + 's';
+          info.textContent = (sub.instrument ? sub.instrument + ' · ' : '') + when + ' at ' + sub.time + ' (' + sub.durationMinutes + ' min)';
+          const status = document.createElement('div');
+          status.style.cssText = 'font-size:0.78rem;color:var(--muted);margin-top:0.2rem;';
+          if (sub.cancelling) status.textContent = 'Ending after your next paid lesson';
+          else if (sub.status === 'paused') status.textContent = 'Paused' + (sub.pausedUntil ? ' until ' + friendlyLessonDate(sub.pausedUntil) + ', then resumes automatically' : '');
+          else status.textContent = "You're booked in at this time every " + (sub.frequency === 'fortnightly' ? 'second ' : '') + dayName + '.';
+          const left = document.createElement('div');
+          left.appendChild(info);
+          left.appendChild(status);
+          const link = document.createElement('a');
+          link.href = '#manage-subscription';
+          link.style.cssText = 'color:var(--gold);font-size:0.76rem;white-space:nowrap;';
+          link.textContent = 'Pause or cancel';
+          link.onclick = () => { const f = document.getElementById('manageSubEmail'); if (f) f.value = email; };
+          card.appendChild(left);
+          card.appendChild(link);
+          resultsEl.appendChild(card);
+        });
+      }
+
+      addMyLessonsHeading(resultsEl, 'Your upcoming lessons');
+      if (bookings.length === 0) {
+        const note = document.createElement('p');
+        note.style.cssText = 'color:var(--muted);font-size:0.82rem;';
+        note.textContent = "No dated lessons are listed just yet. You're enrolled, so your usual lesson time above is yours every week - the next lesson shows up here a few days before it happens.";
+        resultsEl.appendChild(note);
+      }
+      bookings.forEach(b => {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.6rem;gap:0.75rem;flex-wrap:wrap;';
         const info = document.createElement('div');
         info.style.cssText = 'font-size:0.85rem;color:var(--cream);';
-        info.textContent = b.date + ' at ' + b.time + ' (' + b.duration + ' min)';
+        info.textContent = friendlyLessonDate(b.date) + ' · ' + b.time + ' · ' + b.duration + ' min';
         const btnGroup = document.createElement('div');
         btnGroup.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;';
         // A student can only ever get one free reschedule per original
@@ -2968,6 +3039,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // A voucher is a prepaid package someone bought as a gift. Entering its code
   // here turns the package form into "book your lessons" - no card, any number
   // of lessons up to what is left - and the booking goes to redeem-voucher.js.
+  const VOUCHER_HELP_TEXT = "Your lessons are already paid for, so there's nothing to pay. Enter the code, then choose a date and time for each lesson below.";
   function setVoucherMsg(text, isError) {
     const el = document.getElementById('voucherMsg');
     el.textContent = text;
@@ -3011,7 +3083,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('voucherClearBtn').style.display = 'none';
     document.getElementById('voucherCodeInput').readOnly = false;
     document.getElementById('voucherCodeInput').value = '';
-    setVoucherMsg('', false);
+    setVoucherMsg(VOUCHER_HELP_TEXT, false);
     handlePackageSizeChange();
   }
   async function applyVoucher() {
@@ -3581,7 +3653,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         if (!sub.cancelling) {
           const rescheduleNote = document.createElement('div');
           rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
-          rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from Manage Booking below, no need to pause or cancel.";
+          rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from My Lessons below, no need to pause or cancel.";
           row.appendChild(rescheduleNote);
         }
         // Once cancelling, there's nothing further to do - no pause or

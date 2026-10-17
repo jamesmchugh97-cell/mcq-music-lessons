@@ -54,7 +54,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <li><a href="about.html">About</a></li>
       <li><a href="pricing.html#pricing">Pricing</a></li>
       <li><a href="faq.html">FAQ</a></li>
-      <li><a href="booking.html#manage">Manage Booking</a></li>
+      <li><a href="booking.html#manage">My Lessons</a></li>
       <li><a href="booking.html#calendar" class="nav-cta">Enroll</a></li>
     </ul>
     <div class="nav-social">
@@ -78,8 +78,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <a href="pricing.html#reviews" onclick="toggleMenu()">Reviews</a>
   <a href="about.html" onclick="toggleMenu()">About</a>
   <a href="pricing.html#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="gift.html" onclick="toggleMenu()">Gift Vouchers</a>
+  <a href="booking.html#package" onclick="toggleMenu()">Use a Gift Voucher</a>
   <a href="faq.html" onclick="toggleMenu()">FAQ</a>
-  <a href="booking.html#manage" onclick="toggleMenu()">Manage Booking</a>
+  <a href="booking.html#manage" onclick="toggleMenu()">My Lessons</a>
   <a href="booking.html#calendar" onclick="toggleMenu()">Enroll</a>
   <div class="mobile-social">
     <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
@@ -99,12 +101,24 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <p class="section-eyebrow">FAQ</p>
     <h2 class="section-title">Common <em>questions.</em></h2>
     <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">How can I check when I'm booked in? <span class="faq-chevron">▾</span></button>
+      <div class="faq-answer">Go to <a href="booking.html#manage" style="color:var(--gold);">My Lessons</a> and enter the email you booked with. It shows your upcoming lessons, and your weekly slot if you're enrolled, and you can reschedule or cancel from there too. Every booking also sends a confirmation email.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">I've been given a gift voucher. How do I use it? <span class="faq-chevron">▾</span></button>
+      <div class="faq-answer">Go to <a href="booking.html#package" style="color:var(--gold);">mcqmusiclessons.com.au/booking.html#package</a> (or tap <strong>Use a Gift Voucher</strong> on the home page), enter the code from your voucher, then choose a date and time for each lesson. You can book them all at once or a few at a time, whenever suits, and there's nothing to pay. Lost the link? Just come back to the website and tap Use a Gift Voucher. You only need the code.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">Can I buy lessons for someone else? <span class="faq-chevron">▾</span></button>
+      <div class="faq-answer">Yes. A <a href="gift.html" style="color:var(--gold);">lesson voucher</a> is a prepaid package of 5 or 10 lessons. You pay once and the voucher is emailed to you, ready to print or forward. Whoever you give it to enters the code on the booking page and picks their own dates and times, all at once or a few at a time. It's valid for 3 years.</div>
+    </div>
+    <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">What is your cancellation policy? <span class="faq-chevron">▾</span></button>
       <div class="faq-answer">24+ hours' notice: rebook yourself, any day Monday to Friday over the next fortnight (James doesn't teach on Saturdays), no charge. Under 24 hours: full lesson fee applies, no rebooking. If James ever needs to cancel, you'll get a full refund or a free reschedule. Feeling unwell with cold or flu-like symptoms? Please reschedule rather than attending in person.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">How exactly does rescheduling work after I cancel? <span class="faq-chevron">▾</span></button>
-      <div class="faq-answer">Cancel from <a href="booking.html#manage" style="color:var(--gold);">Manage Booking</a> using the email you booked with. If it's 24+ hours before your lesson, you'll get an email with a "Rebook" button straight away, no card details needed. Pick any day Monday to Friday and time from the next fortnight and it's confirmed instantly (James doesn't teach on Saturdays). Handy if you're unwell and not sure exactly when you'll be back. The link is single-use; see the cancellation policy above for refund terms.</div>
+      <div class="faq-answer">Cancel from <a href="booking.html#manage" style="color:var(--gold);">My Lessons</a> using the email you booked with. If it's 24+ hours before your lesson, you'll get an email with a "Rebook" button straight away, no card details needed. Pick any day Monday to Friday and time from the next fortnight and it's confirmed instantly (James doesn't teach on Saturdays). Handy if you're unwell and not sure exactly when you'll be back. The link is single-use; see the cancellation policy above for refund terms.</div>
     </div>
     <div class="faq-item">
       <button class="faq-question" onclick="toggleFaq(this)">How does enrolling work, and can I pause or cancel? <span class="faq-chevron">▾</span></button>
@@ -160,7 +174,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <footer>
   <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
-  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="privacy.html">Privacy Policy</a></p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="gift.html">Gift Vouchers</a> · <a href="booking.html#package">Use a Gift Voucher</a> · <a href="privacy.html">Privacy Policy</a></p>
 </footer>
 
 
