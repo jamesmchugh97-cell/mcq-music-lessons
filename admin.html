@@ -122,6 +122,9 @@
       <div class="form-group"><label class="form-label">Voucher code</label><input type="text" id="gvCode" class="form-input" placeholder="MCQ-XXXX-XXXX-XXXX" autocapitalize="characters"></div>
       <div class="form-group"><label class="form-label">Send to a different email (optional - otherwise the buyer's)</label><input type="email" id="gvToEmail" class="form-input"></div>
       <div id="gvMessageOut2" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <div class="form-group"><label class="form-label">New name on the voucher (optional - blank keeps the current one)</label><input type="text" id="gvNewRecipient" class="form-input" maxlength="80"></div>
+      <div class="form-group"><label class="form-label">New message on the voucher (optional - blank keeps the current one)</label><textarea id="gvNewMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <button type="button" class="btn-outline" onclick="gvEdit()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Change the name / message on this voucher</button>
       <button type="button" class="btn-outline" onclick="gvResend()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Email this voucher again</button>
       <button type="button" class="btn-outline" onclick="gvVoid()" style="width:100%;text-align:center;">Cancel this voucher (it can no longer be used)</button>
     </div>
@@ -162,6 +165,13 @@
     gvOut('gvMessageOut2', 'Sending...', false);
     const data = await gvCall({ action: 'resend', code: code, toEmail: document.getElementById('gvToEmail').value }, 'gvMessageOut2');
     if (data) gvOut('gvMessageOut2', (data.emailed ? 'Sent to ' + data.sentTo : 'The email could not be sent') + '. ' + data.lessonsRemaining + ' lesson(s) left on this voucher.', !data.emailed);
+  }
+  async function gvEdit() {
+    const code = document.getElementById('gvCode').value.trim();
+    if (!code) { gvOut('gvMessageOut2', 'Please enter the voucher code.', true); return; }
+    gvOut('gvMessageOut2', 'Saving...', false);
+    const data = await gvCall({ action: 'edit', code: code, recipientName: document.getElementById('gvNewRecipient').value, message: document.getElementById('gvNewMessage').value }, 'gvMessageOut2');
+    if (data) gvOut('gvMessageOut2', 'Saved. Voucher ' + data.code + ' now says: ' + (data.recipientName || '(no name)') + (data.message ? ' / ' + data.message : '') + '\nUse "Email this voucher again" if you want to send her the updated one.', false);
   }
   async function gvVoid() {
     const code = document.getElementById('gvCode').value.trim();

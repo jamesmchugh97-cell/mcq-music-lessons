@@ -72,6 +72,21 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ success: true, code: code, emailed: emailed, printUrl: site + '/voucher.html?code=' + encodeURIComponent(code), redeemUrl: site + '/booking.html?voucher=' + encodeURIComponent(code) + '#package', voucher: vh.publicView(voucher) }) };
     }
 
+    if (body.action === 'edit') {
+      const voucher = await vh.getVoucher(body.code);
+      if (!voucher) return fail(404, 'No voucher found with that code.');
+      // Only the personal touches can change. Lessons, price, expiry and
+      // redemptions are never touched here. A blank box keeps what is already there.
+      const newRecipient = clean(body.recipientName, 80);
+      const newMessage = clean(body.message, 300);
+      if (!newRecipient && !newMessage) return fail(400, 'Please enter a new name or a new message.');
+      if (newRecipient) voucher.recipientName = newRecipient;
+      if (newMessage) voucher.message = newMessage;
+      voucher.editedAt = new Date().toISOString();
+      await vh.saveVoucher(voucher);
+      return { statusCode: 200, body: JSON.stringify({ success: true, code: voucher.code, recipientName: voucher.recipientName || '', message: voucher.message || '' }) };
+    }
+
     if (body.action === 'resend' || body.action === 'void') {
       const voucher = await vh.getVoucher(body.code);
       if (!voucher) return fail(404, 'No voucher found with that code.');
