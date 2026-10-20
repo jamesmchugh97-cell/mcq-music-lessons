@@ -105,11 +105,12 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
     <div class="policy-box" style="margin-top:1.2rem;">
       <div class="policy-title">I bought a voucher and want to change the name or message</div>
-      <p style="font-size:0.88rem;color:var(--cream);line-height:1.7;margin-bottom:1rem;">Enter the voucher code and the email address you paid with, then the new name or message. Leave a box blank to keep what's there. The printable voucher updates straight away; the original email stays as it was, so open the printable voucher link to see the new version.</p>
+      <p style="font-size:0.88rem;color:var(--cream);line-height:1.7;margin-bottom:1rem;">Enter the voucher code and the email address you paid with, then the new name or message. Leave the name blank to keep it as it is. A new message replaces the old one completely. The printable voucher updates straight away; the original email stays as it was, so open the printable voucher link to see the new version.</p>
       <div class="form-group"><label class="form-label">Voucher code</label><input type="text" id="evCode" class="form-input" placeholder="MCQ-XXXX-XXXX-XXXX" autocapitalize="characters"></div>
       <div class="form-group"><label class="form-label">Email you paid with</label><input type="email" id="evEmail" class="form-input" maxlength="200" autocomplete="email"></div>
       <div class="form-group"><label class="form-label">New name of who it's for (optional)</label><input type="text" id="evRecipient" class="form-input" maxlength="80"></div>
-      <div class="form-group"><label class="form-label">New message (optional)</label><textarea id="evMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <div class="form-group"><label class="form-label">New message (optional). Whatever you write here completely replaces the old message.</label><textarea id="evMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);margin-bottom:0.8rem;cursor:pointer;"><input type="checkbox" id="evRemove"> Remove the current message and leave it blank</label>
       <div id="evOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
       <button type="button" class="btn-primary" id="evBtn" onclick="editVoucher()" style="width:100%;text-align:center;">Save changes</button>
     </div>
@@ -134,12 +135,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     try {
       const resp = await fetch('/.netlify/functions/edit-voucher', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
         code: code, buyerEmail: email,
-        recipientName: document.getElementById('evRecipient').value, message: document.getElementById('evMessage').value
+        recipientName: document.getElementById('evRecipient').value, message: document.getElementById('evMessage').value,
+        removeMessage: document.getElementById('evRemove').checked
       }) });
       const data = await resp.json();
       if (!data.success) { say(data.error || 'Something went wrong. Please try again.', true); }
       else {
-        say('Saved. The voucher is now for ' + (data.recipientName || '(no name)') + (data.message ? ' with the message: ' + data.message : '') + '.\nPrintable voucher: ' + window.location.origin + '/voucher.html?code=' + encodeURIComponent(data.code), false);
+        say('Saved. The voucher is now for ' + (data.recipientName || '(no name)') + (data.message ? ' with the message: ' + data.message : ' with no message') + '.\nPrintable voucher: ' + window.location.origin + '/voucher.html?code=' + encodeURIComponent(data.code), false);
       }
     } catch (e) { say('Could not reach the server. Nothing was changed. Please try again.', true); }
     btn.disabled = false;

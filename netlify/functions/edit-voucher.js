@@ -35,10 +35,13 @@ exports.handler = async function (event) {
       return reply(200, { success: false, error: 'We couldn\'t match that code and email. Please use the email address you paid with, or contact James.' });
     }
     if (voucher.status === 'void') return reply(200, { success: false, error: 'That voucher has been cancelled. Please contact James.' });
-    if (!newRecipient && !newMessage) return reply(200, { success: false, error: 'Please enter a new name or a new message.' });
+    const removeMessage = body.removeMessage === true;
+    if (!newRecipient && !newMessage && !removeMessage) return reply(200, { success: false, error: 'Please enter a new name or a new message, or choose to remove the message.' });
 
     if (newRecipient) voucher.recipientName = newRecipient;
+    // A new message replaces the old one completely. Ticking "remove" with nothing typed clears it.
     if (newMessage) voucher.message = newMessage;
+    else if (removeMessage) voucher.message = '';
     voucher.editedAt = new Date().toISOString();
     await vh.saveVoucher(voucher);
     return reply(200, { success: true, code: voucher.code, recipientName: voucher.recipientName || '', message: voucher.message || '' });

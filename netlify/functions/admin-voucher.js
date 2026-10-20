@@ -79,9 +79,11 @@ exports.handler = async function (event) {
       // redemptions are never touched here. A blank box keeps what is already there.
       const newRecipient = clean(body.recipientName, 80);
       const newMessage = clean(body.message, 300);
-      if (!newRecipient && !newMessage) return fail(400, 'Please enter a new name or a new message.');
+      const removeMessage = body.removeMessage === true;
+      if (!newRecipient && !newMessage && !removeMessage) return fail(400, 'Please enter a new name or a new message, or choose to remove the message.');
       if (newRecipient) voucher.recipientName = newRecipient;
       if (newMessage) voucher.message = newMessage;
+      else if (removeMessage) voucher.message = '';
       voucher.editedAt = new Date().toISOString();
       await vh.saveVoucher(voucher);
       return { statusCode: 200, body: JSON.stringify({ success: true, code: voucher.code, recipientName: voucher.recipientName || '', message: voucher.message || '' }) };
