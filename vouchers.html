@@ -104,13 +104,13 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     </div>
 
     <div class="policy-box" style="margin-top:1.2rem;">
-      <div class="policy-title">I bought a voucher and want to change the name or message</div>
-      <p style="font-size:0.88rem;color:var(--cream);line-height:1.7;margin-bottom:1rem;">Enter the voucher code and the email address you paid with, then the new name or message. Leave the name blank to keep it as it is. A new message replaces the old one completely. The printable voucher updates straight away; the original email stays as it was, so open the printable voucher link to see the new version.</p>
+      <div class="policy-title">Change the name or message on a voucher</div>
+      <p style="font-size:0.88rem;color:var(--cream);line-height:1.7;margin-bottom:1rem;">Bought a voucher and want to update who it's for, or what it says? You can do it here in under a minute. Only the person who bought it can make changes, so we'll ask for your voucher code and the email you paid with. The lessons, price and expiry date stay exactly the same.</p>
       <div class="form-group"><label class="form-label">Voucher code</label><input type="text" id="evCode" class="form-input" placeholder="MCQ-XXXX-XXXX-XXXX" autocapitalize="characters"></div>
       <div class="form-group"><label class="form-label">Email you paid with</label><input type="email" id="evEmail" class="form-input" maxlength="200" autocomplete="email"></div>
-      <div class="form-group"><label class="form-label">New name of who it's for (optional)</label><input type="text" id="evRecipient" class="form-input" maxlength="80"></div>
-      <div class="form-group"><label class="form-label">New message (optional). Whatever you write here completely replaces the old message.</label><textarea id="evMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
-      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);margin-bottom:0.8rem;cursor:pointer;"><input type="checkbox" id="evRemove"> Remove the current message and leave it blank</label>
+      <div class="form-group"><label class="form-label">Who it's for (leave blank to keep the current name)</label><input type="text" id="evRecipient" class="form-input" maxlength="80"></div>
+      <div class="form-group"><label class="form-label">New message (this replaces the old message completely)</label><textarea id="evMessage" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream);margin-bottom:0.8rem;cursor:pointer;"><input type="checkbox" id="evRemove"> Remove the message and leave it blank</label>
       <div id="evOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
       <button type="button" class="btn-primary" id="evBtn" onclick="editVoucher()" style="width:100%;text-align:center;">Save changes</button>
     </div>
@@ -127,7 +127,15 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   async function editVoucher() {
     const out = document.getElementById('evOut');
     const btn = document.getElementById('evBtn');
-    function say(t, bad) { out.textContent = t; out.style.color = bad ? '#f87171' : 'var(--cream)'; }
+    function say(t, bad, linkHref) {
+      out.textContent = t; out.style.color = bad ? '#f87171' : 'var(--cream)';
+      if (linkHref) {
+        out.appendChild(document.createElement('br'));
+        const a = document.createElement('a'); a.href = linkHref; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = 'Open the printable voucher'; a.style.color = '#c9942a'; a.style.textDecoration = 'underline';
+        out.appendChild(a);
+      }
+    }
     const code = document.getElementById('evCode').value.trim();
     const email = document.getElementById('evEmail').value.trim();
     if (!code || !email) { say('Please enter the voucher code and the email you paid with.', true); return; }
@@ -141,7 +149,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const data = await resp.json();
       if (!data.success) { say(data.error || 'Something went wrong. Please try again.', true); }
       else {
-        say('Saved. The voucher is now for ' + (data.recipientName || '(no name)') + (data.message ? ' with the message: ' + data.message : ' with no message') + '.\nPrintable voucher: ' + window.location.origin + '/voucher.html?code=' + encodeURIComponent(data.code), false);
+        say('Saved. This voucher is now for ' + (data.recipientName || '(no name)') + '.\n' + (data.message ? 'Message: "' + data.message + '"' : 'It has no message.') + '\nUse the link below to print or share the updated version. The email you first received will still show the old wording.', false, window.location.origin + '/voucher.html?code=' + encodeURIComponent(data.code));
       }
     } catch (e) { say('Could not reach the server. Nothing was changed. Please try again.', true); }
     btn.disabled = false;
