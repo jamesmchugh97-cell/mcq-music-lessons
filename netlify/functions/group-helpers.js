@@ -18,6 +18,8 @@ const JAMES_EMAIL = 'jamesmcqmusic@gmail.com';
 const SITE = process.env.URL || 'https://mcqmusiclessons.com.au';
 // A request nobody has answered stops blocking the lesson after this many days.
 const PENDING_DAYS = 7;
+// A group class can have up to this many students (the owner of the lesson plus others).
+const MAX_GROUP = 3;
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // Regular students who are not enrolled through the website (their lessons are kept in the
@@ -68,8 +70,8 @@ function groupPriceFor(durationMinutes) {
 // The plain-English rule, shown wherever someone is asked to agree.
 function groupRuleText(durationMinutes) {
   const g = groupCents(durationMinutes), p = privateCents(durationMinutes);
-  if (!g || !p) return 'The group price applies only while two students share the lesson. If the other student stops coming, it becomes a private lesson again at the normal private price.';
-  return 'The group price is ' + dollars(g) + ' per lesson, and it only applies while two students share the lesson. If the other student stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson.';
+  if (!g || !p) return 'The group price applies only while at least two students share the lesson. If everyone else stops coming, it becomes a private lesson again at the normal private price.';
+  return 'The group price is ' + dollars(g) + ' per lesson, and it only applies while at least two students share the lesson. If everyone else stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson.';
 }
 
 // What anyone may see about a lesson that is open to a group. Nothing that identifies a
@@ -88,6 +90,8 @@ function publicListing(l) {
     durationMinutes: l.durationMinutes,
     frequency: l.frequency,
     groupPrice: groupPriceFor(l.durationMinutes),
+    students: l.members || 1,
+    maxStudents: MAX_GROUP,
     status: l.status || 'available'
   };
 }
@@ -195,7 +199,12 @@ async function getAllListings() {
   const reqs = await listAllRequests();
   out.forEach(l => {
     const mine = reqs.filter(r => r.listingId === l.id);
-    if (mine.some(r => r.status === 'approved')) l.status = 'taken';
+    // Students in the class so far: the owner (unless they have left) plus anyone paid up or
+    // already promised a place.
+    const joined = mine.filter(r => r.status === 'approved' || r.status === 'active');
+    const ownerGone = mine.some(r => r.status === 'active' && r.ownerLeft);
+    l.members = (ownerGone ? 0 : 1) + joined.length;
+    if (l.members >= MAX_GROUP) l.status = 'taken';
     else if (mine.some(r => r.status === 'pending' && Date.now() - new Date(r.createdAt).getTime() < PENDING_DAYS * 86400000)) l.status = 'pending';
     else l.status = 'available';
   });
@@ -204,7 +213,7 @@ async function getAllListings() {
 
 module.exports = {
   getAllListings,
-  JAMES_EMAIL, SITE, DAY_NAMES,
+  JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP,
   listingsStore, requestsStore,
   esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
   groupPriceFor, groupCents, privateCents, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,

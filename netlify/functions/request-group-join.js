@@ -30,6 +30,10 @@ exports.handler = async function (event) {
     if (!listing || listing.status === 'taken') return reply(200, { success: false, error: 'Sorry, that lesson is no longer available. Please pick another.' });
     if (listing.status === 'pending') return reply(200, { success: false, error: 'Someone has already asked to join that lesson and it is waiting for a reply. Please pick another, or check back soon.' });
     if (String(listing.ownerEmail || '').toLowerCase() === email) return reply(200, { success: false, error: 'That is your own lesson.' });
+    // Anyone already in the class (paid up) must agree to a new student too.
+    const existing = (await gh.listAllRequests()).filter(x => x.listingId === listing.id && x.status === 'active');
+    if (existing.some(x => String(x.requester.email || '').toLowerCase() === email)) return reply(200, { success: false, error: 'You are already in that class.' });
+    if (listing.members >= gh.MAX_GROUP) return reply(200, { success: false, error: 'Sorry, that class is full.' });
 
     const instrument = listing.instrument || wantedInstrument;
     if (!instrument) return reply(200, { success: false, error: 'Please choose guitar or piano.' });
@@ -46,46 +50,54 @@ exports.handler = async function (event) {
         ownerSubscriptionId: listing.subscriptionId || '', ownerIsRoster: listing.source === 'roster'
       }
     };
+    // Everyone already in the class has to say yes: the lesson's owner (unless they have left) and each student who has joined.
+    request.approvals = [];
+    if (!existing.some(x => x.ownerLeft)) request.approvals.push({ role: 'owner', name: request.lesson.ownerName, email: listing.ownerEmail, token: request.token, status: 'pending' });
+    existing.forEach(x => request.approvals.push({ role: 'member', name: x.requester.name, email: x.requester.email, token: gh.randomToken(), status: 'pending' }));
+    if (!request.approvals.length) return reply(200, { success: false, error: 'Sorry, that lesson is not available right now. Please pick another.' });
     await gh.requestsStore().set('req_' + id, JSON.stringify(request));
 
     const l = request.lesson;
-    const link = gh.SITE + '/group-response.html?t=' + request.token;
     const when = l.dayName + 's at ' + l.time + ' (' + l.durationMinutes + ' min, ' + l.frequency + ')';
     const rule = gh.groupRuleText(l.durationMinutes);
-    let ownerOk;
-    if (l.ownerIsRoster) {
-      // Not enrolled online, so there is no email for them: James is asked, and asks them in person.
-      ownerOk = await gh.sendMail(
-        gh.JAMES_EMAIL,
-        'Group class request for ' + l.ownerName + '\'s ' + l.dayName + ' ' + l.time + ' lesson: ask them in person',
-        gh.wrapEmail(
-          '<p>Someone would like to share <strong>' + gh.esc(l.ownerName) + '\'s</strong> lesson as a group class. Please ask ' + gh.esc(l.ownerName) + ' in person, then answer here.</p>' +
-          gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Who wants to join', name + ' (' + email + (phone ? ', ' + phone : '') + ')'], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
-          '<p>' + gh.esc(rule) + '</p>' +
-          '<p>' + gh.emailButton(link + '&a=approve', 'Yes, they are happy to share', true) + gh.emailButton(link + '&a=decline', 'No, they would rather not', false) + '</p>'));
-    } else {
-      ownerOk = listing.ownerEmail ? await gh.sendMail(
-        listing.ownerEmail,
-        'Someone would like to join your ' + l.instrument.toLowerCase() + ' lesson',
-        gh.wrapEmail(
-          '<p>Hi ' + gh.esc(l.firstName) + ',</p>' +
-          '<p>Would you be open to sharing your ' + gh.esc(when) + ' lesson with another student as a group class? Someone would like to join you:</p>' +
-          gh.detailRows([['Name', gh.firstNameOf(name)], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
-          '<p><strong>The price:</strong> ' + gh.esc(rule) + ' Your lesson stays at its current price unless the group goes ahead.</p>' +
-          '<p>Nothing changes unless you say yes. If you do, they are asked to confirm and pay, and your price drops to the group price from your next payment.</p>' +
-          '<p>' + gh.emailButton(link + '&a=approve', 'Yes, happy to share', true) + gh.emailButton(link + '&a=decline', 'No thanks', false) + '</p>' +
-          '<p style="color:#7b8496;font-size:14px;">Or open this link to see the details first: ' + gh.esc(link) + '</p>')
-      ) : false;
+    const linkFor = (t) => gh.SITE + '/group-response.html?t=' + t;
+    const asking = request.approvals.length;
+    let ownerOk = !request.approvals.some(a => a.role === 'owner');
+    for (const ap of request.approvals) {
+      const link = linkFor(ap.token);
+      const buttons = '<p>' + gh.emailButton(link + '&a=approve', 'Yes, happy to share', true) + gh.emailButton(link + '&a=decline', 'No thanks', false) + '</p>';
+      const who = gh.detailRows([['Name', gh.firstNameOf(name)], ['Level', level], ['Music they like', genres], ['Their goals', goals]]);
+      let ok;
+      if (ap.role === 'owner' && l.ownerIsRoster) {
+        // Not enrolled online, so there is no email for them: James is asked, and asks them in person.
+        ok = await gh.sendMail(gh.JAMES_EMAIL, 'Group class request for ' + l.ownerName + '\'s ' + l.dayName + ' ' + l.time + ' lesson: ask them in person',
+          gh.wrapEmail('<p>Someone would like to share <strong>' + gh.esc(l.ownerName) + '\'s</strong> lesson as a group class. Please ask ' + gh.esc(l.ownerName) + ' in person, then answer here.</p>' +
+            gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Who wants to join', name + ' (' + email + (phone ? ', ' + phone : '') + ')'], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
+            '<p>' + gh.esc(rule) + '</p>' + (asking > 1 ? '<p>There is already another student in this class, so they are being asked too. Everyone has to agree.</p>' : '') + buttons));
+      } else if (ap.role === 'owner') {
+        ok = ap.email ? await gh.sendMail(ap.email, 'Someone would like to join your ' + l.instrument.toLowerCase() + ' lesson',
+          gh.wrapEmail('<p>Hi ' + gh.esc(l.firstName) + ',</p>' +
+            '<p>Would you be open to ' + (asking > 1 ? 'a third student joining' : 'sharing') + ' your ' + gh.esc(when) + ' lesson' + (asking > 1 ? '' : ' with another student as a group class') + '? Someone would like to join' + (asking > 1 ? ' you and the other student in the class. Everyone has to agree.' : ' you:') + '</p>' + who +
+            '<p><strong>The price:</strong> ' + gh.esc(rule) + (asking > 1 ? ' Your price does not change when a third student joins.' : ' Your lesson stays at its current price unless the group goes ahead.') + '</p>' +
+            '<p>Nothing changes unless ' + (asking > 1 ? 'everyone says yes' : 'you say yes') + '. If it goes ahead, they are asked to confirm and pay' + (asking > 1 ? '.' : ', and your price drops to the group price from your next payment.') + '</p>' + buttons +
+            '<p style="color:#7b8496;font-size:14px;">Or open this link to see the details first: ' + gh.esc(link) + '</p>')) : false;
+      } else {
+        ok = await gh.sendMail(ap.email, 'A third student would like to join your ' + l.instrument.toLowerCase() + ' class',
+          gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(ap.name)) + ',</p>' +
+            '<p>A student would like to join your ' + gh.esc(when) + ' group class as the third student. Everyone in the class has to agree.</p>' + who +
+            '<p><strong>The price:</strong> ' + gh.esc(rule) + ' Your price does not change when a third student joins.</p>' + buttons));
+      }
+      if (ap.role === 'owner') ownerOk = ok;
     }
 
     if (!l.ownerIsRoster) await gh.sendMail(
       gh.JAMES_EMAIL,
       'Group class request: ' + name + ' wants to join ' + l.firstName + '\'s lesson',
       gh.wrapEmail(
-        '<p>New group class request.</p>' +
+        '<p>New group class request' + (asking > 1 ? ' (a third student, so everyone in the class is being asked)' : '') + '.</p>' +
         gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Owner', (l.ownerName || l.firstName) + ' (' + (l.ownerEmail || 'no email on file') + ')'],
           ['Wants to join', name + ' (' + email + (phone ? ', ' + phone : '') + ')'], ['Level', level], ['Music', genres], ['Goals', goals]]) +
-        (ownerOk ? '<p>An email asking ' + gh.esc(l.firstName) + ' for a yes or no has been sent.</p>' : '<p><strong>No email could be sent to the lesson owner. Please contact them yourself.</strong></p>'))
+        (ownerOk ? '<p>An email asking for a yes or no has been sent.</p>' : '<p><strong>No email could be sent to the lesson owner. Please contact them yourself.</strong></p>'))
     );
 
     await gh.sendMail(
@@ -94,7 +106,7 @@ exports.handler = async function (event) {
       gh.wrapEmail(
         '<p>Hi ' + gh.esc(gh.firstNameOf(name)) + ',</p>' +
         '<p>Thanks for asking to join a ' + gh.esc(l.instrument.toLowerCase()) + ' group class on ' + gh.esc(when) + '.</p>' +
-        '<p>We have asked the student who currently has that time if they are happy to share it. You will get an email as soon as they reply. You are not charged anything yet.</p>' +
+        '<p>We have asked ' + (asking > 1 ? 'the students in that class. They all need to say yes' : 'the student who currently has that time if they are happy to share it') + '. You will get an email as soon as they reply. You are not charged anything yet.</p>' +
         '<p><strong>Good to know:</strong> ' + gh.esc(rule) + '</p>')
     );
 

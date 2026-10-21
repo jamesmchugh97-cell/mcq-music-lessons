@@ -585,7 +585,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
           <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
-          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person: if it goes ahead, you pay the group price (for example $45 instead of $70 for 45 minutes). If the other student later stops, your lesson goes back to its normal price and we'll email you first.<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
+          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person: if it goes ahead, you pay the group price (for example $45 instead of $70 for 45 minutes). If everyone else later stops, your lesson goes back to its normal price and we'll email you first.<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
         </label>
         <div id="subGroupExtra" style="display:none;margin-top:0.8rem;">
           <label class="form-label">What music do you want to play, and what are your goals? (shown to students who might join, with your first name only)</label>
@@ -633,9 +633,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="group-header"><div class="group-name">Group Classes</div><div class="program-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M14.8 12.2c2.6 .2 4.7 2.1 4.7 4.8"/></svg></div></div>
       <div class="group-tagline">Learn together, grow together</div>
       <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
-      <div class="group-desc">A group class is a lesson shared by two students, so it costs less per person. Below are lessons where the student has said they're happy to share. Pick one that suits your level and the music you like, and ask to join. They'll be asked first, and nothing is charged until James has confirmed it with you both.</div>
+      <div class="group-desc">A group class is a lesson shared by two or three students, so it costs less per person. Below are lessons where the student has said they're happy to share. Pick one that suits your level and the music you like, and ask to join. They'll be asked first, and nothing is charged until James has confirmed it with you both.</div>
       <div style="margin-top:1rem;padding:0.8rem 1rem;border:1px solid var(--gold);border-radius:6px;font-size:0.86rem;color:var(--cream);line-height:1.7;">
-        <strong>How the price works.</strong> Per person, per lesson, while two students share it: 30 min $35, 45 min $45, 60 min $55, 75 min $65, 90 min $75. If the other student stops coming, it becomes a private lesson again and goes back to the normal private price (30 min $50, 45 min $70, 60 min $85, 75 min $100, 90 min $120). You will be told before that happens, and you can stop any time.
+        <strong>How the price works.</strong> Per person, per lesson, while two or three students share it: 30 min $35, 45 min $45, 60 min $55, 75 min $65, 90 min $75. If everyone else stops coming, it becomes a private lesson again and goes back to the normal private price (30 min $50, 45 min $70, 60 min $85, 75 min $100, 90 min $120). You will be told before that happens, and you can stop any time.
       </div>
       <div id="groupOpportunities" style="margin-top:1rem;"><p style="font-size:0.85rem;color:var(--muted);">Loading open group lessons...</p></div>
       <form id="groupJoinForm" onsubmit="return submitGroupJoin(event)" style="display:none;margin-top:1rem;border:1px solid var(--navy-border);border-radius:6px;padding:1rem;">
@@ -656,7 +656,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="form-group"><label class="form-label">Your goals (optional)</label><textarea class="form-input" id="gjGoals" rows="2" maxlength="300" placeholder="e.g. Play songs with friends, get better at chords"></textarea></div>
         <p id="gjOut" style="font-size:0.85rem;min-height:1.2em;margin-bottom:0.6rem;"></p>
         <button class="btn-primary" id="gjBtn" type="submit" style="width:100%;text-align:center;">Ask to join →</button>
-        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Only your first name, level and goals are shared with them. You are not charged anything yet. The group price only applies while two students share the lesson.</p>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Only your first name, level and goals are shared with them. You are not charged anything yet. The group price only applies while at least two students share the lesson. If someone is already in the class, they all need to agree before you can join.</p>
       </form>
       <div class="group-details" style="margin-top:1.2rem;">
         <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">30 to 90 Minutes</div></div>
@@ -2239,7 +2239,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
         head.textContent = (l.firstName ? (l.instrument || 'Lesson') + ' with ' + l.firstName : (l.instrument ? l.instrument + ' lesson' : 'Lesson')) + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
         info.appendChild(head);
-        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['Group price', l.groupPrice ? l.groupPrice + ' while two students share it (private price applies if the other student stops)' : null]];
+        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['In the class', l.students + (l.students === 1 ? ' student so far' : ' students so far') + ', up to ' + l.maxStudents + (l.students > 1 ? ' (everyone in the class must agree to a new student)' : '')], ['Group price', l.groupPrice ? l.groupPrice + ' while two or three students share it (private price applies if everyone else stops)' : null]];
         lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
         card.appendChild(info);
         const btn = document.createElement('button'); btn.type = 'button';
@@ -3778,7 +3778,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const grp = document.createElement('div');
           grp.style.cssText = 'border:1px solid var(--navy-border);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.8rem;';
           const grpTitle = document.createElement('div'); grpTitle.style.cssText = 'font-size:0.82rem;color:var(--cream);margin-bottom:0.5rem;line-height:1.5;';
-          grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes. If you do share, you pay the lower group price while two students attend, and your normal price again if the other student stops.';
+          grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes. If you do share, you pay the lower group price while two or three students attend, and your normal price again if everyone else stops. A third student can only join if everyone in the class agrees.';
           grp.appendChild(grpTitle);
           const grpSel = document.createElement('select'); grpSel.className = 'form-input';
           [['named', 'Show my lesson with my first name and goals (best for finding a good match)'], ['anonymous', 'Show my lesson without my name (default)'], ['hidden', "Don't show my lesson"]].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; grpSel.appendChild(o); });

@@ -119,12 +119,16 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       det.innerHTML = ''; det.style.display = 'block';
       const r = req.requester;
       row('Lesson', req.instrument + ', ' + req.when); row('Who', r.firstName); row('Level', r.level); row('Music they like', r.genres); row('Their goals', r.goals);
-      if (done || req.status !== 'pending') {
+      if (done || req.myStatus !== 'pending') {
         btns.style.display = 'none';
-        msg.textContent = req.status === 'approved' ? 'Thanks, you said yes. The other student has been sent a link to confirm and pay. Your price moves to the group price once they do, and we will email you.' : req.status === 'declined' ? 'No problem, you said no. Your lesson stays exactly as it is.' : 'This request has already been answered.';
+        const third = req.isThird;
+        msg.textContent = req.myStatus === 'approved' && req.status === 'pending' ? 'Thanks, you said yes. We are just waiting on the other students in the class, and will email you once everyone has answered.'
+          : req.status === 'approved' ? (third ? 'Thanks, everyone said yes. The new student has been sent a link to confirm and pay. Your price stays at the group price.' : 'Thanks, you said yes. The other student has been sent a link to confirm and pay. Your price moves to the group price once they do, and we will email you.')
+          : req.status === 'declined' ? 'No problem, the answer is no. Your lesson stays exactly as it is.' : 'This request has already been answered.';
       } else {
-        msg.textContent = req.isRoster ? ('Someone would like to share ' + req.ownerName + '\'s lesson as a group class. Please ask ' + req.ownerName + ' in person, then answer below.') : ('Hi ' + req.firstName + ', someone would like to share your lesson as a group class. Nothing changes unless you say yes.');
-        const rl = document.createElement('div'); rl.style.cssText = 'margin-top:0.8rem;padding:0.7rem 0.9rem;border:1px solid var(--gold);border-radius:6px;font-size:0.86rem;line-height:1.7;'; rl.textContent = 'The price: ' + req.rule + (req.isRoster ? '' : ' Your lesson stays at its current price unless the group goes ahead.'); det.appendChild(rl);
+        const who = req.isThird ? 'a third student would like to join your group class. Everyone in the class has to agree.' : 'someone would like to share your lesson as a group class. Nothing changes unless you say yes.';
+        msg.textContent = req.isRoster ? ('Someone would like to share ' + req.ownerName + '\'s lesson as a group class. Please ask ' + req.ownerName + ' in person, then answer below.') : ('Hi ' + (req.myFirstName || req.firstName) + ', ' + who);
+        const rl = document.createElement('div'); rl.style.cssText = 'margin-top:0.8rem;padding:0.7rem 0.9rem;border:1px solid var(--gold);border-radius:6px;font-size:0.86rem;line-height:1.7;'; rl.textContent = 'The price: ' + req.rule + (req.isRoster ? '' : (req.isThird ? ' Your price does not change when a third student joins.' : ' Your lesson stays at its current price unless the group goes ahead.')); det.appendChild(rl);
         btns.style.display = 'flex';
       }
     }
@@ -136,7 +140,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       const send = (a) => { btns.style.display = 'none'; msg.textContent = 'Saving...'; call(a).then(x => { if (!x.success) { msg.textContent = x.error || 'Something went wrong. Please try again.'; btns.style.display = 'flex'; } else show(x.request, true); }).catch(() => { msg.textContent = 'Could not reach the server. Please try again.'; btns.style.display = 'flex'; }); };
       document.getElementById('grYes').onclick = () => send('approve');
       document.getElementById('grNo').onclick = () => send('decline');
-      if (act === 'approve' || act === 'decline') { msg.textContent = 'Hi ' + d.request.firstName + ', you chose "' + (act === 'approve' ? 'Yes, happy to share' : 'No thanks') + '" from your email. Please confirm with the button below.'; }
+      if (act === 'approve' || act === 'decline') { msg.textContent = 'Hi ' + (d.request.myFirstName || d.request.firstName) + ', you chose "' + (act === 'approve' ? 'Yes, happy to share' : 'No thanks') + '" from your email. Please confirm with the button below.'; }
     }).catch(() => { msg.textContent = 'Could not load this request. Please try again.'; });
   })();
 </script>
