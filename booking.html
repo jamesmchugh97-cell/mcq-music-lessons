@@ -585,7 +585,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
           <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
-          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person.</span>
+          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person.<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
         </label>
         <div id="subGroupExtra" style="display:none;margin-top:0.8rem;">
           <label class="form-label">What music do you want to play, and what are your goals? (shown to students who might join, with your first name only)</label>
@@ -2229,7 +2229,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.85rem 1rem;margin-bottom:0.6rem;';
         const info = document.createElement('div'); info.style.cssText = 'font-size:0.88rem;color:var(--cream);line-height:1.6;flex:1;min-width:220px;';
         const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
-        head.textContent = l.instrument + ' with ' + l.firstName + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
+        head.textContent = (l.firstName ? l.instrument + ' with ' + l.firstName : l.instrument + ' lesson') + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
         info.appendChild(head);
         const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['Group price', l.groupPrice]];
         lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
@@ -2250,7 +2250,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
   function openGroupJoinForm(l) {
     groupSelectedListing = l;
-    document.getElementById('groupJoinTitle').textContent = 'Ask to join ' + l.firstName + '\'s ' + l.instrument.toLowerCase() + ' lesson: ' + l.dayName + 's at ' + l.time;
+    document.getElementById('groupJoinTitle').textContent = 'Ask to join the ' + l.instrument.toLowerCase() + ' lesson' + (l.firstName ? ' with ' + l.firstName : '') + ': ' + l.dayName + 's at ' + l.time;
     document.getElementById('gjOut').textContent = '';
     const f = document.getElementById('groupJoinForm'); f.style.display = 'block';
     f.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3764,26 +3764,28 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
           rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from My Lessons below, no need to pause or cancel.";
           row.appendChild(rescheduleNote);
-          // Open this lesson to being shared as a group class (or change your mind).
+          // Group class setting: shown with first name and goals, shown without a name (default), or not shown.
           const grp = document.createElement('div');
           grp.style.cssText = 'border:1px solid var(--navy-border);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.8rem;';
-          const grpLabel = document.createElement('label');
-          grpLabel.style.cssText = 'display:flex;align-items:flex-start;gap:0.5rem;font-size:0.82rem;color:var(--cream);cursor:pointer;line-height:1.5;';
-          const grpBox = document.createElement('input'); grpBox.type = 'checkbox'; grpBox.style.cssText = 'width:auto;margin-top:0.2rem;'; grpBox.checked = !!sub.groupOpen;
-          const grpText = document.createElement('span'); grpText.textContent = "I'm open to sharing this lesson as a group class (cheaper per person). I'm asked first and nothing changes unless I say yes.";
-          grpLabel.appendChild(grpBox); grpLabel.appendChild(grpText); grp.appendChild(grpLabel);
+          const grpTitle = document.createElement('div'); grpTitle.style.cssText = 'font-size:0.82rem;color:var(--cream);margin-bottom:0.5rem;line-height:1.5;';
+          grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes.';
+          grp.appendChild(grpTitle);
+          const grpSel = document.createElement('select'); grpSel.className = 'form-input';
+          [['named', 'Show my lesson with my first name and goals (best for finding a good match)'], ['anonymous', 'Show my lesson without my name (default)'], ['hidden', "Don't show my lesson"]].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; grpSel.appendChild(o); });
+          grpSel.value = sub.groupMode || 'anonymous';
+          grp.appendChild(grpSel);
           const grpGoals = document.createElement('textarea'); grpGoals.className = 'form-input'; grpGoals.rows = 2; grpGoals.maxLength = 200;
           grpGoals.placeholder = 'What music do you want to play, and what are your goals? (shown with your first name only)'; grpGoals.value = sub.groupGoals || '';
-          grpGoals.style.cssText = 'margin-top:0.6rem;display:' + (sub.groupOpen ? 'block' : 'none') + ';';
+          grpGoals.style.cssText = 'margin-top:0.6rem;display:' + (grpSel.value === 'named' ? 'block' : 'none') + ';';
           grp.appendChild(grpGoals);
-          grpBox.onchange = () => { grpGoals.style.display = grpBox.checked ? 'block' : 'none'; };
+          grpSel.onchange = () => { grpGoals.style.display = grpSel.value === 'named' ? 'block' : 'none'; };
           const grpSave = document.createElement('button'); grpSave.type = 'button'; grpSave.className = 'btn-outline'; grpSave.textContent = 'Save';
           grpSave.style.cssText = 'margin-top:0.6rem;padding:0.45rem 1.1rem;font-size:0.76rem;';
           const grpMsg = document.createElement('span'); grpMsg.style.cssText = 'margin-left:0.6rem;font-size:0.76rem;color:var(--muted);';
           grpSave.onclick = async () => {
             grpSave.disabled = true; grpMsg.textContent = 'Saving...';
             try {
-              const rr = await fetch('/.netlify/functions/manage-subscription', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setGroupOpen', email: email, subscriptionId: sub.subscriptionId, groupOpen: grpBox.checked, groupGoals: grpGoals.value }) });
+              const rr = await fetch('/.netlify/functions/manage-subscription', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setGroupOpen', email: email, subscriptionId: sub.subscriptionId, groupMode: grpSel.value, groupGoals: grpGoals.value }) });
               const dd = await rr.json();
               grpMsg.textContent = dd.success ? 'Saved.' : (dd.error || 'Could not save. Please try again.');
             } catch (e) { grpMsg.textContent = 'Could not reach the server. Please try again.'; }

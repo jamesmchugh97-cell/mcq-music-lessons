@@ -140,12 +140,15 @@ async function getAllListings() {
   try {
     const subs = await listAllSubscriptions();
     subs.forEach(r => {
-      if (!r || r.status !== 'active' || r.groupOpen !== true) return;
+      // groupOpen: true = opted in (first name and goals shown), false = opted out (not shown at all),
+      // anything else = shown without a name, so a new student can still ask to join.
+      if (!r || r.status !== 'active' || r.groupOpen === false) return;
+      const named = r.groupOpen === true;
       if (r.dayOfWeek === undefined || !r.time) return;
       out.push({
         id: publicIdForSubscription(r.subscriptionId), source: 'subscription', subscriptionId: r.subscriptionId,
-        ownerName: r.studentName, ownerEmail: r.studentEmail, firstName: firstNameOf(r.studentName),
-        instrument: r.instrument, level: r.skillLevel || '', genres: r.genreFocus || '', goals: r.groupGoals || '',
+        ownerName: r.studentName, ownerEmail: r.studentEmail, ownerFirstName: firstNameOf(r.studentName), firstName: named ? firstNameOf(r.studentName) : '',
+        instrument: r.instrument, level: r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
         dayOfWeek: parseInt(r.dayOfWeek, 10), time: r.time, durationMinutes: parseInt(r.durationMinutes, 10) || 45, frequency: r.frequency || 'weekly'
       });
     });
@@ -155,7 +158,7 @@ async function getAllListings() {
     const { blobs } = await store.list({ prefix: 'lst_' });
     for (const b of blobs) {
       const l = await store.get(b.key, { type: 'json' });
-      if (l && l.active !== false) out.push(Object.assign({ source: 'manual' }, l));
+      if (l && l.active !== false) out.push(Object.assign({ source: 'manual', ownerFirstName: l.firstName }, l));
     }
   } catch (e) { console.error('[group] could not read manual listings:', e && e.message ? e.message : e); }
   const reqs = await listAllRequests();

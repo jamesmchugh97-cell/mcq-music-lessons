@@ -104,7 +104,7 @@ exports.handler = async function (event) {
         cancelling: !!s.cancelling,
         summerPausePending: !!s.summerPausePending,
         summerPauseEndDate: s.summerPauseEndDate || null,
-        groupOpen: s.groupOpen === true,
+        groupMode: s.groupOpen === true ? 'named' : (s.groupOpen === false ? 'hidden' : 'anonymous'),
         groupGoals: s.groupGoals || ''
       }));
       return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized, summerPauseStart: SUMMER_PAUSE_START, summerPauseEnd: SUMMER_PAUSE_END }) };
@@ -126,11 +126,14 @@ exports.handler = async function (event) {
     // Open (or close) this lesson to being shared as a group class. Only a first name,
     // level, music styles and these goals are ever shown to other students.
     if (action === 'setGroupOpen') {
-      const open = body.groupOpen === true;
-      record.groupOpen = open;
-      record.groupGoals = open ? String(body.groupGoals || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : (record.groupGoals || '');
+      const mode = body.groupMode;
+      if (mode !== 'named' && mode !== 'anonymous' && mode !== 'hidden') return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Please choose an option.' }) };
+      if (mode === 'named') record.groupOpen = true;
+      else if (mode === 'hidden') record.groupOpen = false;
+      else delete record.groupOpen;
+      record.groupGoals = mode === 'named' ? String(body.groupGoals || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : (record.groupGoals || '');
       await saveSubscriptionRecord(subscriptionId, record);
-      return { statusCode: 200, body: JSON.stringify({ success: true, groupOpen: record.groupOpen }) };
+      return { statusCode: 200, body: JSON.stringify({ success: true, groupMode: mode }) };
     }
 
     if (action === 'pause') {

@@ -48,7 +48,7 @@ exports.handler = async function (event) {
     if (body.action === 'list') {
       const all = await gh.getAllListings();
       const reqs = await gh.listAllRequests();
-      const lines = all.map(l => ({ id: l.id, source: l.source, firstName: l.firstName, instrument: l.instrument, day: gh.DAY_NAMES[l.dayOfWeek], time: l.time, durationMinutes: l.durationMinutes, status: l.status }));
+      const lines = all.map(l => ({ id: l.id, source: l.source, firstName: l.ownerFirstName || l.firstName, instrument: l.instrument, day: gh.DAY_NAMES[l.dayOfWeek], time: l.time, durationMinutes: l.durationMinutes, status: l.status }));
       const requests = reqs.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 30)
         .map(r => ({ status: r.status, createdAt: r.createdAt, who: r.requester.name, email: r.requester.email, lesson: r.lesson.firstName + ', ' + r.lesson.dayName + ' ' + r.lesson.time }));
       return { statusCode: 200, body: JSON.stringify({ success: true, listings: lines, requests: requests }) };

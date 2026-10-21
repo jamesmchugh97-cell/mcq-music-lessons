@@ -37,7 +37,7 @@ exports.handler = async function (event) {
       token: gh.randomToken(),
       requester: { name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
       lesson: {
-        ownerName: listing.ownerName || listing.firstName, ownerEmail: listing.ownerEmail, firstName: listing.firstName,
+        ownerName: listing.ownerName || listing.ownerFirstName, ownerEmail: listing.ownerEmail, firstName: listing.ownerFirstName || listing.firstName,
         instrument: listing.instrument, dayName: gh.DAY_NAMES[listing.dayOfWeek], time: listing.time,
         durationMinutes: listing.durationMinutes, frequency: listing.frequency
       }
