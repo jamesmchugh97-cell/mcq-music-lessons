@@ -582,6 +582,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </div>
         </div>
       </details>
+      <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
+        <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
+          <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
+          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person.</span>
+        </label>
+        <div id="subGroupExtra" style="display:none;margin-top:0.8rem;">
+          <label class="form-label">What music do you want to play, and what are your goals? (shown to students who might join, with your first name only)</label>
+          <textarea class="form-input" id="subGroupGoals" rows="2" maxlength="200" placeholder="e.g. Learning songs I can play with friends, and getting better at strumming"></textarea>
+          <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Your level and music styles from above are shown too. Your surname and email are never shown.</p>
+        </div>
+      </div>
       <div class="subtotal-box">
         <div class="subtotal-total"><span>Billed</span><span id="subTotalAmt">$70 every week</span></div>
       </div>
@@ -622,13 +633,33 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="group-header"><div class="group-name">Group Classes</div><div class="program-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M14.8 12.2c2.6 .2 4.7 2.1 4.7 4.8"/></svg></div></div>
       <div class="group-tagline">Learn together, grow together</div>
       <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
-      <div class="group-desc">Register your interest below to learn alongside another student. Once two people select the same instrument and time slot, the class is confirmed. A great, low-cost way to learn.</div>
-      <div class="group-details">
+      <div class="group-desc">A group class is a lesson shared by two students, so it costs less per person. Below are lessons where the student has said they're happy to share. Pick one that suits your level and the music you like, and ask to join. They'll be asked first, and nothing is charged until James has confirmed it with you both.</div>
+      <div id="groupOpportunities" style="margin-top:1rem;"><p style="font-size:0.85rem;color:var(--muted);">Loading open group lessons...</p></div>
+      <form id="groupJoinForm" onsubmit="return submitGroupJoin(event)" style="display:none;margin-top:1rem;border:1px solid var(--navy-border);border-radius:6px;padding:1rem;">
+        <p id="groupJoinTitle" style="font-size:0.95rem;color:var(--gold);margin-bottom:0.8rem;"></p>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Your name</label><input class="form-input" type="text" id="gjName" maxlength="80" autocomplete="name"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="gjEmail" maxlength="200" autocomplete="email"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Phone (optional)</label><input class="form-input" type="tel" id="gjPhone" maxlength="40" autocomplete="tel"></div>
+          <div class="form-group"><label class="form-label">Your level</label>
+            <select class="form-input" id="gjLevel"><option value="">Select your level</option><option>Complete Beginner</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Music you like to play (optional)</label><input class="form-input" type="text" id="gjGenres" maxlength="200" placeholder="e.g. Folk, pop, singer-songwriter"></div>
+        <div class="form-group"><label class="form-label">Your goals (optional)</label><textarea class="form-input" id="gjGoals" rows="2" maxlength="300" placeholder="e.g. Play songs with friends, get better at chords"></textarea></div>
+        <p id="gjOut" style="font-size:0.85rem;min-height:1.2em;margin-bottom:0.6rem;"></p>
+        <button class="btn-primary" id="gjBtn" type="submit" style="width:100%;text-align:center;">Ask to join →</button>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Only your first name, level and goals are shared with them. You are not charged anything yet.</p>
+      </form>
+      <div class="group-details" style="margin-top:1.2rem;">
         <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 or 60 Minutes</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$45 or $55 per person</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Instruments</div><div class="group-detail-value">Guitar & Piano</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Minimum</div><div class="group-detail-value">2 people, same slot</div></div>
       </div>
+      <p style="margin-top:1.4rem;margin-bottom:0;font-size:0.9rem;color:var(--cream);border-top:1px solid var(--navy-border);padding-top:1.2rem;"><strong>Don't see a good fit?</strong> Register your interest below and James will look for a match for you.</p>
       <form id="groupClassForm" onsubmit="return handleGroupClassRegistration(event)" style="margin-top:1.2rem;border-top:1px solid var(--navy-border);padding-top:1.2rem;">
         <div class="form-row">
           <div class="form-group">
@@ -2177,6 +2208,81 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     selectedGroupInstrument = name;
   }
 
+
+  // ===== Group classes: lessons open to being shared =====
+  let groupSelectedListing = null;
+  async function loadGroupOpportunities() {
+    const box = document.getElementById('groupOpportunities');
+    if (!box) return;
+    try {
+      const resp = await fetch('/.netlify/functions/group-opportunities');
+      const data = await resp.json();
+      if (!data.success) throw new Error('failed');
+      box.innerHTML = '';
+      if (!data.listings.length) {
+        const p = document.createElement('p'); p.style.cssText = 'font-size:0.88rem;color:var(--muted);line-height:1.6;';
+        p.textContent = 'No lessons are open to a group right now. Register your interest below and James will find you a match.';
+        box.appendChild(p); return;
+      }
+      data.listings.forEach(l => {
+        const card = document.createElement('div');
+        card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.85rem 1rem;margin-bottom:0.6rem;';
+        const info = document.createElement('div'); info.style.cssText = 'font-size:0.88rem;color:var(--cream);line-height:1.6;flex:1;min-width:220px;';
+        const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
+        head.textContent = l.instrument + ' with ' + l.firstName + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
+        info.appendChild(head);
+        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['Group price', l.groupPrice]];
+        lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
+        card.appendChild(info);
+        const btn = document.createElement('button'); btn.type = 'button';
+        if (l.status === 'pending') { btn.className = 'btn-outline'; btn.disabled = true; btn.textContent = 'Request waiting'; }
+        else { btn.className = 'btn-primary'; btn.textContent = 'Ask to join'; btn.onclick = () => openGroupJoinForm(l); }
+        btn.style.cssText = 'padding:0.6rem 1.2rem;font-size:0.8rem;';
+        card.appendChild(btn);
+        box.appendChild(card);
+      });
+    } catch (e) {
+      box.innerHTML = '';
+      const p = document.createElement('p'); p.style.cssText = 'font-size:0.85rem;color:var(--muted);';
+      p.textContent = 'Could not load open group lessons just now. You can still register your interest below.';
+      box.appendChild(p);
+    }
+  }
+  function openGroupJoinForm(l) {
+    groupSelectedListing = l;
+    document.getElementById('groupJoinTitle').textContent = 'Ask to join ' + l.firstName + '\'s ' + l.instrument.toLowerCase() + ' lesson: ' + l.dayName + 's at ' + l.time;
+    document.getElementById('gjOut').textContent = '';
+    const f = document.getElementById('groupJoinForm'); f.style.display = 'block';
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  async function submitGroupJoin(event) {
+    if (event) event.preventDefault();
+    const out = document.getElementById('gjOut'); const btn = document.getElementById('gjBtn');
+    function say(t, bad) { out.textContent = t; out.style.color = bad ? '#f87171' : 'var(--cream)'; }
+    if (!groupSelectedListing) { say('Please choose a lesson above first.', true); return false; }
+    const name = document.getElementById('gjName').value.trim(); const email = document.getElementById('gjEmail').value.trim(); const level = document.getElementById('gjLevel').value;
+    if (!name || !email) { say('Please enter your name and email.', true); return false; }
+    if (!level) { say('Please choose your level.', true); return false; }
+    btn.disabled = true; say('Sending...', false);
+    try {
+      const resp = await fetch('/.netlify/functions/request-group-join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        listingId: groupSelectedListing.id, name: name, email: email, phone: document.getElementById('gjPhone').value.trim(), level: level,
+        genres: document.getElementById('gjGenres').value.trim(), goals: document.getElementById('gjGoals').value.trim() }) });
+      const data = await resp.json();
+      if (!data.success) { say(data.error || 'Something went wrong. Please try again.', true); }
+      else {
+        document.getElementById('groupJoinForm').reset(); document.getElementById('groupJoinForm').style.display = 'none'; groupSelectedListing = null;
+        document.getElementById('modalTitle').textContent = 'Request sent!';
+        document.getElementById('modalBody').textContent = 'We have asked them if they are happy to share. You will get an email as soon as they reply. You have not been charged anything.';
+        document.getElementById('successModal').classList.add('open');
+        loadGroupOpportunities();
+      }
+    } catch (e) { say('Could not reach the server. Nothing was sent. Please try again.', true); }
+    btn.disabled = false;
+    return false;
+  }
+  loadGroupOpportunities();
+
   async function handleGroupClassRegistration(event) {
     if (event) event.preventDefault();
     const name = document.getElementById('groupName').value.trim();
@@ -3421,7 +3527,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // Shared by both the single-slot and multi-slot paths - posts one
   // slot to create-subscription.js and returns its result, without
   // redirecting itself, so the caller decides what happens next.
-  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes) {
+  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, groupOpenArg, groupGoalsArg) {
     const resp = await fetch('/.netlify/functions/create-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3440,6 +3546,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         genreFocus: genreFocus,
         theoryInterest: theoryInterest,
         goalsNotes: goalsNotes,
+        groupOpen: (groupOpenArg !== undefined) ? !!groupOpenArg : !!(document.getElementById('subGroupOpen') || {}).checked,
+        groupGoals: (groupGoalsArg !== undefined) ? groupGoalsArg : ((document.getElementById('subGroupGoals') || {}).value || '').trim(),
         startFrom: (document.getElementById('subStartFrom') || {}).value || ''
       })
     });
@@ -3559,6 +3667,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       studentName: name, studentEmail: email, phone: phone,
       instrument: selectedSubscribeInstrument, guitarType: selectedSubscribeGuitarType, frequency: frequency, durationMinutes: durationMinutes,
       skillLevel: skillLevel, songRequests: songRequests, genreFocus: genreFocus, theoryInterest: theoryInterest, goalsNotes: goalsNotes,
+      groupOpen: !!(document.getElementById('subGroupOpen') || {}).checked, groupGoals: ((document.getElementById('subGroupGoals') || {}).value || '').trim(),
       slots: slots, completedSlots: [], currentIndex: 0
     };
     await startSubscribeQueueSlot(queue, 0);
@@ -3573,7 +3682,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const btn = document.getElementById('subSubmitBtn');
     const s = queue.slots[index];
     try {
-      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes);
+      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes, queue.groupOpen, queue.groupGoals);
       if (result.success && result.url) {
         queue.currentIndex = index;
         try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
@@ -3655,6 +3764,33 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           rescheduleNote.style.cssText = 'font-size:0.76rem;color:var(--muted);margin-bottom:0.7rem;';
           rescheduleNote.innerHTML = "Can't make a particular lesson? <a href=\"#manage\" style=\"color:var(--gold);\">Reschedule just that one</a> from My Lessons below, no need to pause or cancel.";
           row.appendChild(rescheduleNote);
+          // Open this lesson to being shared as a group class (or change your mind).
+          const grp = document.createElement('div');
+          grp.style.cssText = 'border:1px solid var(--navy-border);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.8rem;';
+          const grpLabel = document.createElement('label');
+          grpLabel.style.cssText = 'display:flex;align-items:flex-start;gap:0.5rem;font-size:0.82rem;color:var(--cream);cursor:pointer;line-height:1.5;';
+          const grpBox = document.createElement('input'); grpBox.type = 'checkbox'; grpBox.style.cssText = 'width:auto;margin-top:0.2rem;'; grpBox.checked = !!sub.groupOpen;
+          const grpText = document.createElement('span'); grpText.textContent = "I'm open to sharing this lesson as a group class (cheaper per person). I'm asked first and nothing changes unless I say yes.";
+          grpLabel.appendChild(grpBox); grpLabel.appendChild(grpText); grp.appendChild(grpLabel);
+          const grpGoals = document.createElement('textarea'); grpGoals.className = 'form-input'; grpGoals.rows = 2; grpGoals.maxLength = 200;
+          grpGoals.placeholder = 'What music do you want to play, and what are your goals? (shown with your first name only)'; grpGoals.value = sub.groupGoals || '';
+          grpGoals.style.cssText = 'margin-top:0.6rem;display:' + (sub.groupOpen ? 'block' : 'none') + ';';
+          grp.appendChild(grpGoals);
+          grpBox.onchange = () => { grpGoals.style.display = grpBox.checked ? 'block' : 'none'; };
+          const grpSave = document.createElement('button'); grpSave.type = 'button'; grpSave.className = 'btn-outline'; grpSave.textContent = 'Save';
+          grpSave.style.cssText = 'margin-top:0.6rem;padding:0.45rem 1.1rem;font-size:0.76rem;';
+          const grpMsg = document.createElement('span'); grpMsg.style.cssText = 'margin-left:0.6rem;font-size:0.76rem;color:var(--muted);';
+          grpSave.onclick = async () => {
+            grpSave.disabled = true; grpMsg.textContent = 'Saving...';
+            try {
+              const rr = await fetch('/.netlify/functions/manage-subscription', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setGroupOpen', email: email, subscriptionId: sub.subscriptionId, groupOpen: grpBox.checked, groupGoals: grpGoals.value }) });
+              const dd = await rr.json();
+              grpMsg.textContent = dd.success ? 'Saved.' : (dd.error || 'Could not save. Please try again.');
+            } catch (e) { grpMsg.textContent = 'Could not reach the server. Please try again.'; }
+            grpSave.disabled = false;
+          };
+          grp.appendChild(grpSave); grp.appendChild(grpMsg);
+          row.appendChild(grp);
         }
         // Once cancelling, there's nothing further to do - no pause or
         // cancel controls needed. Pausing has no self-service "resume

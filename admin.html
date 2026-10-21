@@ -132,6 +132,40 @@
   </div>
 </section>
 
+<section style="padding-top:1rem;">
+  <div class="section-inner" style="max-width:560px;">
+    <h2 class="section-title">Group <em>classes</em></h2>
+    <p class="section-sub">Students who enrol online can tick "open to a group class" themselves. For your other regular students, add their lesson here once they have said yes. It then shows on the booking page (first name only). You can see every request below.</p>
+    <div class="booking-form">
+      <div class="form-group"><label class="form-label">Admin password</label><input type="password" id="gcPassword" class="form-input" placeholder="Password"></div>
+      <p class="form-label" style="margin-bottom:0.8rem;">Open a lesson to a group</p>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First name</label><input type="text" id="gcFirst" class="form-input" maxlength="40"></div>
+        <div class="form-group"><label class="form-label">Their email (they are asked yes or no here)</label><input type="email" id="gcEmail" class="form-input" maxlength="200"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Instrument</label><select id="gcInstrument" class="form-input"><option>Guitar</option><option>Piano</option></select></div>
+        <div class="form-group"><label class="form-label">Level</label><select id="gcLevel" class="form-input"><option>Complete Beginner</option><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Day</label><select id="gcDay" class="form-input"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option></select></div>
+        <div class="form-group"><label class="form-label">Time (e.g. 4:30 pm)</label><input type="text" id="gcTime" class="form-input" maxlength="12" placeholder="4:30 pm"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Length (minutes)</label><input type="number" id="gcDuration" class="form-input" value="45" min="15" max="120"></div>
+        <div class="form-group"><label class="form-label">How often</label><select id="gcFrequency" class="form-input"><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Music they like (shown on the page)</label><input type="text" id="gcGenres" class="form-input" maxlength="200"></div>
+      <div class="form-group"><label class="form-label">Their goals (shown on the page)</label><textarea id="gcGoals" class="form-input" rows="2" maxlength="300"></textarea></div>
+      <div id="gcOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <button type="button" class="btn-primary" onclick="gcAdd()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Open this lesson to a group</button>
+      <button type="button" class="btn-outline" onclick="gcList()" style="width:100%;text-align:center;">Show open lessons and requests</button>
+      <div class="form-group" style="margin-top:1rem;"><label class="form-label">Take a lesson off the list (paste its id from the list above)</label><input type="text" id="gcRemoveId" class="form-input" maxlength="40"></div>
+      <button type="button" class="btn-outline" onclick="gcRemove()" style="width:100%;text-align:center;">Take it off the list</button>
+    </div>
+  </div>
+</section>
+
 <script>
   // ===== Gift vouchers (by hand) =====
   function gvOut(id, text, isError) { const el = document.getElementById(id); el.textContent = text; el.style.color = isError ? '#f87171' : 'var(--cream)'; }
@@ -180,6 +214,44 @@
     if (!window.confirm('Cancel voucher ' + code + '? Lessons already booked stay booked, but no more can be booked with it.')) return;
     const data = await gvCall({ action: 'void', code: code }, 'gvMessageOut2');
     if (data) gvOut('gvMessageOut2', 'Voucher ' + data.code + ' is cancelled.', false);
+  }
+
+  // ===== Group classes =====
+  async function gcCall(payload) {
+    const out = document.getElementById('gcOut');
+    const password = document.getElementById('gcPassword').value;
+    if (!password) { out.textContent = 'Please enter the admin password.'; out.style.color = '#f87171'; return null; }
+    try {
+      const resp = await fetch('/.netlify/functions/admin-group', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ password: password }, payload)) });
+      const data = await resp.json();
+      if (!data.success) { out.textContent = data.error || 'Something went wrong.'; out.style.color = '#f87171'; return null; }
+      out.style.color = 'var(--cream)';
+      return data;
+    } catch (e) { out.textContent = 'Could not reach the server. Nothing was changed.'; out.style.color = '#f87171'; return null; }
+  }
+  async function gcAdd() {
+    const data = await gcCall({ action: 'add', firstName: document.getElementById('gcFirst').value, ownerEmail: document.getElementById('gcEmail').value,
+      instrument: document.getElementById('gcInstrument').value, level: document.getElementById('gcLevel').value, dayOfWeek: document.getElementById('gcDay').value,
+      time: document.getElementById('gcTime').value, durationMinutes: document.getElementById('gcDuration').value, frequency: document.getElementById('gcFrequency').value,
+      genres: document.getElementById('gcGenres').value, goals: document.getElementById('gcGoals').value });
+    if (data) document.getElementById('gcOut').textContent = 'Done. This lesson now shows on the booking page. Its id is ' + data.id + '.';
+  }
+  async function gcList() {
+    const data = await gcCall({ action: 'list' });
+    if (!data) return;
+    const lines = ['OPEN LESSONS'];
+    if (!data.listings.length) lines.push('  (none)');
+    data.listings.forEach(l => lines.push('  ' + l.firstName + ', ' + l.instrument + ', ' + l.day + ' ' + l.time + ', ' + l.durationMinutes + ' min  [' + l.status + ']  id ' + l.id + (l.source === 'subscription' ? ' (enrolled online)' : ' (added by you)')));
+    lines.push('', 'REQUESTS (newest first)');
+    if (!data.requests.length) lines.push('  (none)');
+    data.requests.forEach(r => lines.push('  ' + r.who + ' (' + r.email + ') asked to join ' + r.lesson + '  [' + r.status + ']'));
+    document.getElementById('gcOut').textContent = lines.join('\n');
+  }
+  async function gcRemove() {
+    const id = document.getElementById('gcRemoveId').value.trim();
+    if (!id) { document.getElementById('gcOut').textContent = 'Please paste the id of the lesson to take off.'; return; }
+    const data = await gcCall({ action: 'remove', id: id });
+    if (data) document.getElementById('gcOut').textContent = 'Taken off the list.';
   }
   // ===== Who's booked in =====
   function whoText(data) {

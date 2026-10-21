@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group class request · MCQ Music Lessons</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '551157863990443');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="nav-logo-icon">♩</span>
+    <span class="nav-logo-text">MCQ <span>Music</span></span>
+  </a>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1.8rem;">
+    <ul class="nav-links">
+      <li><a href="programs.html">Programs</a></li>
+      <li><a href="pricing.html#reviews">Reviews</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="pricing.html#pricing">Pricing</a></li>
+      <li><a href="vouchers.html">Vouchers</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="booking.html#manage">My Lessons</a></li>
+      <li><a href="booking.html#calendar" class="nav-cta">Enroll</a></li>
+    </ul>
+    <div class="nav-social">
+      <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+      </a>
+      <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+      </a>
+    </div>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="programs.html" onclick="toggleMenu()">Programs</a>
+  <a href="pricing.html#reviews" onclick="toggleMenu()">Reviews</a>
+  <a href="about.html" onclick="toggleMenu()">About</a>
+  <a href="pricing.html#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="vouchers.html" onclick="toggleMenu()">Vouchers</a>
+  <a href="faq.html" onclick="toggleMenu()">FAQ</a>
+  <a href="booking.html#manage" onclick="toggleMenu()">My Lessons</a>
+  <a href="booking.html#calendar" onclick="toggleMenu()">Enroll</a>
+  <div class="mobile-social">
+    <a class="social-icon-btn" href="https://www.instagram.com/jamesmcq__/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://www.facebook.com/jamesmcqmusic/" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 8.5h-2c-.55 0-1 .45-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h1.6V9.2c0-2.1 1.4-3.7 3.6-3.7H16z"/></svg>
+    </a>
+    <a class="social-icon-btn" href="https://linktr.ee/jamesmcq" target="_blank" rel="noopener" aria-label="Music links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+    </a>
+  </div>
+</div>
+
+<section id="groupResponse" style="padding-top:7rem;">
+  <div class="section-inner">
+    <p class="section-eyebrow">Group class</p>
+    <h2 class="section-title">Share your <em>lesson?</em></h2>
+    <div class="policy-box" id="grBox">
+      <p id="grMsg" style="font-size:0.9rem;color:var(--cream);line-height:1.7;">Loading...</p>
+      <div id="grDetails" style="display:none;margin:1rem 0;font-size:0.9rem;color:var(--cream);line-height:1.8;"></div>
+      <div id="grButtons" style="display:none;gap:0.6rem;flex-wrap:wrap;">
+        <button type="button" class="btn-primary" id="grYes" style="padding:0.8rem 1.6rem;">Yes, happy to share</button>
+        <button type="button" class="btn-outline" id="grNo" style="padding:0.8rem 1.6rem;">No thanks</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 MCQ Music Lessons · South Melbourne, VIC · ABN 62 103 386 186</p>
+  <p style="margin-top:0.3rem;"><a href="mailto:jamesmcqmusic@gmail.com">jamesmcqmusic@gmail.com</a> · <a href="tel:0499232898">0499 232 898</a> · <a href="https://www.instagram.com/jamesmcq__/" target="_blank">@jamesmcq__</a> · <a href="https://www.facebook.com/jamesmcqmusic/" target="_blank">Facebook</a> · <a href="https://linktr.ee/jamesmcq" target="_blank">Music Links</a> · <a href="vouchers.html">Vouchers</a> · <a href="privacy.html">Privacy Policy</a></p>
+</footer>
+
+<script>
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('t') || '';
+    const msg = document.getElementById('grMsg'), det = document.getElementById('grDetails'), btns = document.getElementById('grButtons');
+    function call(action) {
+      return fetch('/.netlify/functions/respond-group-request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, action: action }) }).then(r => r.json());
+    }
+    function row(k, v) { if (!v) return; const d = document.createElement('div'); const b = document.createElement('span'); b.style.color = 'var(--muted)'; b.textContent = k + ': '; d.appendChild(b); d.appendChild(document.createTextNode(v)); det.appendChild(d); }
+    function show(req, done) {
+      det.innerHTML = ''; det.style.display = 'block';
+      const r = req.requester;
+      row('Lesson', req.instrument + ', ' + req.when); row('Who', r.firstName); row('Level', r.level); row('Music they like', r.genres); row('Their goals', r.goals);
+      if (done || req.status !== 'pending') {
+        btns.style.display = 'none';
+        msg.textContent = req.status === 'approved' ? 'Thanks, you said yes. James will be in touch about the group price before anything changes.' : req.status === 'declined' ? 'No problem, you said no. Your lesson stays exactly as it is.' : 'This request has already been answered.';
+      } else {
+        msg.textContent = 'Hi ' + req.firstName + ', someone would like to share your lesson as a group class. Nothing changes unless you say yes.';
+        btns.style.display = 'flex';
+      }
+    }
+    if (!token) { msg.textContent = 'This link is not valid.'; return; }
+    call('view').then(d => {
+      if (!d.success) { msg.textContent = d.error || 'This link is not valid any more.'; return; }
+      show(d.request, false);
+      const act = params.get('a');
+      const send = (a) => { btns.style.display = 'none'; msg.textContent = 'Saving...'; call(a).then(x => { if (!x.success) { msg.textContent = x.error || 'Something went wrong. Please try again.'; btns.style.display = 'flex'; } else show(x.request, true); }).catch(() => { msg.textContent = 'Could not reach the server. Please try again.'; btns.style.display = 'flex'; }); };
+      document.getElementById('grYes').onclick = () => send('approve');
+      document.getElementById('grNo').onclick = () => send('decline');
+      if (act === 'approve' || act === 'decline') { msg.textContent = 'Hi ' + d.request.firstName + ', you chose "' + (act === 'approve' ? 'Yes, happy to share' : 'No thanks') + '" from your email. Please confirm with the button below.'; }
+    }).catch(() => { msg.textContent = 'Could not load this request. Please try again.'; });
+  })();
+</script>
+</body>
+</html>

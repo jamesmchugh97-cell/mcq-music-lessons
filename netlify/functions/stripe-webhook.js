@@ -541,6 +541,8 @@ exports.handler = async function (event) {
           genreFocus: meta.genreFocus || '',
           theoryInterest: meta.theoryInterest || '',
           goalsNotes: meta.goalsNotes || '',
+          groupOpen: meta.groupOpen === 'yes',
+          groupGoals: meta.groupGoals || '',
           status: 'active',
           pausedWeeksThisYear: inheritedWeeks,
           pauseYear: currentYear(),

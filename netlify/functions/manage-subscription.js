@@ -103,7 +103,9 @@ exports.handler = async function (event) {
         nextLessonDate: s.nextLessonDate || null,
         cancelling: !!s.cancelling,
         summerPausePending: !!s.summerPausePending,
-        summerPauseEndDate: s.summerPauseEndDate || null
+        summerPauseEndDate: s.summerPauseEndDate || null,
+        groupOpen: s.groupOpen === true,
+        groupGoals: s.groupGoals || ''
       }));
       return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized, summerPauseStart: SUMMER_PAUSE_START, summerPauseEnd: SUMMER_PAUSE_END }) };
     }
@@ -119,6 +121,16 @@ exports.handler = async function (event) {
     const record = await getSubscriptionRecord(subscriptionId);
     if (!record || (record.studentEmail || '').trim().toLowerCase() !== email.trim().toLowerCase()) {
       return { statusCode: 200, body: JSON.stringify({ success: false, error: 'Enrollment not found for that email.' }) };
+    }
+
+    // Open (or close) this lesson to being shared as a group class. Only a first name,
+    // level, music styles and these goals are ever shown to other students.
+    if (action === 'setGroupOpen') {
+      const open = body.groupOpen === true;
+      record.groupOpen = open;
+      record.groupGoals = open ? String(body.groupGoals || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : (record.groupGoals || '');
+      await saveSubscriptionRecord(subscriptionId, record);
+      return { statusCode: 200, body: JSON.stringify({ success: true, groupOpen: record.groupOpen }) };
     }
 
     if (action === 'pause') {
