@@ -47,6 +47,16 @@ const ROSTER = [
 function cleanAge(v) { return v === 'adult' || v === 'teen' || v === 'child' ? v : ''; }
 function ageWords(v) { return v === 'child' ? 'young learners (under 13)' : (v === 'teen' ? 'teenage learners (13 to 17)' : (v === 'adult' ? 'adult learners' : '')); }
 
+// Age group and level for students who enrolled online, as James told us. These win over what is
+// on their enrolment, so their lessons can be matched straight away. New enrolments set their own.
+const ONLINE_OVERRIDES = {
+  'nick rhoden': { age: 'adult', level: 'Beginner' },
+  'niamh clarke': { age: 'adult', level: 'Complete Beginner' },
+  'jacqueline mclaren': { age: 'adult', level: 'Intermediate' },
+  'lisa koenig': { age: 'child', level: 'Beginner' },
+  'calypso valambert': { age: 'adult', level: 'Complete Beginner' }
+};
+
 function opts(name) { return { name: name, siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN }; }
 function listingsStore() { return getStore(opts('group-listings')); }
 function requestsStore() { return getStore(opts('group-requests')); }
@@ -189,7 +199,7 @@ async function getAllListings() {
       out.push({
         id: publicIdForSubscription(r.subscriptionId), source: 'subscription', subscriptionId: r.subscriptionId,
         ownerName: r.studentName, ownerEmail: r.studentEmail, ownerFirstName: firstNameOf(r.studentName), firstName: named ? firstNameOf(r.studentName) : '',
-        ageGroup: cleanAge(r.ageGroup), instrument: r.instrument, level: r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
+        ageGroup: cleanAge((ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).age || r.ageGroup), instrument: r.instrument, level: (ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).level || r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
         dayOfWeek: parseInt(r.dayOfWeek, 10), time: r.time, durationMinutes: parseInt(r.durationMinutes, 10) || 45, frequency: r.frequency || 'weekly'
       });
     });
