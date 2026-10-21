@@ -112,8 +112,6 @@ function publicListing(l) {
     durationMinutes: l.durationMinutes,
     frequency: l.frequency,
     groupPrice: groupPriceFor(l.durationMinutes),
-    students: l.members || 1,
-    maxStudents: MAX_GROUP,
     status: l.status || 'available'
   };
 }
