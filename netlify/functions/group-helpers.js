@@ -36,6 +36,10 @@ const ROSTER = [
   { name: 'Javin', dow: 4, time: '6:45 pm', duration: 60 }
 ];
 
+// Adult learners are only ever matched with adult learners, young learners with young learners.
+function cleanAge(v) { return v === 'adult' || v === 'child' ? v : ''; }
+function ageWords(v) { return v === 'child' ? 'young learners' : (v === 'adult' ? 'adult learners' : ''); }
+
 function opts(name) { return { name: name, siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN }; }
 function listingsStore() { return getStore(opts('group-listings')); }
 function requestsStore() { return getStore(opts('group-requests')); }
@@ -84,6 +88,7 @@ function publicListing(l) {
     level: l.level,
     genres: l.genres,
     goals: l.goals,
+    ageGroup: l.ageGroup || '',
     dayOfWeek: l.dayOfWeek,
     dayName: DAY_NAMES[l.dayOfWeek] || '',
     time: l.time,
@@ -177,7 +182,7 @@ async function getAllListings() {
       out.push({
         id: publicIdForSubscription(r.subscriptionId), source: 'subscription', subscriptionId: r.subscriptionId,
         ownerName: r.studentName, ownerEmail: r.studentEmail, ownerFirstName: firstNameOf(r.studentName), firstName: named ? firstNameOf(r.studentName) : '',
-        instrument: r.instrument, level: r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
+        ageGroup: cleanAge(r.ageGroup), instrument: r.instrument, level: r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
         dayOfWeek: parseInt(r.dayOfWeek, 10), time: r.time, durationMinutes: parseInt(r.durationMinutes, 10) || 45, frequency: r.frequency || 'weekly'
       });
     });
@@ -192,10 +197,18 @@ async function getAllListings() {
   } catch (e) { console.error('[group] could not read manual listings:', e && e.message ? e.message : e); }
   ROSTER.forEach((r, i) => {
     out.push({
-      id: 'r' + i, source: 'roster', ownerName: r.name, ownerEmail: JAMES_EMAIL, ownerFirstName: r.name, firstName: '',
+      id: 'r' + i, source: 'roster', ageGroup: cleanAge(r.age), ownerName: r.name, ownerEmail: JAMES_EMAIL, ownerFirstName: r.name, firstName: '',
       instrument: '', level: '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
     });
   });
+  // Age groups James has set by hand win over anything else.
+  try {
+    const store = listingsStore();
+    const { blobs } = await store.list({ prefix: 'age_' });
+    const over = {};
+    for (const b of blobs) { const a = await store.get(b.key, { type: 'json' }); if (a) over[b.key.slice(4)] = cleanAge(a.ageGroup); }
+    out.forEach(l => { if (over[l.id] !== undefined) l.ageGroup = over[l.id]; else l.ageGroup = cleanAge(l.ageGroup); });
+  } catch (e) { out.forEach(l => { l.ageGroup = cleanAge(l.ageGroup); }); }
   const reqs = await listAllRequests();
   out.forEach(l => {
     const mine = reqs.filter(r => r.listingId === l.id);
@@ -215,7 +228,7 @@ module.exports = {
   getAllListings,
   JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP,
   listingsStore, requestsStore,
-  esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
+  cleanAge, ageWords, esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
   groupPriceFor, groupCents, privateCents, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,
   overRequestLimit, recordRequestAttempt, sendMail, wrapEmail, detailRows, emailButton
 };

@@ -105,7 +105,8 @@ exports.handler = async function (event) {
         summerPausePending: !!s.summerPausePending,
         summerPauseEndDate: s.summerPauseEndDate || null,
         groupMode: s.groupOpen === true ? 'named' : (s.groupOpen === false ? 'hidden' : 'anonymous'),
-        groupGoals: s.groupGoals || ''
+        groupGoals: s.groupGoals || '',
+        ageGroup: s.ageGroup || ''
       }));
       return { statusCode: 200, body: JSON.stringify({ success: true, subscriptions: summarized, summerPauseStart: SUMMER_PAUSE_START, summerPauseEnd: SUMMER_PAUSE_END }) };
     }
@@ -132,6 +133,7 @@ exports.handler = async function (event) {
       else if (mode === 'hidden') record.groupOpen = false;
       else delete record.groupOpen;
       record.groupGoals = mode === 'named' ? String(body.groupGoals || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : (record.groupGoals || '');
+      if (body.ageGroup === 'adult' || body.ageGroup === 'child') record.ageGroup = body.ageGroup;
       await saveSubscriptionRecord(subscriptionId, record);
       return { statusCode: 200, body: JSON.stringify({ success: true, groupMode: mode }) };
     }

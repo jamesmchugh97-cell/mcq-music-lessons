@@ -8,7 +8,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') return { statusCode: 405, body: JSON.stringify({ success: false, error: 'Method not allowed' }) };
   try {
     const all = await gh.getAllListings();
-    const open = all.filter(l => l.status !== 'taken').map(gh.publicListing);
+    const open = all.filter(l => l.status !== 'taken' && l.ageGroup).map(gh.publicListing);
     open.sort((a, b) => (a.dayOfWeek - b.dayOfWeek) || String(a.time).localeCompare(String(b.time)));
     return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ success: true, listings: open }) };
   } catch (e) {

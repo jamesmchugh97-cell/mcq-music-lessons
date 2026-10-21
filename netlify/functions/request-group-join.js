@@ -20,15 +20,18 @@ exports.handler = async function (event) {
   const wantedInstrument = body.instrument === 'Piano' ? 'Piano' : (body.instrument === 'Guitar' ? 'Guitar' : '');
   const genres = gh.clean(body.genres, 200);
   const goals = gh.clean(body.goals, 300);
+  const ageGroup = gh.cleanAge(body.ageGroup);
   if (!name) return reply(200, { success: false, error: 'Please enter your name.' });
   if (!gh.validEmail(email)) return reply(200, { success: false, error: 'Please enter a valid email address.' });
   if (!level) return reply(200, { success: false, error: 'Please choose your level.' });
+  if (!ageGroup) return reply(200, { success: false, error: 'Please choose adult learner or young learner.' });
 
   try {
     const listings = await gh.getAllListings();
     const listing = listings.find(l => l.id === body.listingId);
     if (!listing || listing.status === 'taken') return reply(200, { success: false, error: 'Sorry, that lesson is no longer available. Please pick another.' });
     if (listing.status === 'pending') return reply(200, { success: false, error: 'Someone has already asked to join that lesson and it is waiting for a reply. Please pick another, or check back soon.' });
+    if (!listing.ageGroup || listing.ageGroup !== ageGroup) return reply(200, { success: false, error: 'That class is for ' + (gh.ageWords(listing.ageGroup) || 'a different age group') + ' only. Please pick another.' });
     if (String(listing.ownerEmail || '').toLowerCase() === email) return reply(200, { success: false, error: 'That is your own lesson.' });
     // Anyone already in the class (paid up) must agree to a new student too.
     const existing = (await gh.listAllRequests()).filter(x => x.listingId === listing.id && x.status === 'active');
@@ -42,12 +45,12 @@ exports.handler = async function (event) {
     const request = {
       id: id, listingId: listing.id, status: 'pending', createdAt: new Date().toISOString(),
       token: gh.randomToken(),
-      requester: { name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
+      requester: { ageGroup: ageGroup, name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
       lesson: {
         ownerName: listing.ownerName || listing.ownerFirstName, ownerEmail: listing.ownerEmail, firstName: listing.ownerFirstName || listing.firstName,
         instrument: instrument, dayName: gh.DAY_NAMES[listing.dayOfWeek], time: listing.time, dayOfWeek: listing.dayOfWeek,
         durationMinutes: listing.durationMinutes, frequency: listing.frequency,
-        ownerSubscriptionId: listing.subscriptionId || '', ownerIsRoster: listing.source === 'roster'
+        ageGroup: listing.ageGroup, ownerSubscriptionId: listing.subscriptionId || '', ownerIsRoster: listing.source === 'roster'
       }
     };
     // Everyone already in the class has to say yes: the lesson's owner (unless they have left) and each student who has joined.

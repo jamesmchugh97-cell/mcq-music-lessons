@@ -30,11 +30,18 @@ exports.handler = async function (event) {
       const listing = {
         id: id, active: true, createdAt: new Date().toISOString(),
         firstName: firstName, ownerName: gh.clean(body.ownerName, 80) || firstName, ownerEmail: ownerEmail,
-        instrument: instrument, level: gh.clean(body.level, 40), genres: gh.clean(body.genres, 200), goals: gh.clean(body.goals, 300),
+        ageGroup: gh.cleanAge(body.ageGroup), instrument: instrument, level: gh.clean(body.level, 40), genres: gh.clean(body.genres, 200), goals: gh.clean(body.goals, 300),
         dayOfWeek: dow, time: gh.clean(body.time, 12), durationMinutes: duration, frequency: body.frequency === 'fortnightly' ? 'fortnightly' : 'weekly'
       };
       await gh.listingsStore().set('lst_' + id, JSON.stringify(listing));
       return { statusCode: 200, body: JSON.stringify({ success: true, id: id }) };
+    }
+    if (body.action === 'setAge') {
+      const id = gh.clean(body.id, 40);
+      if (!id) return fail(400, 'Please enter the lesson id.');
+      const age = gh.cleanAge(body.ageGroup);
+      await gh.listingsStore().set('age_' + id, JSON.stringify({ ageGroup: age }));
+      return { statusCode: 200, body: JSON.stringify({ success: true }) };
     }
     if (body.action === 'remove') {
       const id = gh.clean(body.id, 40);
@@ -48,7 +55,7 @@ exports.handler = async function (event) {
     if (body.action === 'list') {
       const all = await gh.getAllListings();
       const reqs = await gh.listAllRequests();
-      const lines = all.map(l => ({ id: l.id, source: l.source, firstName: l.ownerFirstName || l.firstName, instrument: l.instrument, day: gh.DAY_NAMES[l.dayOfWeek], time: l.time, durationMinutes: l.durationMinutes, status: l.status }));
+      const lines = all.map(l => ({ id: l.id, source: l.source, firstName: l.ownerFirstName || l.firstName, instrument: l.instrument, day: gh.DAY_NAMES[l.dayOfWeek], time: l.time, durationMinutes: l.durationMinutes, status: l.status, ageGroup: l.ageGroup || '' }));
       const requests = reqs.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 30)
         .map(r => ({ status: r.status, createdAt: r.createdAt, who: r.requester.name, email: r.requester.email, lesson: r.lesson.firstName + ', ' + r.lesson.dayName + ' ' + r.lesson.time }));
       return { statusCode: 200, body: JSON.stringify({ success: true, listings: lines, requests: requests }) };

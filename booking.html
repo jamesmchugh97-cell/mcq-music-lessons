@@ -582,6 +582,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </div>
         </div>
       </details>
+      <div class="form-group">
+        <label class="form-label">Who is the lesson for?</label>
+        <select class="form-input" id="subAgeGroup"><option value="">Select one</option><option value="adult">Adult learner</option><option value="child">Young learner (under 18)</option></select>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Group classes only ever put adults with adults, and young learners with young learners.</p>
+      </div>
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
           <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
@@ -650,6 +655,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <select class="form-input" id="gjLevel"><option value="">Select your level</option><option>Complete Beginner</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select>
           </div>
         </div>
+        <div class="form-group"><label class="form-label">Who is the lesson for?</label>
+          <select class="form-input" id="gjAge"><option value="">Select one</option><option value="adult">Adult learner</option><option value="child">Young learner (under 18)</option></select></div>
         <div class="form-group" id="gjInstrumentGroup" style="display:none;"><label class="form-label">Instrument</label>
           <select class="form-input" id="gjInstrument"><option value="">Choose guitar or piano</option><option>Guitar</option><option>Piano</option></select></div>
         <div class="form-group"><label class="form-label">Music you like to play (optional)</label><input class="form-input" type="text" id="gjGenres" maxlength="200" placeholder="e.g. Folk, pop, singer-songwriter"></div>
@@ -2239,7 +2246,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
         head.textContent = (l.firstName ? (l.instrument || 'Lesson') + ' with ' + l.firstName : (l.instrument ? l.instrument + ' lesson' : 'Lesson')) + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
         info.appendChild(head);
-        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['In the class', l.students + (l.students === 1 ? ' student so far' : ' students so far') + ', up to ' + l.maxStudents + (l.students > 1 ? ' (everyone in the class must agree to a new student)' : '')], ['Group price', l.groupPrice ? l.groupPrice + ' while two or three students share it (private price applies if everyone else stops)' : null]];
+        const lines = [['For', l.ageGroup === 'child' ? 'Young learners' : (l.ageGroup === 'adult' ? 'Adult learners' : '')], ['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['In the class', l.students + (l.students === 1 ? ' student so far' : ' students so far') + ', up to ' + l.maxStudents + (l.students > 1 ? ' (everyone in the class must agree to a new student)' : '')], ['Group price', l.groupPrice ? l.groupPrice + ' while two or three students share it (private price applies if everyone else stops)' : null]];
         lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
         card.appendChild(info);
         const btn = document.createElement('button'); btn.type = 'button';
@@ -2272,11 +2279,14 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const name = document.getElementById('gjName').value.trim(); const email = document.getElementById('gjEmail').value.trim(); const level = document.getElementById('gjLevel').value;
     if (!name || !email) { say('Please enter your name and email.', true); return false; }
     if (!level) { say('Please choose your level.', true); return false; }
+    const ageGroup = document.getElementById('gjAge').value;
+    if (!ageGroup) { say('Please choose adult learner or young learner.', true); return false; }
+    if (groupSelectedListing.ageGroup && groupSelectedListing.ageGroup !== ageGroup) { say('This class is for ' + (groupSelectedListing.ageGroup === 'child' ? 'young learners' : 'adult learners') + ' only. Please pick a different class.', true); return false; }
     if (!groupSelectedListing.instrument && !document.getElementById('gjInstrument').value) { say('Please choose guitar or piano.', true); return false; }
     btn.disabled = true; say('Sending...', false);
     try {
       const resp = await fetch('/.netlify/functions/request-group-join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        listingId: groupSelectedListing.id, instrument: (document.getElementById('gjInstrument') || {}).value || '', name: name, email: email, phone: document.getElementById('gjPhone').value.trim(), level: level,
+        listingId: groupSelectedListing.id, instrument: (document.getElementById('gjInstrument') || {}).value || '', name: name, email: email, phone: document.getElementById('gjPhone').value.trim(), level: level, ageGroup: ageGroup,
         genres: document.getElementById('gjGenres').value.trim(), goals: document.getElementById('gjGoals').value.trim() }) });
       const data = await resp.json();
       if (!data.success) { say(data.error || 'Something went wrong. Please try again.', true); }
@@ -3537,7 +3547,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   // Shared by both the single-slot and multi-slot paths - posts one
   // slot to create-subscription.js and returns its result, without
   // redirecting itself, so the caller decides what happens next.
-  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, groupOpenArg, groupGoalsArg) {
+  async function submitOneSubscriptionSlot(name, email, phone, dow, time, durationMinutes, frequency, instrument, guitarType, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, groupOpenArg, groupGoalsArg, ageGroupArg) {
     const resp = await fetch('/.netlify/functions/create-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3558,6 +3568,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         goalsNotes: goalsNotes,
         groupOpen: (groupOpenArg !== undefined) ? !!groupOpenArg : !!(document.getElementById('subGroupOpen') || {}).checked,
         groupGoals: (groupGoalsArg !== undefined) ? groupGoalsArg : ((document.getElementById('subGroupGoals') || {}).value || '').trim(),
+        ageGroup: (ageGroupArg !== undefined) ? ageGroupArg : ((document.getElementById('subAgeGroup') || {}).value || ''),
         startFrom: (document.getElementById('subStartFrom') || {}).value || ''
       })
     });
@@ -3583,6 +3594,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
     if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
+    if (!document.getElementById('subAgeGroup').value) { errEl.style.display = 'block'; errEl.textContent = 'Please choose whether the lesson is for an adult learner or a young learner.'; return false; }
     if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
     if (isSlotTaken(getNextDateForDow(dow), time, durationMinutes)) {
       errEl.style.display = 'block';
@@ -3678,6 +3690,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       instrument: selectedSubscribeInstrument, guitarType: selectedSubscribeGuitarType, frequency: frequency, durationMinutes: durationMinutes,
       skillLevel: skillLevel, songRequests: songRequests, genreFocus: genreFocus, theoryInterest: theoryInterest, goalsNotes: goalsNotes,
       groupOpen: !!(document.getElementById('subGroupOpen') || {}).checked, groupGoals: ((document.getElementById('subGroupGoals') || {}).value || '').trim(),
+      ageGroup: (document.getElementById('subAgeGroup') || {}).value || '',
       slots: slots, completedSlots: [], currentIndex: 0
     };
     await startSubscribeQueueSlot(queue, 0);
@@ -3692,7 +3705,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const btn = document.getElementById('subSubmitBtn');
     const s = queue.slots[index];
     try {
-      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes, queue.groupOpen, queue.groupGoals);
+      const result = await submitOneSubscriptionSlot(queue.studentName, queue.studentEmail, queue.phone, s.dow, s.time, queue.durationMinutes, queue.frequency, queue.instrument, queue.guitarType, queue.skillLevel, queue.songRequests, queue.genreFocus, queue.theoryInterest, queue.goalsNotes, queue.groupOpen, queue.groupGoals, queue.ageGroup);
       if (result.success && result.url) {
         queue.currentIndex = index;
         try { sessionStorage.setItem('mcqMultiSubscribeQueue', JSON.stringify(queue)); } catch (e) {}
@@ -3780,6 +3793,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const grpTitle = document.createElement('div'); grpTitle.style.cssText = 'font-size:0.82rem;color:var(--cream);margin-bottom:0.5rem;line-height:1.5;';
           grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes. If you do share, you pay the lower group price while two or three students attend, and your normal price again if everyone else stops. A third student can only join if everyone in the class agrees.';
           grp.appendChild(grpTitle);
+          const ageSel = document.createElement('select'); ageSel.className = 'form-input'; ageSel.style.marginBottom = '0.6rem';
+          [['', 'Who is the lesson for?'], ['adult', 'Adult learner'], ['child', 'Young learner (under 18)']].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; ageSel.appendChild(o); });
+          ageSel.value = sub.ageGroup || '';
+          grp.appendChild(ageSel);
           const grpSel = document.createElement('select'); grpSel.className = 'form-input';
           [['named', 'Show my lesson with my first name and goals (best for finding a good match)'], ['anonymous', 'Show my lesson without my name (default)'], ['hidden', "Don't show my lesson"]].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; grpSel.appendChild(o); });
           grpSel.value = sub.groupMode || 'anonymous';
@@ -3795,7 +3812,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           grpSave.onclick = async () => {
             grpSave.disabled = true; grpMsg.textContent = 'Saving...';
             try {
-              const rr = await fetch('/.netlify/functions/manage-subscription', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setGroupOpen', email: email, subscriptionId: sub.subscriptionId, groupMode: grpSel.value, groupGoals: grpGoals.value }) });
+              const rr = await fetch('/.netlify/functions/manage-subscription', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setGroupOpen', email: email, subscriptionId: sub.subscriptionId, groupMode: grpSel.value, groupGoals: grpGoals.value, ageGroup: ageSel.value }) });
               const dd = await rr.json();
               grpMsg.textContent = dd.success ? 'Saved.' : (dd.error || 'Could not save. Please try again.');
             } catch (e) { grpMsg.textContent = 'Could not reach the server. Please try again.'; }
