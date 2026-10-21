@@ -27,13 +27,13 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 // James is the one asked, and he asks them in person. Keep in step with RECURRING_STUDENTS in
 // booking.html.
 const ROSTER = [
-  { name: 'Meja', dow: 1, time: '4:00 pm', duration: 75 }, { name: 'Nick', dow: 1, time: '6:00 pm', duration: 90 },
-  { name: 'Maria', dow: 2, time: '6:00 pm', duration: 60 }, { name: 'Emma', dow: 2, time: '7:00 pm', duration: 60 },
-  { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60 }, { name: 'Hugo', dow: 3, time: '3:45 pm', duration: 45 },
-  { name: 'Anya', dow: 3, time: '5:15 pm', duration: 30 }, { name: 'Alex', dow: 3, time: '6:00 pm', duration: 60 },
-  { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60 }, { name: 'Meja', dow: 4, time: '4:30 pm', duration: 75 },
-  { name: 'Odie', dow: 4, time: '5:45 pm', duration: 30 }, { name: 'Will', dow: 4, time: '6:15 pm', duration: 30 },
-  { name: 'Javin', dow: 4, time: '6:45 pm', duration: 60 }
+  { name: 'Meja', age: 'child', dow: 1, time: '4:00 pm', duration: 75 }, { name: 'Nick', age: 'adult', dow: 1, time: '6:00 pm', duration: 90 },
+  { name: 'Maria', age: 'adult', dow: 2, time: '6:00 pm', duration: 60 }, { name: 'Emma', age: 'adult', instrument: 'Bass', dow: 2, time: '7:00 pm', duration: 60 },
+  { name: 'Michael', age: 'adult', dow: 3, time: '1:00 pm', duration: 60 }, { name: 'Hugo', age: 'child', dow: 3, time: '3:45 pm', duration: 45 },
+  { name: 'Anya', age: 'child', dow: 3, time: '5:15 pm', duration: 30 }, { name: 'Alex', age: 'adult', dow: 3, time: '6:00 pm', duration: 60 },
+  { name: 'Shannon', age: 'adult', dow: 3, time: '7:15 pm', duration: 60 }, { name: 'Meja', age: 'child', dow: 4, time: '4:30 pm', duration: 75 },
+  { name: 'Odie', age: 'child', dow: 4, time: '5:45 pm', duration: 30 }, { name: 'Will', age: 'child', dow: 4, time: '6:15 pm', duration: 30 },
+  { name: 'Javin', age: 'child', dow: 4, time: '6:45 pm', duration: 60 }
 ];
 
 // Adult learners are only ever matched with adult learners, young learners with young learners.
@@ -198,7 +198,7 @@ async function getAllListings() {
   ROSTER.forEach((r, i) => {
     out.push({
       id: 'r' + i, source: 'roster', ageGroup: cleanAge(r.age), ownerName: r.name, ownerEmail: JAMES_EMAIL, ownerFirstName: r.name, firstName: '',
-      instrument: '', level: '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
+      instrument: r.instrument || '', level: '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
     });
   });
   // Age groups James has set by hand win over anything else.
