@@ -134,6 +134,20 @@
 
 <section style="padding-top:1rem;">
   <div class="section-inner" style="max-width:560px;">
+    <h2 class="section-title">Free up a <em>student's time</em></h2>
+    <p class="section-sub">For a student who has paid for a package but can no longer come at their time. This takes their upcoming package lessons off the calendar so the time is free, and makes a voucher for the same number of lessons so they keep what they paid for. Nothing is emailed to them.</p>
+    <div class="booking-form">
+      <div class="form-group"><label class="form-label">Admin password</label><input type="password" id="flPassword" class="form-input" placeholder="Password"></div>
+      <div class="form-group"><label class="form-label">Student's full name or email (exactly as booked)</label><input type="text" id="flStudent" class="form-input" maxlength="120"></div>
+      <div id="flOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
+      <button type="button" class="btn-outline" onclick="flRun('preview')" style="width:100%;text-align:center;margin-bottom:0.6rem;">Show the lessons that would be freed</button>
+      <button type="button" class="btn-primary" onclick="flRun('free')" style="width:100%;text-align:center;">Free the time and make the voucher</button>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:1rem;">
+  <div class="section-inner" style="max-width:560px;">
     <h2 class="section-title">Group <em>classes</em></h2>
     <p class="section-sub">Students who enrol online can tick "open to a group class" themselves. For your other regular students, add their lesson here once they have said yes. It then shows on the booking page (first name only). You can see every request below.</p>
     <div class="booking-form">
@@ -219,6 +233,23 @@
     if (data) gvOut('gvMessageOut2', 'Voucher ' + data.code + ' is cancelled.', false);
   }
 
+  // ===== Free up a student's time =====
+  async function flRun(action) {
+    const out = document.getElementById('flOut');
+    const password = document.getElementById('flPassword').value, student = document.getElementById('flStudent').value.trim();
+    if (!password || !student) { out.textContent = 'Please enter the password and the student.'; out.style.color = '#f87171'; return; }
+    if (action === 'free' && !window.confirm('Take all of ' + student + '\'s upcoming package lessons off the calendar and make a voucher for them?')) return;
+    try {
+      const resp = await fetch('/.netlify/functions/admin-free-lessons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: password, student: student, action: action }) });
+      const data = await resp.json();
+      if (!data.success) { out.textContent = data.error || 'Something went wrong.'; out.style.color = '#f87171'; return; }
+      out.style.color = 'var(--cream)';
+      const list = data.lessons.map(l => '  ' + l.date + ', ' + l.time + ', ' + l.duration + ' min').join('\n') || '  (none found)';
+      out.textContent = action === 'free'
+        ? 'Done. Those times are free again.\n' + list + '\n\nVoucher for ' + data.lessonsLeft + ' x ' + data.durationMinutes + ' min lessons: ' + data.code + '\nGive her this code when a new time is agreed. She books with it at ' + location.origin + '/booking.html?voucher=' + data.code + '#package' + (data.calendarFailed ? '\n\nNote: ' + data.calendarFailed + ' Google Calendar event(s) could not be removed. Please delete them by hand.' : '')
+        : 'These would be freed:\n' + list;
+    } catch (e) { out.textContent = 'Could not reach the server. Nothing was changed.'; out.style.color = '#f87171'; }
+  }
   // ===== Group classes =====
   async function gcCall(payload) {
     const out = document.getElementById('gcOut');
