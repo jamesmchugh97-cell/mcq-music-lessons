@@ -22,7 +22,8 @@ exports.handler = async function (event) {
     const l = r.lesson;
     const when = l.dayName + 's at ' + l.time + ' (' + l.durationMinutes + ' min, ' + l.frequency + ')';
     const view = {
-      status: r.status, firstName: l.firstName, instrument: l.instrument, when: when,
+      status: r.status, firstName: l.firstName, instrument: l.instrument, when: when, isRoster: !!l.ownerIsRoster, ownerName: l.ownerName,
+      rule: gh.groupRuleText(l.durationMinutes),
       requester: { firstName: gh.firstNameOf(r.requester.name), level: r.requester.level, genres: r.requester.genres, goals: r.requester.goals }
     };
 
@@ -45,14 +46,21 @@ exports.handler = async function (event) {
 
     const rq = r.requester;
     if (r.status === 'approved') {
-      await gh.sendMail(rq.email, 'Good news: your group class is on',
+      r.payToken = gh.randomToken();
+      await gh.requestsStore().set('req_' + r.id, JSON.stringify(r));
+      const payLink = gh.SITE + '/group-join.html?p=' + r.payToken;
+      const rule = gh.groupRuleText(l.durationMinutes);
+      await gh.sendMail(rq.email, 'Good news: you can join the group class',
         gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(rq.name)) + ',</p><p>The student you asked has said yes. You can share the ' + gh.esc(l.instrument.toLowerCase()) + ' lesson on ' + gh.esc(when) + '.</p>' +
-          '<p>James will email you shortly with the group price and the start date. You are not charged until you have confirmed with him.</p>'));
-      if (l.ownerEmail) await gh.sendMail(l.ownerEmail, 'Thanks for sharing your lesson',
-        gh.wrapEmail('<p>Hi ' + gh.esc(l.firstName) + ',</p><p>Thanks for saying yes. James will be in touch about the group price for your ' + gh.esc(when) + ' lesson before anything changes.</p>'));
-      await gh.sendMail(gh.JAMES_EMAIL, 'Group class approved: ' + rq.name + ' joining ' + l.firstName,
-        gh.wrapEmail('<p><strong>' + gh.esc(l.firstName) + ' said yes.</strong> Next step: confirm the group price and start date with both students, and update the calendar and billing.</p>' +
-          gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Owner', (l.ownerName || l.firstName) + ' (' + (l.ownerEmail || 'no email') + ')'], ['Joining', rq.name + ' (' + rq.email + (rq.phone ? ', ' + rq.phone : '') + ')'], ['Level', rq.level], ['Music', rq.genres], ['Goals', rq.goals]])));
+          '<p><strong>Price:</strong> ' + gh.esc(rule) + '</p>' +
+          '<p>To lock in your spot, confirm and set up your payment here. You are not charged until you do.</p>' +
+          '<p>' + gh.emailButton(payLink, 'Confirm and pay', true) + '</p>'));
+      if (l.ownerEmail && !l.ownerIsRoster) await gh.sendMail(l.ownerEmail, 'Thanks for sharing your lesson',
+        gh.wrapEmail('<p>Hi ' + gh.esc(l.firstName) + ',</p><p>Thanks for saying yes. Once the other student confirms and pays, your ' + gh.esc(when) + ' lesson moves to the group price from your next payment.</p>' +
+          '<p>' + gh.esc(gh.groupRuleText(l.durationMinutes)) + ' You will be emailed if that changes.</p>'));
+      await gh.sendMail(gh.JAMES_EMAIL, 'Group class approved: ' + rq.name + ' joining ' + (l.ownerName || l.firstName),
+        gh.wrapEmail('<p><strong>' + gh.esc(l.ownerName || l.firstName) + ' said yes.</strong> ' + gh.esc(rq.name) + ' has been emailed a link to confirm and pay. Billing and price changes are automatic' + (l.ownerIsRoster ? ', except ' + gh.esc(l.ownerName) + '\'s own price, which you handle in person.' : '.') + '</p>' +
+          gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Owner', (l.ownerName || l.firstName) + ' (' + (l.ownerIsRoster ? 'regular student, not enrolled online' : (l.ownerEmail || 'no email')) + ')'], ['Joining', rq.name + ' (' + rq.email + (rq.phone ? ', ' + rq.phone : '') + ')'], ['Level', rq.level], ['Music', rq.genres], ['Goals', rq.goals]])));
     } else {
       await gh.sendMail(rq.email, 'About your group class request',
         gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(rq.name)) + ',</p><p>Thanks for asking to join the ' + gh.esc(l.instrument.toLowerCase()) + ' lesson on ' + gh.esc(when) + '. Unfortunately that student would rather keep it as it is.</p>' +

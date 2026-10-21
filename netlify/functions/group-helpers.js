@@ -20,6 +20,20 @@ const SITE = process.env.URL || 'https://mcqmusiclessons.com.au';
 const PENDING_DAYS = 7;
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// Regular students who are not enrolled through the website (their lessons are kept in the
+// booking page's own list). They can be asked to share too, but they have no email on file, so
+// James is the one asked, and he asks them in person. Keep in step with RECURRING_STUDENTS in
+// booking.html.
+const ROSTER = [
+  { name: 'Meja', dow: 1, time: '4:00 pm', duration: 75 }, { name: 'Nick', dow: 1, time: '6:00 pm', duration: 90 },
+  { name: 'Maria', dow: 2, time: '6:00 pm', duration: 60 }, { name: 'Emma', dow: 2, time: '7:00 pm', duration: 60 },
+  { name: 'Michael', dow: 3, time: '1:00 pm', duration: 60 }, { name: 'Hugo', dow: 3, time: '3:45 pm', duration: 45 },
+  { name: 'Anya', dow: 3, time: '5:15 pm', duration: 30 }, { name: 'Alex', dow: 3, time: '6:00 pm', duration: 60 },
+  { name: 'Shannon', dow: 3, time: '7:15 pm', duration: 60 }, { name: 'Meja', dow: 4, time: '4:30 pm', duration: 75 },
+  { name: 'Odie', dow: 4, time: '5:45 pm', duration: 30 }, { name: 'Will', dow: 4, time: '6:15 pm', duration: 30 },
+  { name: 'Javin', dow: 4, time: '6:45 pm', duration: 60 }
+];
+
 function opts(name) { return { name: name, siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN }; }
 function listingsStore() { return getStore(opts('group-listings')); }
 function requestsStore() { return getStore(opts('group-requests')); }
@@ -39,12 +53,23 @@ function publicIdForSubscription(subscriptionId) {
   return 's' + crypto.createHash('sha256').update(String(subscriptionId)).digest('hex').slice(0, 12);
 }
 
-// What a group class costs each person, from the prices already on the booking page.
+// What a group class costs each person while TWO students share it, and what the same lesson
+// costs as a private lesson (the prices on the pricing page). When only one student is left,
+// that student pays the private price again. Everybody is told this before they agree.
+const GROUP_PRICE_CENTS = { 30: 3500, 45: 4500, 60: 5500, 75: 6500, 90: 7500 };
+const PRIVATE_PRICE_CENTS = { 30: 5000, 45: 7000, 60: 8500, 75: 10000, 90: 12000 };
+function dollars(cents) { return '$' + (cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)); }
+function groupCents(durationMinutes) { return GROUP_PRICE_CENTS[parseInt(durationMinutes, 10)] || null; }
+function privateCents(durationMinutes) { return PRIVATE_PRICE_CENTS[parseInt(durationMinutes, 10)] || null; }
 function groupPriceFor(durationMinutes) {
-  const d = parseInt(durationMinutes, 10);
-  if (d === 45) return '$45 each';
-  if (d === 60) return '$55 each';
-  return null;
+  const c = groupCents(durationMinutes);
+  return c ? dollars(c) + ' each' : null;
+}
+// The plain-English rule, shown wherever someone is asked to agree.
+function groupRuleText(durationMinutes) {
+  const g = groupCents(durationMinutes), p = privateCents(durationMinutes);
+  if (!g || !p) return 'The group price applies only while two students share the lesson. If the other student stops coming, it becomes a private lesson again at the normal private price.';
+  return 'The group price is ' + dollars(g) + ' per lesson, and it only applies while two students share the lesson. If the other student stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson.';
 }
 
 // What anyone may see about a lesson that is open to a group. Nothing that identifies a
@@ -161,6 +186,12 @@ async function getAllListings() {
       if (l && l.active !== false) out.push(Object.assign({ source: 'manual', ownerFirstName: l.firstName }, l));
     }
   } catch (e) { console.error('[group] could not read manual listings:', e && e.message ? e.message : e); }
+  ROSTER.forEach((r, i) => {
+    out.push({
+      id: 'r' + i, source: 'roster', ownerName: r.name, ownerEmail: JAMES_EMAIL, ownerFirstName: r.name, firstName: '',
+      instrument: '', level: '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
+    });
+  });
   const reqs = await listAllRequests();
   out.forEach(l => {
     const mine = reqs.filter(r => r.listingId === l.id);
@@ -176,6 +207,6 @@ module.exports = {
   JAMES_EMAIL, SITE, DAY_NAMES,
   listingsStore, requestsStore,
   esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
-  groupPriceFor, publicListing, listAllRequests,
+  groupPriceFor, groupCents, privateCents, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,
   overRequestLimit, recordRequestAttempt, sendMail, wrapEmail, detailRows, emailButton
 };

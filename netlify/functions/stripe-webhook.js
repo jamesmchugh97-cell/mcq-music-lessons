@@ -39,6 +39,7 @@ const { handler: sendConfirmationEmail } = require('./send-confirmation-email');
 const voucherHelpers = require('./voucher-helpers');
 const emailTemplate = require('./email-template');
 
+const groupBilling = require('./group-billing');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const MIN_NOTICE_HOURS = 24;
 // Mirrors the pricing tiers used everywhere else on the site, so
@@ -406,6 +407,14 @@ exports.handler = async function (event) {
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const meta = subscription.metadata || {};
+      // A student joining someone else's lesson as a group class is billed on its own and has no
+      // booking of their own (the lesson is already on the calendar), so it skips the whole
+      // enrolment set-up below. See group-billing.js.
+      if (meta.groupJoin === 'yes') {
+        try { await groupBilling.onJoinerPaid(stripe, subscription); }
+        catch (gErr) { console.error('[stripe-webhook] group join handling failed:', gErr && gErr.message ? gErr.message : gErr); }
+        return { statusCode: 200, body: 'ok' };
+      }
       const firstPaymentLater = meta.firstPayment === 'later';
       let record = await getSubscriptionRecord(subscriptionId);
       // Normally the first invoice. A 'pay later' enrollment whose set-up
@@ -678,6 +687,9 @@ exports.handler = async function (event) {
     if (stripeEvent.type === 'customer.subscription.deleted') {
       const subscription = stripeEvent.data.object;
       const subscriptionId = subscription.id;
+      // Group class billing: put the other student's price back if this one ends (group-billing.js).
+      try { await groupBilling.onSubscriptionDeleted(stripe, subscription); }
+      catch (gErr) { console.error('[stripe-webhook] group end handling failed:', gErr && gErr.message ? gErr.message : gErr); }
       const record = await getSubscriptionRecord(subscriptionId);
       if (record) {
         await deleteSubscriptionRecord(subscriptionId);

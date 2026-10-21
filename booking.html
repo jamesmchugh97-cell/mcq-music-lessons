@@ -585,7 +585,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
           <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
-          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person.<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
+          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person: if it goes ahead, you pay the group price (for example $45 instead of $70 for 45 minutes). If the other student later stops, your lesson goes back to its normal price and we'll email you first.<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
         </label>
         <div id="subGroupExtra" style="display:none;margin-top:0.8rem;">
           <label class="form-label">What music do you want to play, and what are your goals? (shown to students who might join, with your first name only)</label>
@@ -634,6 +634,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="group-tagline">Learn together, grow together</div>
       <div class="pending-badge"><span class="pending-dot"></span> Now taking interest (spots limited)</div>
       <div class="group-desc">A group class is a lesson shared by two students, so it costs less per person. Below are lessons where the student has said they're happy to share. Pick one that suits your level and the music you like, and ask to join. They'll be asked first, and nothing is charged until James has confirmed it with you both.</div>
+      <div style="margin-top:1rem;padding:0.8rem 1rem;border:1px solid var(--gold);border-radius:6px;font-size:0.86rem;color:var(--cream);line-height:1.7;">
+        <strong>How the price works.</strong> Per person, per lesson, while two students share it: 30 min $35, 45 min $45, 60 min $55, 75 min $65, 90 min $75. If the other student stops coming, it becomes a private lesson again and goes back to the normal private price (30 min $50, 45 min $70, 60 min $85, 75 min $100, 90 min $120). You will be told before that happens, and you can stop any time.
+      </div>
       <div id="groupOpportunities" style="margin-top:1rem;"><p style="font-size:0.85rem;color:var(--muted);">Loading open group lessons...</p></div>
       <form id="groupJoinForm" onsubmit="return submitGroupJoin(event)" style="display:none;margin-top:1rem;border:1px solid var(--navy-border);border-radius:6px;padding:1rem;">
         <p id="groupJoinTitle" style="font-size:0.95rem;color:var(--gold);margin-bottom:0.8rem;"></p>
@@ -647,15 +650,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
             <select class="form-input" id="gjLevel"><option value="">Select your level</option><option>Complete Beginner</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select>
           </div>
         </div>
+        <div class="form-group" id="gjInstrumentGroup" style="display:none;"><label class="form-label">Instrument</label>
+          <select class="form-input" id="gjInstrument"><option value="">Choose guitar or piano</option><option>Guitar</option><option>Piano</option></select></div>
         <div class="form-group"><label class="form-label">Music you like to play (optional)</label><input class="form-input" type="text" id="gjGenres" maxlength="200" placeholder="e.g. Folk, pop, singer-songwriter"></div>
         <div class="form-group"><label class="form-label">Your goals (optional)</label><textarea class="form-input" id="gjGoals" rows="2" maxlength="300" placeholder="e.g. Play songs with friends, get better at chords"></textarea></div>
         <p id="gjOut" style="font-size:0.85rem;min-height:1.2em;margin-bottom:0.6rem;"></p>
         <button class="btn-primary" id="gjBtn" type="submit" style="width:100%;text-align:center;">Ask to join →</button>
-        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Only your first name, level and goals are shared with them. You are not charged anything yet.</p>
+        <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Only your first name, level and goals are shared with them. You are not charged anything yet. The group price only applies while two students share the lesson.</p>
       </form>
       <div class="group-details" style="margin-top:1.2rem;">
-        <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">45 or 60 Minutes</div></div>
-        <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$45 or $55 per person</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Duration</div><div class="group-detail-value">30 to 90 Minutes</div></div>
+        <div class="group-detail-item"><div class="group-detail-label">Price</div><div class="group-detail-value gold">$35 to $75 per person, by length</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Instruments</div><div class="group-detail-value">Guitar & Piano</div></div>
         <div class="group-detail-item"><div class="group-detail-label">Minimum</div><div class="group-detail-value">2 people, same slot</div></div>
       </div>
@@ -691,8 +696,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         <div class="form-group">
           <label class="form-label">Duration</label>
           <select class="form-input" id="groupDuration">
+            <option value="30|35">30 minutes · $35 per person</option>
             <option value="45|45" selected>45 minutes · $45 per person</option>
             <option value="60|55">60 minutes · $55 per person</option>
+            <option value="75|65">75 minutes · $65 per person</option>
+            <option value="90|75">90 minutes · $75 per person</option>
           </select>
         </div>
         <div class="form-group">
@@ -2229,9 +2237,9 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:6px;padding:0.85rem 1rem;margin-bottom:0.6rem;';
         const info = document.createElement('div'); info.style.cssText = 'font-size:0.88rem;color:var(--cream);line-height:1.6;flex:1;min-width:220px;';
         const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
-        head.textContent = (l.firstName ? l.instrument + ' with ' + l.firstName : l.instrument + ' lesson') + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
+        head.textContent = (l.firstName ? (l.instrument || 'Lesson') + ' with ' + l.firstName : (l.instrument ? l.instrument + ' lesson' : 'Lesson')) + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
         info.appendChild(head);
-        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['Group price', l.groupPrice]];
+        const lines = [['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['Group price', l.groupPrice ? l.groupPrice + ' while two students share it (private price applies if the other student stops)' : null]];
         lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
         card.appendChild(info);
         const btn = document.createElement('button'); btn.type = 'button';
@@ -2250,7 +2258,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   }
   function openGroupJoinForm(l) {
     groupSelectedListing = l;
-    document.getElementById('groupJoinTitle').textContent = 'Ask to join the ' + l.instrument.toLowerCase() + ' lesson' + (l.firstName ? ' with ' + l.firstName : '') + ': ' + l.dayName + 's at ' + l.time;
+    document.getElementById('gjInstrumentGroup').style.display = l.instrument ? 'none' : 'block';
+    document.getElementById('groupJoinTitle').textContent = 'Ask to join the ' + (l.instrument ? l.instrument.toLowerCase() + ' lesson' : 'lesson') + (l.firstName ? ' with ' + l.firstName : '') + ': ' + l.dayName + 's at ' + l.time;
     document.getElementById('gjOut').textContent = '';
     const f = document.getElementById('groupJoinForm'); f.style.display = 'block';
     f.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2263,10 +2272,11 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const name = document.getElementById('gjName').value.trim(); const email = document.getElementById('gjEmail').value.trim(); const level = document.getElementById('gjLevel').value;
     if (!name || !email) { say('Please enter your name and email.', true); return false; }
     if (!level) { say('Please choose your level.', true); return false; }
+    if (!groupSelectedListing.instrument && !document.getElementById('gjInstrument').value) { say('Please choose guitar or piano.', true); return false; }
     btn.disabled = true; say('Sending...', false);
     try {
       const resp = await fetch('/.netlify/functions/request-group-join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        listingId: groupSelectedListing.id, name: name, email: email, phone: document.getElementById('gjPhone').value.trim(), level: level,
+        listingId: groupSelectedListing.id, instrument: (document.getElementById('gjInstrument') || {}).value || '', name: name, email: email, phone: document.getElementById('gjPhone').value.trim(), level: level,
         genres: document.getElementById('gjGenres').value.trim(), goals: document.getElementById('gjGoals').value.trim() }) });
       const data = await resp.json();
       if (!data.success) { say(data.error || 'Something went wrong. Please try again.', true); }
@@ -3768,7 +3778,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           const grp = document.createElement('div');
           grp.style.cssText = 'border:1px solid var(--navy-border);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.8rem;';
           const grpTitle = document.createElement('div'); grpTitle.style.cssText = 'font-size:0.82rem;color:var(--cream);margin-bottom:0.5rem;line-height:1.5;';
-          grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes.';
+          grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes. If you do share, you pay the lower group price while two students attend, and your normal price again if the other student stops.';
           grp.appendChild(grpTitle);
           const grpSel = document.createElement('select'); grpSel.className = 'form-input';
           [['named', 'Show my lesson with my first name and goals (best for finding a good match)'], ['anonymous', 'Show my lesson without my name (default)'], ['hidden', "Don't show my lesson"]].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; grpSel.appendChild(o); });

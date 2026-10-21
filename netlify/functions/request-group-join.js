@@ -17,6 +17,7 @@ exports.handler = async function (event) {
   const email = gh.clean(body.email, 200).toLowerCase();
   const phone = gh.clean(body.phone, 40);
   const level = gh.clean(body.level, 40);
+  const wantedInstrument = body.instrument === 'Piano' ? 'Piano' : (body.instrument === 'Guitar' ? 'Guitar' : '');
   const genres = gh.clean(body.genres, 200);
   const goals = gh.clean(body.goals, 300);
   if (!name) return reply(200, { success: false, error: 'Please enter your name.' });
@@ -30,6 +31,8 @@ exports.handler = async function (event) {
     if (listing.status === 'pending') return reply(200, { success: false, error: 'Someone has already asked to join that lesson and it is waiting for a reply. Please pick another, or check back soon.' });
     if (String(listing.ownerEmail || '').toLowerCase() === email) return reply(200, { success: false, error: 'That is your own lesson.' });
 
+    const instrument = listing.instrument || wantedInstrument;
+    if (!instrument) return reply(200, { success: false, error: 'Please choose guitar or piano.' });
     await gh.recordRequestAttempt(event);
     const id = gh.randomId();
     const request = {
@@ -38,8 +41,9 @@ exports.handler = async function (event) {
       requester: { name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
       lesson: {
         ownerName: listing.ownerName || listing.ownerFirstName, ownerEmail: listing.ownerEmail, firstName: listing.ownerFirstName || listing.firstName,
-        instrument: listing.instrument, dayName: gh.DAY_NAMES[listing.dayOfWeek], time: listing.time,
-        durationMinutes: listing.durationMinutes, frequency: listing.frequency
+        instrument: instrument, dayName: gh.DAY_NAMES[listing.dayOfWeek], time: listing.time, dayOfWeek: listing.dayOfWeek,
+        durationMinutes: listing.durationMinutes, frequency: listing.frequency,
+        ownerSubscriptionId: listing.subscriptionId || '', ownerIsRoster: listing.source === 'roster'
       }
     };
     await gh.requestsStore().set('req_' + id, JSON.stringify(request));
@@ -47,19 +51,34 @@ exports.handler = async function (event) {
     const l = request.lesson;
     const link = gh.SITE + '/group-response.html?t=' + request.token;
     const when = l.dayName + 's at ' + l.time + ' (' + l.durationMinutes + ' min, ' + l.frequency + ')';
-    const ownerOk = listing.ownerEmail ? await gh.sendMail(
-      listing.ownerEmail,
-      'Someone would like to join your ' + l.instrument.toLowerCase() + ' lesson',
-      gh.wrapEmail(
-        '<p>Hi ' + gh.esc(l.firstName) + ',</p>' +
-        '<p>You said you would be open to sharing your ' + gh.esc(when) + ' lesson with another student as a group class. Someone would like to join you:</p>' +
-        gh.detailRows([['Name', gh.firstNameOf(name)], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
-        '<p>Nothing changes unless you say yes. If you do, James will work out the group price and confirm the details with you both.</p>' +
-        '<p>' + gh.emailButton(link + '&a=approve', 'Yes, happy to share', true) + gh.emailButton(link + '&a=decline', 'No thanks', false) + '</p>' +
-        '<p style="color:#7b8496;font-size:14px;">Or open this link to see the details first: ' + gh.esc(link) + '</p>')
-    ) : false;
+    const rule = gh.groupRuleText(l.durationMinutes);
+    let ownerOk;
+    if (l.ownerIsRoster) {
+      // Not enrolled online, so there is no email for them: James is asked, and asks them in person.
+      ownerOk = await gh.sendMail(
+        gh.JAMES_EMAIL,
+        'Group class request for ' + l.ownerName + '\'s ' + l.dayName + ' ' + l.time + ' lesson: ask them in person',
+        gh.wrapEmail(
+          '<p>Someone would like to share <strong>' + gh.esc(l.ownerName) + '\'s</strong> lesson as a group class. Please ask ' + gh.esc(l.ownerName) + ' in person, then answer here.</p>' +
+          gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Who wants to join', name + ' (' + email + (phone ? ', ' + phone : '') + ')'], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
+          '<p>' + gh.esc(rule) + '</p>' +
+          '<p>' + gh.emailButton(link + '&a=approve', 'Yes, they are happy to share', true) + gh.emailButton(link + '&a=decline', 'No, they would rather not', false) + '</p>'));
+    } else {
+      ownerOk = listing.ownerEmail ? await gh.sendMail(
+        listing.ownerEmail,
+        'Someone would like to join your ' + l.instrument.toLowerCase() + ' lesson',
+        gh.wrapEmail(
+          '<p>Hi ' + gh.esc(l.firstName) + ',</p>' +
+          '<p>Would you be open to sharing your ' + gh.esc(when) + ' lesson with another student as a group class? Someone would like to join you:</p>' +
+          gh.detailRows([['Name', gh.firstNameOf(name)], ['Level', level], ['Music they like', genres], ['Their goals', goals]]) +
+          '<p><strong>The price:</strong> ' + gh.esc(rule) + ' Your lesson stays at its current price unless the group goes ahead.</p>' +
+          '<p>Nothing changes unless you say yes. If you do, they are asked to confirm and pay, and your price drops to the group price from your next payment.</p>' +
+          '<p>' + gh.emailButton(link + '&a=approve', 'Yes, happy to share', true) + gh.emailButton(link + '&a=decline', 'No thanks', false) + '</p>' +
+          '<p style="color:#7b8496;font-size:14px;">Or open this link to see the details first: ' + gh.esc(link) + '</p>')
+      ) : false;
+    }
 
-    await gh.sendMail(
+    if (!l.ownerIsRoster) await gh.sendMail(
       gh.JAMES_EMAIL,
       'Group class request: ' + name + ' wants to join ' + l.firstName + '\'s lesson',
       gh.wrapEmail(
@@ -75,7 +94,8 @@ exports.handler = async function (event) {
       gh.wrapEmail(
         '<p>Hi ' + gh.esc(gh.firstNameOf(name)) + ',</p>' +
         '<p>Thanks for asking to join a ' + gh.esc(l.instrument.toLowerCase()) + ' group class on ' + gh.esc(when) + '.</p>' +
-        '<p>We have asked the student who currently has that time if they are happy to share it. You will get an email as soon as they reply. You are not charged anything yet.</p>')
+        '<p>We have asked the student who currently has that time if they are happy to share it. You will get an email as soon as they reply. You are not charged anything yet.</p>' +
+        '<p><strong>Good to know:</strong> ' + gh.esc(rule) + '</p>')
     );
 
     return reply(200, { success: true });
