@@ -552,7 +552,7 @@ exports.handler = async function (event) {
           goalsNotes: meta.goalsNotes || '',
           ...(meta.groupOpen === 'yes' ? { groupOpen: true } : {}),
           groupGoals: meta.groupGoals || '',
-          ...(meta.ageGroup === 'adult' || meta.ageGroup === 'child' ? { ageGroup: meta.ageGroup } : {}),
+          ...(meta.ageGroup === 'adult' || meta.ageGroup === 'teen' || meta.ageGroup === 'child' ? { ageGroup: meta.ageGroup } : {}),
           status: 'active',
           pausedWeeksThisYear: inheritedWeeks,
           pauseYear: currentYear(),

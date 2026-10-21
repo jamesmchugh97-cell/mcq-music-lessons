@@ -584,8 +584,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </details>
       <div class="form-group">
         <label class="form-label">Who is the lesson for?</label>
-        <select class="form-input" id="subAgeGroup"><option value="">Select one</option><option value="adult">Adult learner</option><option value="child">Young learner (under 18)</option></select>
-        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Group classes only ever put adults with adults, and young learners with young learners.</p>
+        <select class="form-input" id="subAgeGroup"><option value="">Select one</option><option value="child">Young learner (under 13)</option><option value="teen">Teenage learner (13 to 17)</option><option value="adult">Adult learner (18 and over)</option></select>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Group classes only ever put students of the same age group together: young learners, teenage learners or adult learners.</p>
       </div>
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
@@ -656,7 +656,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           </div>
         </div>
         <div class="form-group"><label class="form-label">Who is the lesson for?</label>
-          <select class="form-input" id="gjAge"><option value="">Select one</option><option value="adult">Adult learner</option><option value="child">Young learner (under 18)</option></select></div>
+          <select class="form-input" id="gjAge"><option value="">Select one</option><option value="child">Young learner (under 13)</option><option value="teen">Teenage learner (13 to 17)</option><option value="adult">Adult learner (18 and over)</option></select></div>
         <div class="form-group" id="gjInstrumentGroup" style="display:none;"><label class="form-label">Instrument</label>
           <select class="form-input" id="gjInstrument"><option value="">Choose guitar or piano</option><option>Guitar</option><option>Piano</option></select></div>
         <div class="form-group"><label class="form-label">Music you like to play (optional)</label><input class="form-input" type="text" id="gjGenres" maxlength="200" placeholder="e.g. Folk, pop, singer-songwriter"></div>
@@ -2246,7 +2246,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
         const head = document.createElement('div'); head.style.cssText = 'color:var(--gold);';
         head.textContent = (l.firstName ? (l.instrument || 'Lesson') + ' with ' + l.firstName : (l.instrument ? l.instrument + ' lesson' : 'Lesson')) + ': ' + l.dayName + 's at ' + l.time + ', ' + l.durationMinutes + ' min' + (l.frequency === 'fortnightly' ? ', every fortnight' : ', weekly');
         info.appendChild(head);
-        const lines = [['For', l.ageGroup === 'child' ? 'Young learners' : (l.ageGroup === 'adult' ? 'Adult learners' : '')], ['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['In the class', l.students + (l.students === 1 ? ' student so far' : ' students so far') + ', up to ' + l.maxStudents + (l.students > 1 ? ' (everyone in the class must agree to a new student)' : '')], ['Group price', l.groupPrice ? l.groupPrice + ' while two or three students share it (private price applies if everyone else stops)' : null]];
+        const lines = [['For', l.ageGroup === 'child' ? 'Young learners (under 13)' : (l.ageGroup === 'teen' ? 'Teenage learners (13 to 17)' : (l.ageGroup === 'adult' ? 'Adult learners' : ''))], ['Level', l.level], ['Music', l.genres], ['Goals', l.goals], ['In the class', l.students + (l.students === 1 ? ' student so far' : ' students so far') + ', up to ' + l.maxStudents + (l.students > 1 ? ' (everyone in the class must agree to a new student)' : '')], ['Group price', l.groupPrice ? l.groupPrice + ' while two or three students share it (private price applies if everyone else stops)' : null]];
         lines.forEach(([k, v]) => { if (!v) return; const d = document.createElement('div'); d.style.cssText = 'color:var(--muted);font-size:0.82rem;'; d.textContent = k + ': ' + v; info.appendChild(d); });
         card.appendChild(info);
         const btn = document.createElement('button'); btn.type = 'button';
@@ -2280,8 +2280,8 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!name || !email) { say('Please enter your name and email.', true); return false; }
     if (!level) { say('Please choose your level.', true); return false; }
     const ageGroup = document.getElementById('gjAge').value;
-    if (!ageGroup) { say('Please choose adult learner or young learner.', true); return false; }
-    if (groupSelectedListing.ageGroup && groupSelectedListing.ageGroup !== ageGroup) { say('This class is for ' + (groupSelectedListing.ageGroup === 'child' ? 'young learners' : 'adult learners') + ' only. Please pick a different class.', true); return false; }
+    if (!ageGroup) { say('Please choose young learner, teenage learner or adult learner.', true); return false; }
+    if (groupSelectedListing.ageGroup && groupSelectedListing.ageGroup !== ageGroup) { say('This class is for ' + (groupSelectedListing.ageGroup === 'child' ? 'young learners (under 13)' : (groupSelectedListing.ageGroup === 'teen' ? 'teenage learners (13 to 17)' : 'adult learners')) + ' only. Please pick a different class.', true); return false; }
     if (!groupSelectedListing.instrument && !document.getElementById('gjInstrument').value) { say('Please choose guitar or piano.', true); return false; }
     btn.disabled = true; say('Sending...', false);
     try {
@@ -3594,7 +3594,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     errEl.style.display = 'none'; errEl.textContent = '';
     if (!name || !email) { errEl.style.display = 'block'; errEl.textContent = 'Please fill in your name and email.'; return false; }
     if (!skillLevel) { errEl.style.display = 'block'; errEl.textContent = 'Please select your current skill level.'; return false; }
-    if (!document.getElementById('subAgeGroup').value) { errEl.style.display = 'block'; errEl.textContent = 'Please choose whether the lesson is for an adult learner or a young learner.'; return false; }
+    if (!document.getElementById('subAgeGroup').value) { errEl.style.display = 'block'; errEl.textContent = 'Please choose whether the lesson is for a young learner, a teenage learner or an adult learner.'; return false; }
     if (!time) { errEl.style.display = 'block'; errEl.textContent = 'Please choose a time for that day.'; return false; }
     if (isSlotTaken(getNextDateForDow(dow), time, durationMinutes)) {
       errEl.style.display = 'block';
@@ -3794,7 +3794,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
           grpTitle.textContent = 'Group classes: other students can ask to share your lesson time. You are always emailed first, and nothing changes unless you say yes. If you do share, you pay the lower group price while two or three students attend, and your normal price again if everyone else stops. A third student can only join if everyone in the class agrees.';
           grp.appendChild(grpTitle);
           const ageSel = document.createElement('select'); ageSel.className = 'form-input'; ageSel.style.marginBottom = '0.6rem';
-          [['', 'Who is the lesson for?'], ['adult', 'Adult learner'], ['child', 'Young learner (under 18)']].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; ageSel.appendChild(o); });
+          [['', 'Who is the lesson for?'], ['child', 'Young learner (under 13)'], ['teen', 'Teenage learner (13 to 17)'], ['adult', 'Adult learner (18 and over)']].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; ageSel.appendChild(o); });
           ageSel.value = sub.ageGroup || '';
           grp.appendChild(ageSel);
           const grpSel = document.createElement('select'); grpSel.className = 'form-input';

@@ -24,7 +24,7 @@ exports.handler = async function (event) {
   if (!name) return reply(200, { success: false, error: 'Please enter your name.' });
   if (!gh.validEmail(email)) return reply(200, { success: false, error: 'Please enter a valid email address.' });
   if (!level) return reply(200, { success: false, error: 'Please choose your level.' });
-  if (!ageGroup) return reply(200, { success: false, error: 'Please choose adult learner or young learner.' });
+  if (!ageGroup) return reply(200, { success: false, error: 'Please choose young learner, teenage learner or adult learner.' });
 
   try {
     const listings = await gh.getAllListings();

@@ -27,18 +27,25 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 // James is the one asked, and he asks them in person. Keep in step with RECURRING_STUDENTS in
 // booking.html.
 const ROSTER = [
-  { name: 'Meja', age: 'child', dow: 1, time: '4:00 pm', duration: 75 }, { name: 'Nick', age: 'adult', dow: 1, time: '6:00 pm', duration: 90 },
-  { name: 'Maria', age: 'adult', dow: 2, time: '6:00 pm', duration: 60 }, { name: 'Emma', age: 'adult', instrument: 'Bass', dow: 2, time: '7:00 pm', duration: 60 },
-  { name: 'Michael', age: 'adult', dow: 3, time: '1:00 pm', duration: 60 }, { name: 'Hugo', age: 'child', dow: 3, time: '3:45 pm', duration: 45 },
-  { name: 'Anya', age: 'child', dow: 3, time: '5:15 pm', duration: 30 }, { name: 'Alex', age: 'adult', dow: 3, time: '6:00 pm', duration: 60 },
-  { name: 'Shannon', age: 'adult', dow: 3, time: '7:15 pm', duration: 60 }, { name: 'Meja', age: 'child', dow: 4, time: '4:30 pm', duration: 75 },
-  { name: 'Odie', age: 'child', dow: 4, time: '5:45 pm', duration: 30 }, { name: 'Will', age: 'child', dow: 4, time: '6:15 pm', duration: 30 },
-  { name: 'Javin', age: 'child', dow: 4, time: '6:45 pm', duration: 60 }
+  { name: 'Meja', age: 'child', instrument: 'Guitar', level: 'Intermediate', dow: 1, time: '4:00 pm', duration: 75 },
+  { name: 'Nick', age: 'adult', instrument: 'Guitar', level: 'Intermediate', dow: 1, time: '6:00 pm', duration: 90 },
+  { name: 'Maria', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 2, time: '6:00 pm', duration: 60 },
+  { name: 'Emma', age: 'adult', instrument: 'Bass', level: 'Intermediate', dow: 2, time: '7:00 pm', duration: 60 },
+  { name: 'Michael', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '1:00 pm', duration: 60 },
+  { name: 'Hugo', age: 'child', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '3:45 pm', duration: 45 },
+  { name: 'Anya', age: 'child', instrument: 'Piano', level: 'Complete Beginner', dow: 3, time: '5:15 pm', duration: 30 },
+  { name: 'Alex', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '6:00 pm', duration: 60 },
+  { name: 'Shannon', age: 'adult', instrument: 'Guitar', level: 'Intermediate', dow: 3, time: '7:15 pm', duration: 60 },
+  { name: 'Meja', age: 'child', instrument: 'Guitar', level: 'Intermediate', dow: 4, time: '4:30 pm', duration: 75 },
+  { name: 'Odie', age: 'teen', instrument: 'Guitar', level: 'Beginner', dow: 4, time: '5:45 pm', duration: 30 },
+  { name: 'Will', age: 'child', instrument: 'Piano', level: 'Beginner', dow: 4, time: '6:15 pm', duration: 30 },
+  { name: 'Javin', age: 'teen', instrument: 'Guitar', level: 'Beginner', dow: 4, time: '6:45 pm', duration: 60 }
 ];
 
-// Adult learners are only ever matched with adult learners, young learners with young learners.
-function cleanAge(v) { return v === 'adult' || v === 'child' ? v : ''; }
-function ageWords(v) { return v === 'child' ? 'young learners' : (v === 'adult' ? 'adult learners' : ''); }
+// Students are only ever matched within the same age group: child = young learner (under 13),
+// teen = teenage learner (13 to 17), adult = adult learner (18 and over).
+function cleanAge(v) { return v === 'adult' || v === 'teen' || v === 'child' ? v : ''; }
+function ageWords(v) { return v === 'child' ? 'young learners (under 13)' : (v === 'teen' ? 'teenage learners (13 to 17)' : (v === 'adult' ? 'adult learners' : '')); }
 
 function opts(name) { return { name: name, siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_API_TOKEN }; }
 function listingsStore() { return getStore(opts('group-listings')); }
@@ -198,7 +205,7 @@ async function getAllListings() {
   ROSTER.forEach((r, i) => {
     out.push({
       id: 'r' + i, source: 'roster', ageGroup: cleanAge(r.age), ownerName: r.name, ownerEmail: JAMES_EMAIL, ownerFirstName: r.name, firstName: '',
-      instrument: r.instrument || '', level: '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
+      instrument: r.instrument || '', level: r.level || '', genres: '', goals: '', dayOfWeek: r.dow, time: r.time, durationMinutes: r.duration, frequency: 'weekly'
     });
   });
   // Age groups James has set by hand win over anything else.

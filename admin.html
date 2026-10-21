@@ -160,8 +160,8 @@
       <div id="gcOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
       <button type="button" class="btn-primary" onclick="gcAdd()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Open this lesson to a group</button>
       <button type="button" class="btn-outline" onclick="gcList()" style="width:100%;text-align:center;">Show open lessons and requests</button>
-      <div class="form-group" style="margin-top:1rem;"><label class="form-label">Set adult or young learner (paste the lesson id from the list above). Lessons with no age set are hidden from students.</label><input type="text" id="gcAgeId" class="form-input" maxlength="40">
-        <select id="gcAgeVal" class="form-input" style="margin-top:0.5rem;"><option value="adult">Adult learner</option><option value="child">Young learner (under 18)</option></select></div>
+      <div class="form-group" style="margin-top:1rem;"><label class="form-label">Set young, teenage or adult learner (paste the lesson id from the list above). Lessons with no age set are hidden from students.</label><input type="text" id="gcAgeId" class="form-input" maxlength="40">
+        <select id="gcAgeVal" class="form-input" style="margin-top:0.5rem;"><option value="child">Young learner (under 13)</option><option value="teen">Teenage learner (13 to 17)</option><option value="adult">Adult learner (18 and over)</option></select></div>
       <button type="button" class="btn-outline" onclick="gcSetAge()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Save age group</button>
       <div class="form-group" style="margin-top:1rem;"><label class="form-label">Take a lesson off the list (paste its id from the list above)</label><input type="text" id="gcRemoveId" class="form-input" maxlength="40"></div>
       <button type="button" class="btn-outline" onclick="gcRemove()" style="width:100%;text-align:center;">Take it off the list</button>
@@ -244,7 +244,7 @@
     if (!data) return;
     const lines = ['OPEN LESSONS'];
     if (!data.listings.length) lines.push('  (none)');
-    data.listings.forEach(l => lines.push('  ' + l.firstName + ', ' + l.instrument + ', ' + l.day + ' ' + l.time + ', ' + l.durationMinutes + ' min  [' + (l.ageGroup === 'child' ? 'young learner' : l.ageGroup === 'adult' ? 'adult' : 'AGE NOT SET, hidden') + '] [' + l.status + ']  id ' + l.id + (l.source === 'subscription' ? ' (enrolled online)' : ' (added by you)')));
+    data.listings.forEach(l => lines.push('  ' + l.firstName + ', ' + l.instrument + ', ' + l.day + ' ' + l.time + ', ' + l.durationMinutes + ' min  [' + (l.ageGroup === 'child' ? 'young learner' : l.ageGroup === 'teen' ? 'teenage learner' : l.ageGroup === 'adult' ? 'adult' : 'AGE NOT SET, hidden') + '] [' + l.status + ']  id ' + l.id + (l.source === 'subscription' ? ' (enrolled online)' : ' (added by you)')));
     lines.push('', 'REQUESTS (newest first)');
     if (!data.requests.length) lines.push('  (none)');
     data.requests.forEach(r => lines.push('  ' + r.who + ' (' + r.email + ') asked to join ' + r.lesson + '  [' + r.status + ']'));

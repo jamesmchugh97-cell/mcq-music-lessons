@@ -133,7 +133,7 @@ exports.handler = async function (event) {
       else if (mode === 'hidden') record.groupOpen = false;
       else delete record.groupOpen;
       record.groupGoals = mode === 'named' ? String(body.groupGoals || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : (record.groupGoals || '');
-      if (body.ageGroup === 'adult' || body.ageGroup === 'child') record.ageGroup = body.ageGroup;
+      if (body.ageGroup === 'adult' || body.ageGroup === 'teen' || body.ageGroup === 'child') record.ageGroup = body.ageGroup;
       await saveSubscriptionRecord(subscriptionId, record);
       return { statusCode: 200, body: JSON.stringify({ success: true, groupMode: mode }) };
     }

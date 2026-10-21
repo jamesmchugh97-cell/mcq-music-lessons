@@ -274,7 +274,7 @@ exports.handler = async function (event) {
           theoryInterest: theoryInterest || '',
           goalsNotes: (goalsNotes || '').slice(0, 450),
           // Opt-in to sharing this lesson as a group class (see group-helpers.js).
-          ...(ageGroup === 'adult' || ageGroup === 'child' ? { ageGroup: ageGroup } : {}),
+          ...(ageGroup === 'adult' || ageGroup === 'teen' || ageGroup === 'child' ? { ageGroup: ageGroup } : {}),
           ...(groupOpen === true ? { groupOpen: 'yes', groupGoals: String(groupGoals || '').slice(0, 300) } : {}),
           // First lesson date, so stripe-webhook.js books THIS date rather
           // than working it out again (it would not know about single
