@@ -197,7 +197,7 @@ async function getAllListings() {
       out.push({
         id: publicIdForSubscription(r.subscriptionId), source: 'subscription', subscriptionId: r.subscriptionId,
         ownerName: r.studentName, ownerEmail: r.studentEmail, ownerFirstName: firstNameOf(r.studentName), firstName: named ? firstNameOf(r.studentName) : '',
-        ageGroup: cleanAge((ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).age || r.ageGroup), instrument: r.instrument, level: (ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).level || r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
+        autoAccept: r.groupAuto === true, ageGroup: cleanAge((ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).age || r.ageGroup), instrument: r.instrument, level: (ONLINE_OVERRIDES[String(r.studentName || '').trim().toLowerCase()] || {}).level || r.skillLevel || '', genres: r.genreFocus || '', goals: named ? (r.groupGoals || '') : '',
         dayOfWeek: parseInt(r.dayOfWeek, 10), time: r.time, durationMinutes: parseInt(r.durationMinutes, 10) || 45, frequency: r.frequency || 'weekly'
       });
     });
@@ -239,7 +239,41 @@ async function getAllListings() {
   return out;
 }
 
+// Everyone has agreed (by clicking yes, or by having said up front that new students can join without
+// asking): give the joining student their pay link, thank the others and tell James.
+async function sendApprovedEmails(r) {
+  const l = r.lesson, rq = r.requester;
+  const when = l.dayName + 's at ' + l.time + ' (' + l.durationMinutes + ' min, ' + l.frequency + ')';
+  r.payToken = randomToken();
+  await requestsStore().set('req_' + r.id, JSON.stringify(r));
+  const payLink = SITE + '/group-join.html?p=' + r.payToken;
+  const rule = groupRuleText(l.durationMinutes);
+  const third = r.approvals.length > 1;
+  const allAuto = r.approvals.every(a => a.auto);
+  await sendMail(rq.email, allAuto ? 'You can join the group class' : 'Good news: you can join the group class',
+    wrapEmail('<p>Hi ' + esc(firstNameOf(rq.name)) + ',</p><p>' + (allAuto ? 'Good news, the ' + (third ? 'students' : 'student') + ' in that lesson are happy for new students to join, so you are approved.' : 'The ' + (third ? 'students you asked have all said yes' : 'student you asked has said yes') + '.') + ' You can share the ' + esc(l.instrument.toLowerCase()) + ' lesson on ' + esc(when) + '.</p>' +
+      '<p><strong>Price:</strong> ' + esc(rule) + '</p>' +
+      '<p>To lock in your spot, confirm and set up your payment here. You are not charged until you do.</p>' +
+      '<p>' + emailButton(payLink, 'Confirm and pay', true) + '</p>'));
+  for (const a of r.approvals) {
+    if (!a.email || (a.role === 'owner' && l.ownerIsRoster)) continue;
+    const subject = a.auto ? (third ? 'A third student is joining your class' : 'A student is joining your lesson') : (third ? 'Everyone agreed: a third student is joining' : 'Thanks for sharing your lesson');
+    await sendMail(a.email, subject,
+      wrapEmail('<p>Hi ' + esc(firstNameOf(a.name)) + ',</p><p>' + (a.auto
+        ? esc(firstNameOf(rq.name)) + ' asked to join your ' + esc(when) + ' lesson. You said new students can join without asking you first, so they have been approved. Once they confirm and pay, ' + (third ? 'they join your class and your price stays at the group price.' : 'your lesson moves to the group price from your next payment.')
+        : (third
+          ? 'Thanks, everyone in the class said yes. Once the new student confirms and pays, they join your ' + esc(when) + ' class. Your price stays at the group price.'
+          : 'Thanks for saying yes. Once the other student confirms and pays, your ' + esc(when) + ' lesson moves to the group price from your next payment.')) + '</p>' +
+        '<p>' + esc(rule) + ' You will be emailed if that changes.</p>' +
+        (a.auto ? '<p style="color:#7b8496;font-size:14px;">You can change this any time under Manage Enrollment on the website.</p>' : '')));
+  }
+  await sendMail(JAMES_EMAIL, 'Group class approved: ' + rq.name + ' joining ' + (l.ownerName || l.firstName),
+    wrapEmail('<p><strong>' + (allAuto ? 'Approved automatically (everyone in the class allows new students).' : esc(l.ownerName || l.firstName) + ' said yes.') + '</strong> ' + esc(rq.name) + ' has been emailed a link to confirm and pay. Billing and price changes are automatic' + (l.ownerIsRoster ? ', except ' + esc(l.ownerName) + '\'s own price, which you handle in person.' : '.') + '</p>' +
+      detailRows([['Lesson', l.instrument + ', ' + when], ['Owner', (l.ownerName || l.firstName) + ' (' + (l.ownerIsRoster ? 'regular student, not enrolled online' : (l.ownerEmail || 'no email')) + ')'], ['Joining', rq.name + ' (' + rq.email + (rq.phone ? ', ' + rq.phone : '') + ')'], ['Level', rq.level], ['Music', rq.genres], ['Goals', rq.goals]])));
+}
+
 module.exports = {
+  sendApprovedEmails,
   getAllListings,
   JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP,
   listingsStore, requestsStore,

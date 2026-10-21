@@ -71,27 +71,7 @@ exports.handler = async function (event) {
 
     const rq = r.requester;
     if (r.status === 'approved') {
-      r.payToken = gh.randomToken();
-      await gh.requestsStore().set('req_' + r.id, JSON.stringify(r));
-      const payLink = gh.SITE + '/group-join.html?p=' + r.payToken;
-      const rule = gh.groupRuleText(l.durationMinutes);
-      await gh.sendMail(rq.email, 'Good news: you can join the group class',
-        gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(rq.name)) + ',</p><p>The ' + (r.approvals.length > 1 ? 'students you asked have all said yes' : 'student you asked has said yes') + '. You can share the ' + gh.esc(l.instrument.toLowerCase()) + ' lesson on ' + gh.esc(when) + '.</p>' +
-          '<p><strong>Price:</strong> ' + gh.esc(rule) + '</p>' +
-          '<p>To lock in your spot, confirm and set up your payment here. You are not charged until you do.</p>' +
-          '<p>' + gh.emailButton(payLink, 'Confirm and pay', true) + '</p>'));
-      const third = r.approvals.length > 1;
-      for (const a of r.approvals) {
-        if (!a.email || (a.role === 'owner' && l.ownerIsRoster)) continue;
-        await gh.sendMail(a.email, third ? 'Everyone agreed: a third student is joining' : 'Thanks for sharing your lesson',
-          gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(a.name)) + ',</p><p>' + (third
-            ? 'Thanks, everyone in the class said yes. Once the new student confirms and pays, they join your ' + gh.esc(when) + ' class. Your price stays at the group price.'
-            : 'Thanks for saying yes. Once the other student confirms and pays, your ' + gh.esc(when) + ' lesson moves to the group price from your next payment.') + '</p>' +
-            '<p>' + gh.esc(gh.groupRuleText(l.durationMinutes)) + ' You will be emailed if that changes.</p>'));
-      }
-      await gh.sendMail(gh.JAMES_EMAIL, 'Group class approved: ' + rq.name + ' joining ' + (l.ownerName || l.firstName),
-        gh.wrapEmail('<p><strong>' + gh.esc(l.ownerName || l.firstName) + ' said yes.</strong> ' + gh.esc(rq.name) + ' has been emailed a link to confirm and pay. Billing and price changes are automatic' + (l.ownerIsRoster ? ', except ' + gh.esc(l.ownerName) + '\'s own price, which you handle in person.' : '.') + '</p>' +
-          gh.detailRows([['Lesson', l.instrument + ', ' + when], ['Owner', (l.ownerName || l.firstName) + ' (' + (l.ownerIsRoster ? 'regular student, not enrolled online' : (l.ownerEmail || 'no email')) + ')'], ['Joining', rq.name + ' (' + rq.email + (rq.phone ? ', ' + rq.phone : '') + ')'], ['Level', rq.level], ['Music', rq.genres], ['Goals', rq.goals]])));
+      await gh.sendApprovedEmails(r);
     } else {
       await gh.sendMail(rq.email, 'About your group class request',
         gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(rq.name)) + ',</p><p>Thanks for asking to join the ' + gh.esc(l.instrument.toLowerCase()) + ' lesson on ' + gh.esc(when) + '. Unfortunately ' + (r.approvals.length > 1 ? 'the students in that class would rather keep it as it is' : 'that student would rather keep it as it is') + '.</p>' +

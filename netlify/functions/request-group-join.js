@@ -21,6 +21,7 @@ exports.handler = async function (event) {
   const genres = gh.clean(body.genres, 200);
   const goals = gh.clean(body.goals, 300);
   const ageGroup = gh.cleanAge(body.ageGroup);
+  const wantsAuto = body.autoAccept === true;
   if (!name) return reply(200, { success: false, error: 'Please enter your name.' });
   if (!gh.validEmail(email)) return reply(200, { success: false, error: 'Please enter a valid email address.' });
   if (!level) return reply(200, { success: false, error: 'Please choose your level.' });
@@ -45,7 +46,7 @@ exports.handler = async function (event) {
     const request = {
       id: id, listingId: listing.id, status: 'pending', createdAt: new Date().toISOString(),
       token: gh.randomToken(),
-      requester: { ageGroup: ageGroup, name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
+      requester: { autoAccept: wantsAuto, ageGroup: ageGroup, name: name, email: email, phone: phone, level: level, genres: genres, goals: goals },
       lesson: {
         ownerName: listing.ownerName || listing.ownerFirstName, ownerEmail: listing.ownerEmail, firstName: listing.ownerFirstName || listing.firstName,
         instrument: instrument, dayName: gh.DAY_NAMES[listing.dayOfWeek], time: listing.time, dayOfWeek: listing.dayOfWeek,
@@ -55,9 +56,11 @@ exports.handler = async function (event) {
     };
     // Everyone already in the class has to say yes: the lesson's owner (unless they have left) and each student who has joined.
     request.approvals = [];
-    if (!existing.some(x => x.ownerLeft)) request.approvals.push({ role: 'owner', name: request.lesson.ownerName, email: listing.ownerEmail, token: request.token, status: 'pending' });
-    existing.forEach(x => request.approvals.push({ role: 'member', name: x.requester.name, email: x.requester.email, token: gh.randomToken(), status: 'pending' }));
+    if (!existing.some(x => x.ownerLeft)) request.approvals.push({ role: 'owner', name: request.lesson.ownerName, email: listing.ownerEmail, token: request.token, status: listing.autoAccept === true ? 'approved' : 'pending', auto: listing.autoAccept === true });
+    existing.forEach(x => request.approvals.push({ role: 'member', name: x.requester.name, email: x.requester.email, token: gh.randomToken(), status: x.requester.autoAccept === true ? 'approved' : 'pending', auto: x.requester.autoAccept === true }));
     if (!request.approvals.length) return reply(200, { success: false, error: 'Sorry, that lesson is not available right now. Please pick another.' });
+    const allAuto = request.approvals.every(a => a.auto);
+    if (allAuto) { request.status = 'approved'; request.respondedAt = new Date().toISOString(); }
     await gh.requestsStore().set('req_' + id, JSON.stringify(request));
 
     const l = request.lesson;
@@ -65,9 +68,10 @@ exports.handler = async function (event) {
     const rule = gh.groupRuleText(l.durationMinutes);
     const linkFor = (t) => gh.SITE + '/group-response.html?t=' + t;
     const asking = request.approvals.length;
-    let ownerOk = !request.approvals.some(a => a.role === 'owner');
+    let ownerOk = !request.approvals.some(a => a.role === 'owner' && !a.auto);
     for (const ap of request.approvals) {
       const link = linkFor(ap.token);
+      if (ap.auto) continue; // said up front that new students can join: told once approved, below
       const buttons = '<p>' + gh.emailButton(link + '&a=approve', 'Yes, happy to share', true) + gh.emailButton(link + '&a=decline', 'No thanks', false) + '</p>';
       const who = gh.detailRows([['Name', gh.firstNameOf(name)], ['Level', level], ['Music they like', genres], ['Their goals', goals]]);
       let ok;
@@ -93,6 +97,10 @@ exports.handler = async function (event) {
       if (ap.role === 'owner') ownerOk = ok;
     }
 
+    if (allAuto) {
+      await gh.sendApprovedEmails(request);
+      return reply(200, { success: true, approved: true });
+    }
     if (!l.ownerIsRoster) await gh.sendMail(
       gh.JAMES_EMAIL,
       'Group class request: ' + name + ' wants to join ' + l.firstName + '\'s lesson',

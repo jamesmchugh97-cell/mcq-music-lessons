@@ -100,7 +100,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Invalid request body' }) };
   }
 
-  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, startFrom, groupOpen, groupGoals, ageGroup } = body;
+  const { studentName, studentEmail, instrument, guitarType, dayOfWeek: dow, time, durationMinutes, frequency, skillLevel, songRequests, genreFocus, theoryInterest, goalsNotes, startFrom, groupOpen, groupGoals, ageGroup, groupAuto } = body;
 
   if (!studentName || !studentEmail || !instrument || dow === undefined || !time || !durationMinutes || !frequency || !skillLevel) {
     return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Missing required enrollment details.' }) };
@@ -274,6 +274,7 @@ exports.handler = async function (event) {
           theoryInterest: theoryInterest || '',
           goalsNotes: (goalsNotes || '').slice(0, 450),
           // Opt-in to sharing this lesson as a group class (see group-helpers.js).
+          ...(groupAuto === true ? { groupAuto: 'yes' } : {}),
           ...(ageGroup === 'adult' || ageGroup === 'teen' || ageGroup === 'child' ? { ageGroup: ageGroup } : {}),
           ...(groupOpen === true ? { groupOpen: 'yes', groupGoals: String(groupGoals || '').slice(0, 300) } : {}),
           // First lesson date, so stripe-webhook.js books THIS date rather
