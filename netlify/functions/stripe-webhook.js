@@ -411,6 +411,7 @@ exports.handler = async function (event) {
       // booking of their own (the lesson is already on the calendar), so it skips the whole
       // enrolment set-up below. See group-billing.js.
       if (meta.groupJoin === 'yes') {
+        try { await groupBilling.onJoinerPaymentRecovered(subscription); } catch (e) {}
         try { await groupBilling.onJoinerPaid(stripe, subscription); }
         catch (gErr) { console.error('[stripe-webhook] group join handling failed:', gErr && gErr.message ? gErr.message : gErr); }
         return { statusCode: 200, body: 'ok' };
@@ -656,6 +657,7 @@ exports.handler = async function (event) {
       const invoice = stripeEvent.data.object;
       const subscriptionId = invoice.subscription;
       if (subscriptionId) {
+        try { await groupBilling.onJoinerPaymentFailed({ id: subscriptionId }); } catch (gErr) { console.error('[stripe-webhook] group failed-payment handling failed:', gErr && gErr.message ? gErr.message : gErr); }
         const record = await getSubscriptionRecord(subscriptionId);
         // Only act on the FIRST failure in a cycle. Stripe's Smart
         // Retries fire this same event again on each subsequent retry

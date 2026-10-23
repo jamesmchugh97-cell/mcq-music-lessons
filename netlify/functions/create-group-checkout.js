@@ -23,6 +23,7 @@ exports.handler = async function (event) {
     const sizeNow = (await require('./group-billing').membersOf(r)).members.length + 1;
     const g = gh.priceForSize(l.durationMinutes, Math.max(2, sizeNow)), p = gh.privateCents(l.durationMinutes);
     if (!g || !p) return reply(200, { success: false, error: 'Sorry, we could not work out the price. Please contact James.' });
+    if (r.status === 'approved' && !gh.approvalHolds(r)) return reply(200, { success: false, error: 'This link has expired because it was not used within ' + gh.APPROVAL_DAYS + ' days. Please ask to join again, or contact James.' });
     const firstLesson = nextOccurrenceDate(l.dayOfWeek, l.time, 24, null);
     const view = {
       status: r.status, firstName: gh.firstNameOf(r.requester.name), instrument: l.instrument, dayName: l.dayName, time: l.time,

@@ -20,6 +20,13 @@ const SITE = process.env.URL || 'https://mcqmusiclessons.com.au';
 const PENDING_DAYS = 7;
 // A group class can have up to this many students (the owner of the lesson plus others).
 const MAX_GROUP = 3;
+// An approved student who has not paid within this many days loses the place (and the pay link stops working).
+const APPROVAL_DAYS = 7;
+function approvalHolds(x) {
+  if (x.status === 'active') return true;
+  if (x.status !== 'approved') return false;
+  return Date.now() - new Date(x.respondedAt || x.createdAt).getTime() < APPROVAL_DAYS * 86400000;
+}
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // Regular students who are not enrolled through the website (their lessons are kept in the
@@ -227,7 +234,7 @@ async function getAllListings() {
     const mine = reqs.filter(r => r.listingId === l.id);
     // Students in the class so far: the owner (unless they have left) plus anyone paid up or
     // already promised a place.
-    const joined = mine.filter(r => r.status === 'approved' || r.status === 'active');
+    const joined = mine.filter(approvalHolds);
     const ownerGone = mine.some(r => r.status === 'active' && r.ownerLeft);
     l.members = (ownerGone ? 0 : 1) + joined.length;
     if (l.members >= MAX_GROUP) l.status = 'taken';
@@ -273,7 +280,7 @@ async function sendApprovedEmails(r) {
 module.exports = {
   sendApprovedEmails,
   getAllListings,
-  JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP,
+  JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP, APPROVAL_DAYS, approvalHolds,
   listingsStore, requestsStore,
   cleanAge, ageWords, esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
   groupPriceFor, groupCents, privateCents, priceForSize, THIRD_STUDENT_DISCOUNT_CENTS, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,

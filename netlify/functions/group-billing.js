@@ -135,4 +135,68 @@ async function onSubscriptionDeleted(stripe, subscription) {
     gh.wrapEmail('<p>' + gh.esc(l.ownerName || l.firstName) + ' stopped. ' + gh.esc(res.notes.length ? 'Prices changed: ' + res.notes.join(', ') + '.' : 'No price was changed.') + ' Their calendar slot may need updating.</p>'));
 }
 
-module.exports = { onJoinerPaid, onSubscriptionDeleted, moveToGroupPrice, moveToPrivatePrice, membersOf };
+// ---- Studio closures -------------------------------------------------------------------------
+// Students who joined a group class are billed on their own and are not in the enrolment list that the
+// closure tools go through, so they are handled here: told when a closure is set, paused when it
+// starts and resumed if it is cleared early.
+async function activeJoiners() {
+  return (await gh.listAllRequests()).filter(x => x.status === 'active' && x.joinerSubscriptionId);
+}
+async function notifyJoinersOfClosure(startFriendly, endFriendly) {
+  let n = 0;
+  for (const x of await activeJoiners()) {
+    if (!x.requester.email) continue;
+    await gh.sendMail(x.requester.email, 'MCQ Music Lessons: closed ' + startFriendly + ' to ' + endFriendly,
+      gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(x.requester.name)) + ',</p><p>Just a heads up, MCQ Music will be closed from ' + gh.esc(startFriendly) + ' to ' + gh.esc(endFriendly) + '. Your group class payments are paused for that time and start again afterwards. You do not need to do anything.</p>'));
+    n++;
+  }
+  return n;
+}
+async function pauseJoinersForClosure(stripe, endDateStr) {
+  const resumeEpoch = Math.floor(new Date(endDateStr + 'T00:00:00').getTime() / 1000);
+  let n = 0;
+  for (const x of await activeJoiners()) {
+    try {
+      await stripe.subscriptions.update(x.joinerSubscriptionId, { pause_collection: { behavior: 'void', resumes_at: resumeEpoch } });
+      x.pausedForClosure = true; await save(x); n++;
+    } catch (e) {
+      console.error('[group-billing] could not pause joiner for closure:', e && e.message ? e.message : e);
+      await tellJamesProblem('Could not pause ' + x.requester.name + '\'s group class payments for the closure.', 'Their subscription is ' + x.joinerSubscriptionId + '. ' + (e && e.message ? e.message : ''));
+    }
+  }
+  return n;
+}
+async function resumeJoinersAfterClosure(stripe) {
+  let n = 0;
+  for (const x of await activeJoiners()) {
+    if (!x.pausedForClosure) continue;
+    try {
+      await stripe.subscriptions.update(x.joinerSubscriptionId, { pause_collection: '' });
+      x.pausedForClosure = false; await save(x); n++;
+    } catch (e) {
+      console.error('[group-billing] could not resume joiner:', e && e.message ? e.message : e);
+      await tellJamesProblem('Could not resume ' + x.requester.name + '\'s group class payments after the closure was cleared.', 'Their subscription is ' + x.joinerSubscriptionId + '. ' + (e && e.message ? e.message : ''));
+    }
+  }
+  return n;
+}
+
+// ---- Failed payments --------------------------------------------------------------------------
+// A group student's payment failed. Tell the student and James (once per run of failures).
+async function onJoinerPaymentFailed(subscription) {
+  const r = await findRequest(x => x.joinerSubscriptionId === subscription.id && x.status === 'active');
+  if (!r || r.paymentFailedAt) return;
+  r.paymentFailedAt = new Date().toISOString(); await save(r);
+  const l = r.lesson;
+  await gh.sendMail(r.requester.email, 'MCQ Music Lessons: payment issue with your group class',
+    gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(r.requester.name)) + ',</p><p>We could not process your latest group class payment. Stripe will try again over the next few days. If it still does not go through, please reply to this email so we can sort it out.</p>'));
+  await gh.sendMail(gh.JAMES_EMAIL, 'Payment failed: ' + r.requester.name + ' (group class)',
+    gh.wrapEmail('<p>' + gh.esc(r.requester.name) + '\'s group class payment failed (' + gh.esc(l.instrument + ', ' + whenOf(l)) + '). Stripe will retry. If it is not resolved, you may need to cancel their group class in Stripe.</p>'));
+}
+async function onJoinerPaymentRecovered(subscription) {
+  const r = await findRequest(x => x.joinerSubscriptionId === subscription.id && x.status === 'active' && x.paymentFailedAt);
+  if (r) { delete r.paymentFailedAt; await save(r); }
+}
+
+module.exports = {
+  notifyJoinersOfClosure, pauseJoinersForClosure, resumeJoinersAfterClosure, onJoinerPaymentFailed, onJoinerPaymentRecovered, onJoinerPaid, onSubscriptionDeleted, moveToGroupPrice, moveToPrivatePrice, membersOf };

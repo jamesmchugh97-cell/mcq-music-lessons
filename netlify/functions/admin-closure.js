@@ -158,6 +158,7 @@ exports.handler = async function (event) {
         notified++;
       }
     }
+    try { notified += await require('./group-billing').notifyJoinersOfClosure(formatFriendlyDate(startDate), formatFriendlyDate(endDate)); } catch (e) { console.error('[admin-closure] could not notify group students:', e && e.message ? e.message : e); }
     await sendEmail(
       JAMES_EMAIL,
       'Closure set: ' + formatFriendlyDate(startDate) + ' - ' + formatFriendlyDate(endDate),
@@ -205,6 +206,7 @@ exports.handler = async function (event) {
       }
     }
 
+    if (closure.applied) { try { resumed += await require('./group-billing').resumeJoinersAfterClosure(stripe); } catch (e) { console.error('[admin-closure] could not resume group students:', e && e.message ? e.message : e); } }
     await deleteClosureSettings();
     return { statusCode: 200, body: JSON.stringify({ success: true, resumed: resumed }) };
   }

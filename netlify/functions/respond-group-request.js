@@ -48,7 +48,7 @@ exports.handler = async function (event) {
     if (body.action === 'approve') {
       // Re-check nobody else got approved for this lesson in the meantime.
       const all = await gh.listAllRequests();
-      const others = all.filter(x => x.listingId === r.listingId && (x.status === 'approved' || x.status === 'active') && x.id !== r.id).length;
+      const others = all.filter(x => x.listingId === r.listingId && gh.approvalHolds(x) && x.id !== r.id).length;
       const ownerGone = all.some(x => x.listingId === r.listingId && x.status === 'active' && x.ownerLeft);
       if ((ownerGone ? 0 : 1) + others + 1 > gh.MAX_GROUP) {
         return reply(200, { success: false, error: 'Sorry, that class filled up first. James will be in touch.' });

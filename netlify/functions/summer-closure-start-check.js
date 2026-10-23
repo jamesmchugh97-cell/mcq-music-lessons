@@ -88,6 +88,7 @@ async function run() {
         closureStarted++;
       }
     }
+    try { closureStarted += await require('./group-billing').pauseJoinersForClosure(stripe, closure.endDate); } catch (e) { console.error('[summer-closure-start-check] group joiners not paused:', e && e.message ? e.message : e); }
     closure.applied = true;
     await saveClosureSettings(closure);
   }
