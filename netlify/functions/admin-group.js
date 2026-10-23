@@ -55,10 +55,13 @@ exports.handler = async function (event) {
       if (away.length !== cancelledNames.length) return fail(400, 'I could not match every name to a student in that class. Class members: ' + members.map(m => gh.firstNameOf(m.name)).join(', ') + '.');
       if (!attending.length) return fail(400, 'Nobody would be attending, so nothing to charge.');
       const l = r.lesson;
-      const paid = gh.priceForSize(l.durationMinutes, members.length), fair = gh.priceForSize(l.durationMinutes, attending.length);
-      const topup = Math.max(0, fair - paid);
+      const paid = gh.priceForSize(l.durationMinutes, members.length);
+      // James is never paid less than a private lesson for a class: if what the students attending have
+      // already paid adds up to less than the private price, they share the difference.
+      const privateTotal = gh.privateCents(l.durationMinutes);
+      const topup = Math.max(0, Math.ceil((privateTotal - paid * attending.length) / attending.length));
       const plan = attending.map(m => ({ name: m.name, billable: !!m.subscriptionId, topup: m.subscriptionId ? topup : 0, note: m.roster ? 'Regular student not enrolled online: charge them in person.' : '' }));
-      if (body.confirm !== true) return { statusCode: 200, body: JSON.stringify({ success: true, preview: true, expected: members.length, attending: attending.length, paidEach: gh.dollars(paid), fairEach: gh.dollars(fair), topupEach: gh.dollars(topup), plan: plan }) };
+      if (body.confirm !== true) return { statusCode: 200, body: JSON.stringify({ success: true, preview: true, expected: members.length, attending: attending.length, paidEach: gh.dollars(paid), privatePrice: gh.dollars(privateTotal), paidTotal: gh.dollars(paid * attending.length), topupEach: gh.dollars(topup), plan: plan }) };
       if (!topup) return { statusCode: 200, body: JSON.stringify({ success: true, applied: [], message: 'No extra charge needed.' }) };
       const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
       const store = gh.listingsStore();
@@ -73,7 +76,7 @@ exports.handler = async function (event) {
         await store.set(key, JSON.stringify({ at: new Date().toISOString(), amount: topup }));
         applied.push({ name: m.name, amount: gh.dollars(topup) });
         if (m.email) await gh.sendMail(m.email, 'A small change to your next group lesson payment',
-          gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(m.name)) + ',</p><p>For your ' + gh.esc(l.dayName + 's at ' + l.time) + ' lesson on ' + gh.esc(date) + ', ' + (away.length === 1 ? 'one student' : away.length + ' students') + ' cancelled in time, so fewer students are attending. The price depends on how many attend, so ' + gh.esc(gh.dollars(topup)) + ' will be added to your next payment.</p><p>' + gh.esc(gh.groupRuleText(l.durationMinutes)) + '</p>'));
+          gh.wrapEmail('<p>Hi ' + gh.esc(gh.firstNameOf(m.name)) + ',</p><p>For your ' + gh.esc(l.dayName + 's at ' + l.time) + ' lesson on ' + gh.esc(date) + ', ' + (away.length === 1 ? 'one student' : away.length + ' students') + ' cancelled in time, so fewer students are attending and the lesson would pay less than a private lesson. To make up the difference, ' + gh.esc(gh.dollars(topup)) + ' will be added to your next payment.</p><p>' + gh.esc(gh.groupRuleText(l.durationMinutes)) + '</p>'));
       }
       return { statusCode: 200, body: JSON.stringify({ success: true, applied: applied, plan: plan }) };
     }

@@ -90,7 +90,7 @@ function groupRuleText(durationMinutes) {
   return 'The group price is ' + dollars(g) + ' per lesson each for two students, or ' + dollars(g - THIRD_STUDENT_DISCOUNT_CENTS) + ' each if a third student joins. ' +
     'If everyone else stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson. ' +
     'The price is set when each payment is taken. Group lessons need at least 48 hours\' notice to cancel, after that you still pay in full. ' +
-    'If a student cancels in time and fewer students attend, those who attend pay the difference on their next payment.';
+    'If a student cancels in time and the lesson would then pay less than a private lesson, those who attend share the difference on their next payment.';
 }
 
 // What anyone may see about a lesson that is open to a group. Nothing that identifies a

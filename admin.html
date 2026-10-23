@@ -295,7 +295,7 @@
     if (!data) return;
     const out = document.getElementById('gcOut');
     if (data.preview) {
-      out.textContent = 'The class was priced for ' + data.expected + ' students (' + data.paidEach + ' each). ' + data.attending + ' will attend, which is ' + data.fairEach + ' each, so ' + data.topupEach + ' extra each:\n' + data.plan.map(p => '  ' + p.name + (p.billable ? ': +' + data.topupEach : ': ' + (p.note || 'no subscription'))).join('\n');
+      out.textContent = data.attending + ' of ' + data.expected + ' will attend. They have paid ' + data.paidTotal + ' in total (' + data.paidEach + ' each) and a private lesson is ' + data.privatePrice + '. ' + (data.topupEach === '$0' ? 'No extra charge is needed.' : 'So ' + data.topupEach + ' extra each:') + '\n' + data.plan.map(p => '  ' + p.name + (p.billable ? ': +' + data.topupEach : ': ' + (p.note || 'no subscription'))).join('\n');
     } else {
       out.textContent = data.message || ('Done.\n' + data.applied.map(a => '  ' + a.name + ': ' + (a.skipped || ('+' + a.amount + ' added to next payment'))).join('\n') + (data.plan.some(p => p.note) ? '\n' + data.plan.filter(p => p.note).map(p => p.name + ': ' + p.note).join('\n') : ''));
     }
