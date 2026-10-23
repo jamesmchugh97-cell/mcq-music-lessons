@@ -256,10 +256,10 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <section id="package">
   <div class="section-inner">
-    <p class="section-eyebrow">Lesson Package</p>
-    <h2 class="section-title">Buy a <em>lesson package</em></h2>
-    <p class="section-sub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
-    <p class="section-sub" style="margin-top:-0.4rem;">Buying for someone else? <a href="gift.html" style="color:var(--gold);">Give a gift voucher</a> - they choose their own dates later.</p>
+    <p class="section-eyebrow" id="pkgEyebrow">Lesson Package</p>
+    <h2 class="section-title" id="pkgTitle">Buy a <em>lesson package</em></h2>
+    <p class="section-sub" id="pkgSub">Can't commit to the same time every week? Pay upfront for 5 or 10 lessons, then pick each date and time yourself, whenever suits, any time over the next 3 months.</p>
+    <p class="section-sub" id="pkgGift" style="margin-top:-0.4rem;">Buying for someone else? <a href="gift.html" style="color:var(--gold);">Give a gift voucher</a> - they choose their own dates later.</p>
     <div class="booking-form" id="voucherBox" style="margin-bottom:1rem;">
       <label class="form-label" for="voucherCodeInput">Have a gift voucher? Enter your code to book your lessons</label>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
@@ -3937,6 +3937,23 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     };
     document.getElementById('cancelConfirmNoBtn').onclick = closeCancelConfirmModal;
   }
+</script>
+<script>
+(function(){
+  try {
+    var q = new URLSearchParams(window.location.search);
+    if (q.get('useVoucher') !== '1' && !q.get('voucher')) return;
+    document.getElementById('pkgEyebrow').textContent = 'Gift Voucher';
+    document.getElementById('pkgTitle').innerHTML = 'Use your <em>voucher</em>';
+    document.getElementById('pkgSub').textContent = 'Enter your voucher code, then choose a date and time for each lesson. Your lessons are already paid for, so there is nothing to pay.';
+    document.getElementById('pkgGift').style.display = 'none';
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.addEventListener('load', function(){
+      var el = document.getElementById('package');
+      if (el) { window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 40); var i = document.getElementById('voucherCodeInput'); if (i && !i.value) i.focus({preventScroll:true}); }
+    });
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
