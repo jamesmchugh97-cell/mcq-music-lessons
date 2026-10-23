@@ -20,7 +20,8 @@ exports.handler = async function (event) {
     const r = all.find(x => x.payToken === token);
     if (!r) return reply(200, { success: false, error: 'This link is not valid any more.' });
     const l = r.lesson;
-    const g = gh.groupCents(l.durationMinutes), p = gh.privateCents(l.durationMinutes);
+    const sizeNow = (await require('./group-billing').membersOf(r)).members.length + 1;
+    const g = gh.priceForSize(l.durationMinutes, Math.max(2, sizeNow)), p = gh.privateCents(l.durationMinutes);
     if (!g || !p) return reply(200, { success: false, error: 'Sorry, we could not work out the price. Please contact James.' });
     const firstLesson = nextOccurrenceDate(l.dayOfWeek, l.time, 24, null);
     const view = {

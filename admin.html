@@ -174,6 +174,14 @@
       <div id="gcOut" style="font-size:0.85rem;margin:0.4rem 0 0.8rem;min-height:1.2em;white-space:pre-line;"></div>
       <button type="button" class="btn-primary" onclick="gcAdd()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Open this lesson to a group</button>
       <button type="button" class="btn-outline" onclick="gcList()" style="width:100%;text-align:center;">Show open lessons and requests</button>
+      <p class="form-label" style="margin-top:1.4rem;">Someone cancelled a group lesson in time</p>
+      <div class="form-group"><label class="form-label">Lesson id (from the list above)</label><input type="text" id="gsId" class="form-input" maxlength="40"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Lesson date (like 2026-11-04)</label><input type="text" id="gsDate" class="form-input" maxlength="12"></div>
+        <div class="form-group"><label class="form-label">First name(s) who cancelled, comma separated</label><input type="text" id="gsWho" class="form-input" maxlength="120"></div>
+      </div>
+      <button type="button" class="btn-outline" onclick="gsRun(false)" style="width:100%;text-align:center;margin-bottom:0.6rem;">Show what the others would be charged</button>
+      <button type="button" class="btn-primary" onclick="gsRun(true)" style="width:100%;text-align:center;margin-bottom:0.6rem;">Charge the difference on their next payment</button>
       <div class="form-group" style="margin-top:1rem;"><label class="form-label">Set young, teenage or adult learner (paste the lesson id from the list above). Lessons with no age set are hidden from students.</label><input type="text" id="gcAgeId" class="form-input" maxlength="40">
         <select id="gcAgeVal" class="form-input" style="margin-top:0.5rem;"><option value="child">Young learner (under 13)</option><option value="teen">Teenage learner (13 to 17)</option><option value="adult">Adult learner (18 and over)</option></select></div>
       <button type="button" class="btn-outline" onclick="gcSetAge()" style="width:100%;text-align:center;margin-bottom:0.6rem;">Save age group</button>
@@ -280,6 +288,17 @@
     if (!data.requests.length) lines.push('  (none)');
     data.requests.forEach(r => lines.push('  ' + r.who + ' (' + r.email + ') asked to join ' + r.lesson + '  [' + r.status + ']'));
     document.getElementById('gcOut').textContent = lines.join('\n');
+  }
+  async function gsRun(confirm) {
+    if (confirm && !window.confirm('Add the price difference to the next payment of the students who attend? They will be emailed.')) return;
+    const data = await gcCall({ action: 'shortLesson', id: document.getElementById('gsId').value.trim(), date: document.getElementById('gsDate').value.trim(), cancelled: document.getElementById('gsWho').value, confirm: confirm });
+    if (!data) return;
+    const out = document.getElementById('gcOut');
+    if (data.preview) {
+      out.textContent = 'The class was priced for ' + data.expected + ' students (' + data.paidEach + ' each). ' + data.attending + ' will attend, which is ' + data.fairEach + ' each, so ' + data.topupEach + ' extra each:\n' + data.plan.map(p => '  ' + p.name + (p.billable ? ': +' + data.topupEach : ': ' + (p.note || 'no subscription'))).join('\n');
+    } else {
+      out.textContent = data.message || ('Done.\n' + data.applied.map(a => '  ' + a.name + ': ' + (a.skipped || ('+' + a.amount + ' added to next payment'))).join('\n') + (data.plan.some(p => p.note) ? '\n' + data.plan.filter(p => p.note).map(p => p.name + ': ' + p.note).join('\n') : ''));
+    }
   }
   async function gcSetAge() {
     const id = document.getElementById('gcAgeId').value.trim();

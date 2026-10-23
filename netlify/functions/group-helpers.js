@@ -62,14 +62,23 @@ function publicIdForSubscription(subscriptionId) {
   return 's' + crypto.createHash('sha256').update(String(subscriptionId)).digest('hex').slice(0, 12);
 }
 
-// What a group class costs each person while TWO students share it, and what the same lesson
-// costs as a private lesson (the prices on the pricing page). When only one student is left,
-// that student pays the private price again. Everybody is told this before they agree.
+// What a group class costs each person: the group price while TWO students share it, $5 less each
+// when a THIRD student joins, and the normal private price when only one is left (the prices on the
+// pricing page). Everybody is told all of this before they agree.
 const GROUP_PRICE_CENTS = { 30: 3500, 45: 4500, 60: 5500, 75: 6500, 90: 7500 };
 const PRIVATE_PRICE_CENTS = { 30: 5000, 45: 7000, 60: 8500, 75: 10000, 90: 12000 };
+const THIRD_STUDENT_DISCOUNT_CENTS = 500;
 function dollars(cents) { return '$' + (cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)); }
 function groupCents(durationMinutes) { return GROUP_PRICE_CENTS[parseInt(durationMinutes, 10)] || null; }
 function privateCents(durationMinutes) { return PRIVATE_PRICE_CENTS[parseInt(durationMinutes, 10)] || null; }
+// What each student pays per lesson when this many students are in the class.
+function priceForSize(durationMinutes, size) {
+  const g = groupCents(durationMinutes), p = privateCents(durationMinutes);
+  if (!g || !p) return null;
+  if (size >= 3) return g - THIRD_STUDENT_DISCOUNT_CENTS;
+  if (size === 2) return g;
+  return p;
+}
 function groupPriceFor(durationMinutes) {
   const c = groupCents(durationMinutes);
   return c ? dollars(c) + ' each' : null;
@@ -78,7 +87,10 @@ function groupPriceFor(durationMinutes) {
 function groupRuleText(durationMinutes) {
   const g = groupCents(durationMinutes), p = privateCents(durationMinutes);
   if (!g || !p) return 'The group price applies only while at least two students share the lesson. If everyone else stops coming, it becomes a private lesson again at the normal private price.';
-  return 'The group price is ' + dollars(g) + ' per lesson, and it only applies while at least two students share the lesson. If everyone else stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson.';
+  return 'The group price is ' + dollars(g) + ' per lesson each for two students, or ' + dollars(g - THIRD_STUDENT_DISCOUNT_CENTS) + ' each if a third student joins. ' +
+    'If everyone else stops coming, it becomes a private lesson again and goes back to the normal private price of ' + dollars(p) + ' per lesson. ' +
+    'The price is set when each payment is taken. Group lessons need at least 48 hours\' notice to cancel, after that you still pay in full. ' +
+    'If a student cancels in time and fewer students attend, those who attend pay the difference on their next payment.';
 }
 
 // What anyone may see about a lesson that is open to a group. Nothing that identifies a
@@ -264,6 +276,6 @@ module.exports = {
   JAMES_EMAIL, SITE, DAY_NAMES, MAX_GROUP,
   listingsStore, requestsStore,
   cleanAge, ageWords, esc, clean, firstNameOf, validEmail, randomToken, randomId, publicIdForSubscription,
-  groupPriceFor, groupCents, privateCents, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,
+  groupPriceFor, groupCents, privateCents, priceForSize, THIRD_STUDENT_DISCOUNT_CENTS, dollars, groupRuleText, GROUP_PRICE_CENTS, PRIVATE_PRICE_CENTS, publicListing, listAllRequests,
   overRequestLimit, recordRequestAttempt, sendMail, wrapEmail, detailRows, emailButton
 };
