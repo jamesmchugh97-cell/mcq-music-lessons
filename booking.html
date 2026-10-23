@@ -39,8 +39,6 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<style>html.jumping{scroll-behavior:auto !important;}</style>
-<script>if(location.hash){document.documentElement.classList.add("jumping");window.addEventListener("load",function(){setTimeout(function(){document.documentElement.classList.remove("jumping");},400);});}</script>
 </head>
 <body>
 <!-- NAV -->
@@ -76,6 +74,17 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     <span></span><span></span><span></span>
   </button>
 </nav>
+<div class="subnav" id="subnav"><div class="subnav-inner">
+  <a href="#startHere" data-view="startHere">All options</a>
+  <a href="#trial" data-view="trial">Trial lesson</a>
+  <a href="#subscribe" data-view="subscribe">Weekly lessons</a>
+  <a href="#package" data-view="package">Package or voucher</a>
+  <a href="#group" data-view="group">Group class</a>
+  <a href="#calendar" data-view="calendar">Availability</a>
+  <a href="#manage-subscription" data-view="manage-subscription">Already a student</a>
+  <a href="#manage" data-view="manage">My bookings</a>
+</div></div>
+
 <div class="mobile-menu" id="mobileMenu">
   <a href="programs.html" onclick="toggleMenu()">Programs</a>
   <a href="pricing.html#reviews" onclick="toggleMenu()">Reviews</a>
@@ -116,7 +125,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="divider" id="rescheduleDivider" style="display:none;"></div>
 
-<section id="startHere" style="padding-top:7rem;padding-bottom:1rem;">
+<section id="startHere" style="padding-bottom:1rem;">
   <div class="section-inner">
     <p class="section-eyebrow">Start here</p>
     <h2 class="section-title">What would you <em>like to do?</em></h2>
@@ -125,6 +134,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <a class="start-card" href="#subscribe"><strong>Weekly lessons</strong><span>Reserve your own regular time, week or fortnight.</span></a>
       <a class="start-card" href="#package"><strong>Lesson package</strong><span>Prepay 5 or 10 lessons, or use a gift voucher.</span></a>
       <a class="start-card" href="#group"><strong>Group class</strong><span>Share a lesson with other students for less.</span></a>
+      <a class="start-card" href="#calendar"><strong>See open times</strong><span>Check which days and times are free.</span></a>
       <a class="start-card" href="#manage-subscription"><strong>Already a student?</strong><span>Pause, change or manage your lessons.</span></a>
       <a class="start-card" href="#manage"><strong>See my bookings</strong><span>Check, move or cancel a lesson.</span></a>
     </div>
@@ -448,7 +458,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
   <div class="section-inner">
     <p class="section-eyebrow">Weekly Enrollment</p>
     <h2 class="section-title">Reserve your <em>own time slot</em></h2>
-    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 8 weeks a year, cancel any time, all fully self-service below.</p>
+    <p class="section-sub">Claim the same day and time every week or fortnight, permanently yours, so you never have to think about booking again. No sign-up fee, pause for up to 8 weeks a year, cancel any time, all fully self-service.</p>
     <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.2rem;max-width:520px;">Prefer to try it out before committing? A <a href="#trial" style="color:var(--gold);">trial lesson</a> is a completely optional way to do that, entirely up to you either way.</p>
 
     <form class="booking-form" id="subscribeForm" onsubmit="return handleSubscribe(event)">
@@ -607,7 +617,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       <div class="form-group" style="border:1px solid var(--navy-border);border-radius:6px;padding:0.9rem 1rem;">
         <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.88rem;color:var(--cream);cursor:pointer;line-height:1.5;">
           <input type="checkbox" id="subGroupOpen" style="width:auto;margin-top:0.25rem;" onchange="document.getElementById('subGroupExtra').style.display=this.checked?'block':'none'">
-          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person: if it goes ahead, you pay the group price (for example $45 instead of $70 for 45 minutes). If everyone else later stops, your lesson goes back to its normal price and we'll email you first. A third student takes $5 off each lesson. Group lessons need 48 hours' notice to cancel (see Group Classes below).<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
+          <span><strong>I'd be open to sharing this lesson as a group class.</strong> If another student with similar goals asks to join, I'll be emailed first, and nothing changes unless I say yes. Group lessons cost less per person: if it goes ahead, you pay the group price (for example $45 instead of $70 for 45 minutes). If everyone else later stops, your lesson goes back to its normal price and we'll email you first. A third student takes $5 off each lesson. Group lessons need 48 hours' notice to cancel (see <a href="#group" style="color:var(--gold);">Group class</a>).<br><span style="font-size:0.76rem;color:var(--muted);">Even if you don't tick this, your lesson time may be listed on the Group Classes section without your name, so someone can ask. You can switch that off any time under Manage Enrollment.</span></span>
         </label>
         <div id="subGroupExtra" style="display:none;margin-top:0.8rem;">
           <label class="form-label">What music do you want to play, and what are your goals? (shown to students who might join, with your first name only)</label>
@@ -621,7 +631,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       </div>
       <p id="subError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:0.6rem;"></p>
       <button class="btn-primary" id="subSubmitBtn" type="submit" style="width:100%;text-align:center;padding:0.9rem;font-size:0.88rem;">Enroll →</button>
-      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. You're charged a few days before each lesson (if your first lesson is less than about a week away, that first payment is taken when you enrol). First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing enrollment? <a href="#manage-subscription" style="color:var(--gold);">Manage it below</a>.</p>
+      <p style="text-align:center;font-size:0.72rem;color:var(--muted);margin-top:0.6rem;">Redirects to a secure Stripe checkout. You're charged a few days before each lesson (if your first lesson is less than about a week away, that first payment is taken when you enrol). First time here? No need to commit to anything long-term - you can pause or cancel any time, no questions asked. Need to pause, reschedule, or cancel an existing enrollment? <a href="#manage-subscription" style="color:var(--gold);">Manage it</a>.</p>
     </form>
   </div>
 </section>
@@ -1589,7 +1599,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('subDay').value = dow;
       handleSubscribeDayChange();
       document.getElementById('subDuration').value = durValue;
-      document.getElementById('subscribe').scrollIntoView({behavior:'smooth'});
+      showView('subscribe'); history.replaceState(null,'','#subscribe');
       document.getElementById('subTime').value = t;
       handleSubscribeDurationChange();
     };
@@ -2555,10 +2565,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     if (!manageEmail) return;
     document.getElementById('manageEmail').value = manageEmail;
     await findMyBookings();
-    const manageSection = document.getElementById('manage');
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      manageSection.scrollIntoView({ behavior: 'smooth' });
-    }));
+    showView('manage'); history.replaceState(null,'','#manage');
   }
 
   function confirmAction(action, email, date, time, alreadyRescheduled) {
@@ -3949,12 +3956,43 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     document.getElementById('pkgTitle').innerHTML = 'Use your <em>voucher</em>';
     document.getElementById('pkgSub').textContent = 'Enter your voucher code, then choose a date and time for each lesson. Your lessons are already paid for, so there is nothing to pay.';
     document.getElementById('pkgGift').style.display = 'none';
-    document.documentElement.style.scrollBehavior = 'auto';
-    window.addEventListener('load', function(){
-      var el = document.getElementById('package');
-      if (el) { window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 40); var i = document.getElementById('voucherCodeInput'); if (i && !i.value) i.focus({preventScroll:true}); }
-    });
+    window.addEventListener('load', function(){ if (window.showView) showView('package'); var i = document.getElementById('voucherCodeInput'); if (i && !i.value) i.focus({preventScroll:true}); });
   } catch (e) {}
+})();
+</script>
+<script>
+// One section at a time: each option opens as its own view, so the page stays short.
+(function(){
+  var VIEWS = ['startHere','trial','subscribe','package','group','calendar','manage-subscription','manage'];
+  var HOME_EXTRA = ['booking-policy','contact'];
+  var ALL = VIEWS.concat(HOME_EXTRA);
+  function pick(){
+    var h = (location.hash || '').replace('#','');
+    if (VIEWS.indexOf(h) > -1) return h;
+    return 'startHere';
+  }
+  window.showView = function(id, noScroll){
+    if (VIEWS.indexOf(id) < 0) id = 'startHere';
+    ALL.forEach(function(x){
+      var el = document.getElementById(x); if (!el) return;
+      var on = (x === id) || (id === 'startHere' && HOME_EXTRA.indexOf(x) > -1);
+      el.style.display = on ? '' : 'none';
+    });
+    document.querySelectorAll('#subnav a').forEach(function(a){
+      var cur = a.getAttribute('data-view') === id;
+      a.classList.toggle('active', cur);
+      if (cur) { a.setAttribute('aria-current','page'); try { a.scrollIntoView({block:'nearest',inline:'center'}); } catch(e){} } else a.removeAttribute('aria-current');
+    });
+    if (!noScroll) window.scrollTo(0, 0);
+  };
+  function onHash(){
+    var h = (location.hash || '').replace('#','');
+    if (h === 'booking-policy' || h === 'contact') { showView('startHere', true); var t = document.getElementById(h); if (t) t.scrollIntoView(); return; }
+    showView(pick());
+  }
+  window.addEventListener('hashchange', onHash);
+  document.documentElement.classList.add('views');
+  onHash();
 })();
 </script>
 </body>

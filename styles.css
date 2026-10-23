@@ -325,3 +325,13 @@
   .start-card:hover { border-color: var(--gold); }
   .start-card strong { display: block; color: var(--gold); font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; }
   .start-card span { display: block; font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+/* Booking page: one section at a time */
+.subnav { position: sticky; top: 56px; z-index: 90; margin-top: 56px; background: rgba(13,19,33,0.96); border-bottom: 1px solid var(--navy-border); }
+.subnav-inner { display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.6rem 1rem; max-width: 1100px; margin: 0 auto; scrollbar-width: none; }
+.subnav-inner::-webkit-scrollbar { display: none; }
+.subnav a { flex: 0 0 auto; white-space: nowrap; font-size: 0.8rem; letter-spacing: 0.04em; color: var(--muted); text-decoration: none; padding: 0.4rem 0.8rem; border: 1px solid var(--navy-border); border-radius: 999px; }
+.subnav a:hover { color: var(--cream); border-color: var(--gold); }
+.subnav a.active { color: var(--navy); background: var(--gold); border-color: var(--gold); }
+html.views .divider { display: none; }
+html.views #startHere, html.views #trial, html.views #package, html.views #calendar, html.views #subscribe, html.views #manage-subscription, html.views #group, html.views #manage { padding-top: 2rem; }
