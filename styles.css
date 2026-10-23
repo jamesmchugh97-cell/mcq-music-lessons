@@ -319,3 +319,9 @@
   .testimonial-quote::before { content: "\201C"; color: var(--gold); font-family: var(--font-display); font-size: 1.8rem; line-height: 0; vertical-align: -0.5rem; margin-right: 2px; }
   .testimonial-author { font-size: 0.78rem; font-weight: 500; color: var(--gold); }
   .testimonial-detail { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+  /* BOOKING PAGE: START HERE CHOOSER */
+  .start-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.8rem; margin-top: 1.2rem; }
+  .start-card { display: block; background: var(--navy-mid); border: 1px solid var(--navy-border); border-radius: 6px; padding: 1rem 1.1rem; text-decoration: none; color: var(--cream); transition: border-color 0.2s; }
+  .start-card:hover { border-color: var(--gold); }
+  .start-card strong { display: block; color: var(--gold); font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .start-card span { display: block; font-size: 0.82rem; color: var(--muted); line-height: 1.5; }

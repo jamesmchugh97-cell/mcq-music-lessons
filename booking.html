@@ -114,6 +114,21 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
 
 <div class="divider" id="rescheduleDivider" style="display:none;"></div>
 
+<section id="startHere" style="padding-bottom:1rem;">
+  <div class="section-inner">
+    <p class="section-eyebrow">Start here</p>
+    <h2 class="section-title">What would you <em>like to do?</em></h2>
+    <div class="start-grid">
+      <a class="start-card" href="#trial"><strong>Try a trial lesson</strong><span>New here? Book one lesson to see if it suits.</span></a>
+      <a class="start-card" href="#subscribe"><strong>Weekly lessons</strong><span>Reserve your own regular time, week or fortnight.</span></a>
+      <a class="start-card" href="#package"><strong>Lesson package</strong><span>Prepay 5 or 10 lessons, or use a gift voucher.</span></a>
+      <a class="start-card" href="#group"><strong>Group class</strong><span>Share a lesson with other students for less.</span></a>
+      <a class="start-card" href="#manage-subscription"><strong>Already a student?</strong><span>Pause, change or manage your lessons.</span></a>
+      <a class="start-card" href="#manage"><strong>See my bookings</strong><span>Check, move or cancel a lesson.</span></a>
+    </div>
+  </div>
+</section>
+
 <section id="trial">
   <div class="section-inner">
     <p class="section-eyebrow">Trial Lesson</p>
@@ -1612,7 +1627,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
     const errorEl = document.getElementById('rescheduleError');
     const contentEl = document.getElementById('rescheduleContent');
     panel.style.display = 'block';
-    document.getElementById('rescheduleDivider').style.display = 'block';
+    document.getElementById('rescheduleDivider').style.display = 'block'; (document.getElementById('startHere') || {style:{}}).style.display = 'none';
     try {
       const resp = await fetch('/.netlify/functions/get-reschedule-credit?token=' + encodeURIComponent(token));
       const result = await resp.json();
@@ -1751,7 +1766,7 @@ src="https://www.facebook.com/tr?id=551157863990443&ev=PageView&noscript=1"
       document.getElementById('modalBody').textContent = 'No charge, your lesson is now booked for ' + date + ' at ' + time + '. A confirmation email is on its way.';
       document.getElementById('successModal').classList.add('open');
       document.getElementById('reschedulePanel').style.display = 'none';
-      document.getElementById('rescheduleDivider').style.display = 'none';
+      document.getElementById('rescheduleDivider').style.display = 'none'; (document.getElementById('startHere') || {style:{}}).style.display = '';
       loadLiveBookings();
     } catch (e) {
       errorEl.style.display = 'block';
