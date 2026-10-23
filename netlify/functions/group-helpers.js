@@ -26,21 +26,7 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 // booking page's own list). They can be asked to share too, but they have no email on file, so
 // James is the one asked, and he asks them in person. Keep in step with RECURRING_STUDENTS in
 // booking.html.
-const ROSTER = [
-  { name: 'Meja', age: 'child', instrument: 'Guitar', level: 'Intermediate', dow: 1, time: '4:00 pm', duration: 75 },
-  { name: 'Nick', age: 'adult', instrument: 'Guitar', level: 'Intermediate', dow: 1, time: '6:00 pm', duration: 90 },
-  { name: 'Maria', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 2, time: '6:00 pm', duration: 60 },
-  { name: 'Emma', age: 'adult', instrument: 'Bass', level: 'Intermediate', dow: 2, time: '7:00 pm', duration: 60 },
-  { name: 'Michael', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '1:00 pm', duration: 60 },
-  { name: 'Hugo', age: 'child', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '3:45 pm', duration: 45 },
-  { name: 'Anya', age: 'child', instrument: 'Piano', level: 'Complete Beginner', dow: 3, time: '5:15 pm', duration: 30 },
-  { name: 'Alex', age: 'adult', instrument: 'Guitar', level: 'Beginner', dow: 3, time: '6:00 pm', duration: 60 },
-  { name: 'Shannon', age: 'adult', instrument: 'Guitar', level: 'Intermediate', dow: 3, time: '7:15 pm', duration: 60 },
-  { name: 'Meja', age: 'child', instrument: 'Guitar', level: 'Intermediate', dow: 4, time: '4:30 pm', duration: 75 },
-  { name: 'Odie', age: 'teen', instrument: 'Guitar', level: 'Beginner', dow: 4, time: '5:45 pm', duration: 30 },
-  { name: 'Will', age: 'child', instrument: 'Piano', level: 'Beginner', dow: 4, time: '6:15 pm', duration: 30 },
-  { name: 'Javin', age: 'teen', instrument: 'Guitar', level: 'Beginner', dow: 4, time: '6:45 pm', duration: 60 }
-];
+const ROSTER = require('./roster').ROSTER;
 
 // Students are only ever matched within the same age group: child = young learner (under 13),
 // teen = teenage learner (13 to 17), adult = adult learner (18 and over).
